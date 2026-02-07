@@ -1,6 +1,7 @@
 import app from './app';
 import { Server } from "socket.io";
 import { createServer } from 'http';
+import 'dotenv/config';
 
 const server = createServer(app);
 
@@ -14,5 +15,5 @@ export const io = new Server(server, {
 const PORT = process.env.PORT || 4000;
 
 server.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server is running on port http://localhost:${PORT}`);
 });

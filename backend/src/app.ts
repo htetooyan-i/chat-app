@@ -1,17 +1,19 @@
-import express from 'express';
 import cors from 'cors';
+import 'dotenv/config';
+import express from 'express';
 import morgan from 'morgan';
-import { prisma } from './lib/prisma';
+import cookieParser from "cookie-parser";
+
+import router from './routes/index';
 
 const app = express();
+
 app.use(cors({ origin: "http://localhost:3000" }));
 app.use(express.json());
-app.use(morgan('dev'));
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
+app.use(morgan('dev'));
 
-app.get('/users', async (req, res) => {
-    const users = await prisma.user.findMany();
-    res.json(users);
-});
+app.use('/api', router);
 
 export default app;
