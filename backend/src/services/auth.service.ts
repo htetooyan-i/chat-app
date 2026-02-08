@@ -1,123 +1,163 @@
 import { prisma } from '../lib/prisma';
 import { AuthErrorCode } from '../errors/authErrors';
-import { hashPassword, verifyPassword } from '../lib/password';
+import { Hash } from '../lib/hash';
 import { createAccessToken, createRefreshToken, verifyToken } from '../lib/jwt';
 
-// CREATE USER
-export async function create (username: string, email: string, password: string) {
+export class AuthService {
 
-    const existingEmail = await prisma.user.findUnique({ where: { email } });
+    // CREATE USER
+    static async create (username: string, email: string, password: string) {
 
-    if (existingEmail) {
-        throw new Error(AuthErrorCode.EXIST_EMAIL);
-    }
+        const existingEmail = await prisma.user.findUnique({ where: { email } });
 
-    const existingUsername = await prisma.user.findUnique({ where: { username } });
-    if (existingUsername) {
-        throw new Error(AuthErrorCode.EXIST_USERNAME);
-    }  
+        if (existingEmail) {
+            throw new Error(AuthErrorCode.EXIST_EMAIL);
+        }
 
-    const hashedPassword = await hashPassword(password);
+        const existingUsername = await prisma.user.findUnique({ where: { username } });
+        if (existingUsername) {
+            throw new Error(AuthErrorCode.EXIST_USERNAME);
+        }  
 
-    const newUser = await prisma.user.create({
-        data: {
-            email: email,
-            username: username,
-            passwordHash: hashedPassword,
-        },
-    });
+        const hashedPassword = await Hash.hash(password);
 
-    const accessToken = await createAccessToken({ userId: newUser.id, email: newUser.email });
-    const refreshToken = await createRefreshToken({ userId: newUser.id });
-
-    return { ...newUser, accessToken, refreshToken };
-    
-}; 
-
-// LOGIN USER
-export async function login (email: string, password: string) {
-
-    console.log("Attempting login for:", email);
-
-    const user = await prisma.user.findUnique({ where: { email } });
-    const isPasswordValid = user ? await verifyPassword(user.passwordHash, password) : false;
-
-    if (!user || !isPasswordValid) {
-        throw new Error(AuthErrorCode.INVALID_CREDENTIALS);
-    }
-
-    // Generate tokens
-    try {
-        const accessToken = await createAccessToken({
-        userId: user.id,
-        email: user.email,
+        const newUser = await prisma.user.create({
+            data: {
+                email: email,
+                username: username,
+                passwordHash: hashedPassword,
+            },
         });
 
-        const refreshToken = await createRefreshToken({
-        userId: user.id,
-        });
-        return { accessToken, refreshToken };
-    } catch (err) {
-        throw err;
-    }
-    
-};
+        const accessToken = await createAccessToken({ userId: newUser.id, email: newUser.email });
+        const refreshToken = await createRefreshToken({ userId: newUser.id });
 
-// GET CURRENT USER
-export async function me(userId: number) {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) {
-        throw new Error(AuthErrorCode.USER_NOT_FOUND);
-    }
-    return { id: user.id, username: user.username, email: user.email };
-}
+        return { ...newUser, accessToken, refreshToken };
+        
+    }; 
 
-// REFRESH ACCESS TOKEN
-export async function refreshAccessToken(refreshToken: string) {
-    const payload = await verifyToken<{
-                        userId: number;
-                        email: string;
-                        exp: number;
-                    }>(refreshToken);
+    // LOGIN USER
+    static async login (email: string, password: string) {
 
-    const newAccessToken = await createAccessToken({ userId: payload.userId, email: payload.email });
-    return { accessToken: newAccessToken };
+        const user = await prisma.user.findUnique({ where: { email } });
+        const isPasswordValid = user ? await Hash.verify(user.passwordHash, password) : false;
 
-}
+        if (!user || !isPasswordValid) {
+            throw new Error(AuthErrorCode.INVALID_CREDENTIALS);
+        }
 
-// LOGOUT USER
-export async function logout(accessToken: string) {
-    // OPTIONAL: revoke access and refresh tokens in a token blacklist or database
-    return;
-}
+        // Generate tokens
+        try {
+            const accessToken = await createAccessToken({
+            userId: user.id,
+            email: user.email,
+            });
 
-// DELETE USER
-export async function deleteUser(userId: number) {
-    await prisma.user.delete({ where: { id: userId } });
-    return;
-}
+            const refreshToken = await createRefreshToken({
+            userId: user.id,
+            });
+            return { accessToken, refreshToken };
+        } catch (err) {
+            throw err;
+        }
+        
+    };
 
-// Change Password
-export async function changePassword(userId: number, currentPassword: string, newPassword: string) {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) {
-        throw new Error(AuthErrorCode.USER_NOT_FOUND);
+    // GET CURRENT USER
+    static async me(userId: number) {
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            throw new Error(AuthErrorCode.USER_NOT_FOUND);
+        }
+        return { id: user.id, username: user.username, email: user.email };
     }
 
-    const isCurrentPasswordValid = await verifyPassword(user.passwordHash, currentPassword);
-    if (!isCurrentPasswordValid) {
-        throw new Error(AuthErrorCode.INVALID_CREDENTIALS);
+    static async getUserByEmail(email: string) {
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user) {
+            throw new Error(AuthErrorCode.USER_NOT_FOUND);
+        }
+        return user;
     }
 
-    const newHashedPassword = await hashPassword(newPassword);
-    try {
-        await prisma.user.update({
-            where: { id: userId },
-            data: { passwordHash: newHashedPassword },
-        });
-    } catch (err) {
-        throw new Error("Failed to change password");
+    // REFRESH ACCESS TOKEN
+    static async refreshAccessToken(refreshToken: string) {
+        const payload = await verifyToken<{
+                            userId: number;
+                            email: string;
+                            exp: number;
+                        }>(refreshToken);
+
+        const newAccessToken = await createAccessToken({ userId: payload.userId, email: payload.email });
+        return { accessToken: newAccessToken };
+
     }
+
+    // LOGOUT USER
+    static async logout(accessToken: string) {
+        // OPTIONAL: revoke access and refresh tokens in a token blacklist or database
+        return;
+    }
+
+    // DELETE USER
+    static async deleteUser(userId: number) {
+        try {
+            await prisma.user.delete({
+                where: { id: userId },
+            });
+        } catch (err) {
+            throw new Error("Failed to delete user");
+        }
+    }
+
+    // Change Password
+    static async changePassword(userId: number, currentPassword: string, newPassword: string, isVerified = false) {
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            throw new Error(AuthErrorCode.USER_NOT_FOUND);
+        }
+
+        if (!isVerified) {
+            const isCurrentPasswordValid = await Hash.verify(user.passwordHash, currentPassword);
+            if (!isCurrentPasswordValid) {
+                throw new Error(AuthErrorCode.INVALID_CREDENTIALS);
+            }
+        }
+
+        const newHashedPassword = await Hash.hash(newPassword);
+        try {
+            await prisma.user.update({
+                where: { id: userId },
+                data: { passwordHash: newHashedPassword },
+            });
+        } catch (err) {
+            throw new Error("Failed to change password");
+        }
+    }
+
+    // Update user verification status
+    static async verifyUser(userId: number) {
+        try {
+            await prisma.user.update({
+                where: { id: userId },
+                data: { verified: true },
+            });
+        } catch (err) {
+            throw new Error("Failed to verify user");
+        }
+    }
+
+    // Check if user is verified
+    static async isUserVerified(userId: number): Promise<boolean> {
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            throw new Error(AuthErrorCode.USER_NOT_FOUND);
+        }
+        return user.verified;
+    }
+
+
+
 }
 
 

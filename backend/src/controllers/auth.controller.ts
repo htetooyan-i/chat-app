@@ -1,13 +1,20 @@
 import { Request, Response } from 'express';
 
-import { create, login, me, refreshAccessToken, logout, deleteUser, changePassword } from '../services/auth.service';
+import { AuthService } from '../services/auth.service';
 import { AuthErrorMessage } from '../errors/authErrors';
+import { EmailService } from '../services/email.service';
+import { TokenService } from '../services/token.service';
 
 export async function RegisterUser(req: Request, res: Response) {
     const { username, email, password } = req.body;
 
     try {
-        const newUser = await create(username, email, password);
+        const newUser = await AuthService.create(username, email, password);
+        
+        // Generate email verification token and send verification email
+        const rawToken = await TokenService.generate(newUser.id, "EMAIL_VERIFICATION", 60); // Generate token with 1 hour expiration
+        await EmailService.sendVerificationEmail(email!, rawToken).catch(console.error);
+
         res.cookie("refreshToken", newUser.refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
@@ -27,7 +34,7 @@ export async function RegisterUser(req: Request, res: Response) {
 export async function LoginUser(req: Request, res: Response) {
     const { email, password } = req.body;
     try {
-        const { accessToken, refreshToken} = await login(email, password);
+        const { accessToken, refreshToken} = await AuthService.login(email, password);
 
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
@@ -53,7 +60,7 @@ export async function GetCurrentUser(req: Request, res: Response) {
     }
 
     try {
-        const user = await me(userId);
+        const user = await AuthService.me(userId);
         res.status(200).json({ data: user });
     } catch (error) {
         res.status(404).json({ error: AuthErrorMessage[(error as Error).message as keyof typeof AuthErrorMessage] });
@@ -68,7 +75,7 @@ export async function RefreshAccessToken(req: Request, res: Response) {
     }
 
     try {
-        const tokens = await refreshAccessToken(refreshToken);
+        const tokens = await AuthService.refreshAccessToken(refreshToken); // Verify the refresh token and generate new access token (and optionally a new refresh token)
         res.status(200).json({ data: tokens });
     } catch (error) {
         res.status(401).json({ error: "Invalid refresh token" });
@@ -83,7 +90,7 @@ export async function LogoutUser(req: Request, res: Response) {
     }
 
     try {
-        await logout(refreshToken); // FIX: currently this function doesn't do anything, but you can implement token revocation logic here if needed
+        await AuthService.logout(refreshToken); // FIX: currently this function doesn't do anything, but you can implement token revocation logic here if needed
         res.clearCookie("refreshToken");
 
         res.status(200).json({ message: "Logout successful" });
@@ -101,7 +108,7 @@ export async function DeleteUser(req: Request, res: Response) {
     }
 
     try {
-        await deleteUser(userId);
+        await AuthService.deleteUser(userId);
         res.clearCookie("refreshToken");
         res.status(200).json({ message: "User deleted successfully" });
     } catch (error) {
@@ -122,9 +129,121 @@ export async function ChangePassword(req: Request, res: Response) {
     const { currentPassword, newPassword } = req.body;
 
     try {
-        await changePassword(userId, currentPassword, newPassword);
+        await AuthService.changePassword(userId, currentPassword, newPassword);
         res.status(200).json({ message: "Password changed successfully" });
     } catch (error) {
         res.status(400).json({ error: (error as Error).message });
     }  
 }
+
+export async function VerifyEmail(req: Request, res: Response) {
+    const { token } = req.query;
+
+    if (typeof token !== "string") {
+        return res.status(400).json({ error: "Token is required" });
+    }
+
+    // Verify the token in header is valid and get the associated user ID
+    const tokenRecord = await TokenService.verifyToken("EMAIL_VERIFICATION", token);
+
+    if (!tokenRecord) {
+        return res.status(400).json({ error: "Invalid or expired token" });
+    }
+
+    try {
+        await AuthService.verifyUser(tokenRecord.userId);
+        res.status(200).json({ message: "Email verified successfully"});
+    } catch (error) {
+        res.status(400).json({ error: "Invalid or expired token" });
+    }
+}
+
+export async function ResendVerificationEmail(req: Request, res: Response) {
+    const { userId, email } = req.user || {};
+
+    if (!userId || !email) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // Check if user is already verified if so, no need to resend verification email
+    if (await AuthService.isUserVerified(userId)) {
+        return res.status(400).json({ error: "Email is already verified" });
+    }
+
+    try {
+        const rawToken = await TokenService.generate(userId, "EMAIL_VERIFICATION", 60); // Generate token with 1 hour expiration
+        await EmailService.sendVerificationEmail(email!, rawToken).catch(console.error);
+
+        res.status(200).json({ message: "Verification email sent successfully" });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to send verification email" });
+    }
+
+}
+
+export async function RequestPasswordReset(req: Request, res: Response) {
+    const { email } = req.body;
+
+    if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+    }
+
+    try {
+
+        const user = await AuthService.getUserByEmail(email);
+        if (!user) {
+            return res.status(400).json({ error: "User with this email does not exist" });
+        }
+
+        const rawToken = await TokenService.generate(user.id, "PASSWORD_RESET", 15);
+        await EmailService.sendPasswordResetEmail(email, rawToken).catch(console.error);
+        
+        res.status(200).json({ message: "Password reset email sent successfully" });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to send password reset email" });
+    }
+}
+// NOTE: This endpoint is not used in the current flow because we only verify the password reset token when the submit the form to reset password, but we could use this endpoint when we want to verify the token first before showing the reset password form to the user
+export async function VerifyResetToken(req: Request, res: Response) {
+    const token = req.query.token;
+    if (typeof token !== "string") {
+        return res.status(400).json({ error: "Token is required" });
+    }
+
+    try {
+        await TokenService.verifyToken("PASSWORD_RESET", token); // just fetch, don't delete/use
+        res.status(200).json({ message: "Token valid, show reset form" });
+
+    } catch (error) {
+        res.status(400).json({ error: "Invalid or expired token" });
+    }
+}
+
+export async function ResetPassword(req: Request, res: Response) {
+    const token = req.query.token;
+    const { newPassword } = req.body;
+
+    if (typeof token !== "string") {
+        return res.status(400).json({ error: "Token is required" });
+    }
+
+    if (!newPassword) {
+        return res.status(400).json({ error: "New password is required" });
+    }
+    
+    try {
+        const tokenRecord = await TokenService.verifyToken("PASSWORD_RESET", token);
+        if (!tokenRecord) {
+            return res.status(400).json({ error: "Invalid or expired token" });
+        }
+
+        await AuthService.changePassword(tokenRecord.userId, "", newPassword, true); // We can pass empty string for current password since we already verified the token
+        await TokenService.markTokenUsed(tokenRecord.id); // Mark the token as used so it can't be used again
+        res.status(200).json({ message: "Password reset successfully" });
+
+    } catch (error) {
+        res.status(500).json({ error: "Failed to reset password" });
+    }   
+}
+
+
