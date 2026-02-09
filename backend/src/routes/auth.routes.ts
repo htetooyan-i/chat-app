@@ -13,7 +13,9 @@ import {
     VerifyEmail, 
     ResendVerificationEmail ,
     RequestPasswordReset,
-    ResetPassword
+    ResetPassword,
+    RequestPhoneOTP,
+    VerifyPhoneOTP
 } from '../controllers/auth.controller';
 
 const router = express.Router();
@@ -33,5 +35,9 @@ router.post('/reset-password', ResetPassword);
 
 router.post('/resend-verification-email', authMiddleware, resendVerificationLimiter, ResendVerificationEmail);
 router.get('/verify-email', VerifyEmail);
+
+// FIX: Need to test this back after upgrade twilio account
+router.post('/request-otp', RequestPhoneOTP)
+router.post('/verify-otp', VerifyPhoneOTP)
 
 export default router;

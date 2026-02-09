@@ -4,6 +4,7 @@ import { AuthService } from '../services/auth.service';
 import { AuthErrorMessage } from '../errors/authErrors';
 import { EmailService } from '../services/email.service';
 import { TokenService } from '../services/token.service';
+import { OTPService } from '../services/otp.service';
 
 export async function RegisterUser(req: Request, res: Response) {
     const { username, email, password } = req.body;
@@ -245,5 +246,40 @@ export async function ResetPassword(req: Request, res: Response) {
         res.status(500).json({ error: "Failed to reset password" });
     }   
 }
+
+export async function RequestPhoneOTP(req: Request, res: Response) {
+    const { phone } = req.body;
+    
+    if (!phone) {
+        return res.status(400).json({ error: "Phone number is required" });
+    }
+
+    try {
+        await OTPService.sendOTP(phone);
+        res.status(200).json({ message: "OTP sent successfully" });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to send OTP" });
+    }
+}
+
+export async function VerifyPhoneOTP(req: Request, res: Response) {
+    const { phone, code } = req.body;
+
+    if (!phone || !code) {
+        return res.status(400).json({ error: "Phone and code are required" });
+    }
+
+    try {
+        const status = await OTPService.verifyOTP(phone, code);
+        if (status === "approved") {
+            res.status(200).json({ message: "Phone number verified successfully" });
+        } else {
+            res.status(400).json({ error: "Invalid OTP code" });
+        }
+    } catch (error) {
+        res.status(500).json({ error: "Failed to verify OTP" });
+    }
+}
+
 
 
