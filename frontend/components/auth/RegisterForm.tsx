@@ -1,20 +1,31 @@
 import React, { useState } from 'react';
 
 type RegisterFormProps = {
-  onSubmit: (data: {
-    username: string;
-    email: string;
-    password: string;
-    confirmPassword: string;
-  }) => void;
+    isSubmitting: boolean;
+    onSubmit: (data: {
+        username: string;
+        email: string;
+        password: string;
+        confirmPassword: string;
+    }) => void;
 };
 
-function RegisterForm({ onSubmit }: RegisterFormProps) {
+function RegisterForm({ onSubmit, isSubmitting }: RegisterFormProps) {
 
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+
+    const parsePasswordValidation = (pwd: string) => {
+        const hasMinLength = pwd.length >= 8;
+        const hasUppercase = /[A-Z]/.test(pwd);
+        const hasLowercase = /[a-z]/.test(pwd);
+        const hasNumber = /[0-9]/.test(pwd);
+        return hasMinLength && hasUppercase && hasLowercase && hasNumber;
+    };
+
+    const isPasswordInvalid = !parsePasswordValidation(password) || password !== confirmPassword;
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -29,6 +40,7 @@ function RegisterForm({ onSubmit }: RegisterFormProps) {
 
         onSubmit(data);
     };
+
     return (
         <div>
             <form onSubmit={handleSubmit} method='POST' className='mt-5 flex flex-col gap-5'>
@@ -48,7 +60,12 @@ function RegisterForm({ onSubmit }: RegisterFormProps) {
                     <label htmlFor="confirmPassword" className='text-[14px] font-semibold'>Confirm Password</label><br/>
                     <input type="password" id="confirmPassword" name="confirmPassword" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className='border border-muted-border rounded-md px-3 py-2 bg-chat-panel focus:border-accent focus:outline focus:outline-2 focus:outline-accent'/>
                 </div>
-                <button type="submit" className="bg-accent text-primary rounded-md py-2 mt-5 font-[14px] font-semibold cursor-pointer hover:opacity-80 transition-all">Sign Up</button>
+
+                <div>
+                    {!parsePasswordValidation(password) && password && <p className="text-red-500 text-[12px] mt-1">Password must be at least 8 characters with uppercase, lowercase, and a number</p>}
+                    {parsePasswordValidation(password) && isPasswordInvalid && <p className="text-red-500 text-[12px] mt-1">Passwords do not match</p>}
+                </div>
+                <button type="submit" disabled={isPasswordInvalid || isSubmitting} className={`${isPasswordInvalid || isSubmitting ? "bg-muted-background cursor-not-allowed" : "bg-accent cursor-pointer hover:opacity-80"} text-primary rounded-md py-2 mt-5 font-[14px] font-semibold transition-all`}>Sign Up</button>
             </form>
         </div>
     );

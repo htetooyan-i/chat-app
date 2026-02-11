@@ -1,13 +1,15 @@
 import React from 'react';
 
 type LoginFormProps = {
-  onSubmit: (data: {
-    email: string;
-    password: string;
-  }) => void;
+    isSubmitting: boolean;
+    onSubmit: (data: {
+        email: string;
+        password: string;
+    }) => void;
+    showForgetPassword: () => void;
 };
 
-function LoginForm({ onSubmit }: LoginFormProps) {
+function LoginForm({ onSubmit, showForgetPassword, isSubmitting }: LoginFormProps) {
     
     const [email, setEmail] = React.useState("");
     const [password, setPassword] = React.useState("");
@@ -36,9 +38,9 @@ function LoginForm({ onSubmit }: LoginFormProps) {
                     <input type="password" id="password" name="password" value={password} onChange={(e) => setPassword(e.target.value)} className='border border-muted-border rounded-md px-3 py-2 bg-chat-panel focus:border-accent focus:outline focus:outline-2 focus:outline-accent'/>
                 </div>
                 <div>
-                    <a href="" className="underline text-accent font-[11px]">Forget password?</a>
+                    <button type="button" onClick={showForgetPassword} className="underline text-accent font-[11px]">Forget password?</button>
                 </div>
-                <button type="submit" className="bg-accent text-primary rounded-md py-2 mt-5 font-[14px] font-semibold cursor-pointer hover:opacity-80 transition-all">Login</button>
+                <button type="submit" disabled={isSubmitting} className={`bg-accent text-primary rounded-md py-2 mt-5 font-[14px] font-semibold cursor-pointer hover:opacity-80 transition-all ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}>Login</button>
             </form>
         </div>
     );

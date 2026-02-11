@@ -13,7 +13,7 @@ export const resetPasswordLimiter = rateLimit({
 
 export const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5,                  // 5 attempts
+  max: 100,                  // 5 attempts // testing with 100 to avoid lockout during development
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Too many login attempts. Try again in 15 minutes." },

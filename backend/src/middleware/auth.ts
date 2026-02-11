@@ -20,7 +20,6 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
       }>(token);
 
       req.user = payload;
-      console.log("Authenticated user:", req);
       next();
     } catch (err) {
       if (err instanceof Error) {

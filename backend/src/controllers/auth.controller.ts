@@ -21,6 +21,13 @@ export async function RegisterUser(req: Request, res: Response) {
             secure: process.env.NODE_ENV === "production",
         });
 
+        res.cookie("accessToken", newUser.accessToken, {
+            httpOnly: false, // We need access token to be accessible by client-side JavaScript to include in Authorization header for API requests
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+            maxAge: 15 * 60 * 1000, // 15 minutes
+        });
+
         res.status(200).json({
             message: "Register successful",
             data: {
@@ -44,6 +51,13 @@ export async function LoginUser(req: Request, res: Response) {
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
 
+        res.cookie("accessToken", accessToken, {
+            httpOnly: false, // We need access token to be accessible by client-side JavaScript to include in Authorization header for API requests
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+            maxAge: 15 * 60 * 1000, // 15 minutes
+        });
+
         res.status(200).json({
             message: "Login successful",
             data: {
@@ -64,6 +78,7 @@ export async function GetCurrentUser(req: Request, res: Response) {
 
     try {
         const user = await AuthService.me(userId);
+        console.log("Current user:", user);
         res.status(200).json({ data: user });
     } catch (error) {
         res.status(404).json({ error: AuthErrorMessage[(error as Error).message as keyof typeof AuthErrorMessage] });
@@ -78,8 +93,16 @@ export async function RefreshAccessToken(req: Request, res: Response) {
     }
 
     try {
-        const tokens = await AuthService.refreshAccessToken(refreshToken); // Verify the refresh token and generate new access token (and optionally a new refresh token)
-        res.status(200).json({ data: tokens });
+        const { accessToken } = await AuthService.refreshAccessToken(refreshToken); // Verify the refresh token and generate new access token (and optionally a new refresh token)
+        
+        res.cookie("accessToken", accessToken, {
+            httpOnly: false, // We need access token to be accessible by client-side JavaScript to include in Authorization header for API requests
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+            maxAge: 15 * 60 * 1000, // 15 minutes
+        });
+
+        res.status(200).json({ data: accessToken });
     } catch (error) {
         res.status(401).json({ error: "Invalid refresh token" });
     }
@@ -95,6 +118,7 @@ export async function LogoutUser(req: Request, res: Response) {
     try {
         await AuthService.logout(refreshToken); // FIX: currently this function doesn't do anything, but you can implement token revocation logic here if needed
         res.clearCookie("refreshToken");
+        res.clearCookie("accessToken");
 
         res.status(200).json({ message: "Logout successful" });
     } catch (error) {
@@ -113,6 +137,7 @@ export async function DeleteUser(req: Request, res: Response) {
     try {
         await AuthService.deleteUser(userId);
         res.clearCookie("refreshToken");
+        res.clearCookie("accessToken");
         res.status(200).json({ message: "User deleted successfully" });
     } catch (error) {
         res.status(500).json({ error: "Failed to delete user" });

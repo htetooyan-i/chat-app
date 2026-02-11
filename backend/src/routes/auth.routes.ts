@@ -23,11 +23,11 @@ const router = express.Router();
 router.post('/register', RegisterUser);
 router.post('/login', loginLimiter, LoginUser);
 
-router.get('/logout', authMiddleware, LogoutUser);
+router.post('/logout', authMiddleware, LogoutUser);
 router.delete('/delete', authMiddleware, DeleteUser);
 
 router.get('/me', authMiddleware, GetCurrentUser);
-router.get('/refresh-access-token', RefreshAccessToken);
+router.post('/refresh-access-token', RefreshAccessToken);
 
 router.patch('/change-password', authMiddleware, ChangePassword);
 router.post('/request-password-reset', resetPasswordLimiter, RequestPasswordReset);
