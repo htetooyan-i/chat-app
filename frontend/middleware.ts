@@ -6,9 +6,10 @@ export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   const isAuthRoute = pathname.startsWith("/auth");
+  const isMaintenanceRoute = pathname.startsWith("/maintenance");
 
   // Not logged in, so block access to protected routes
-  if (!token && !isAuthRoute) {
+  if (!token && !isAuthRoute && !isMaintenanceRoute) {
     return NextResponse.redirect(new URL("/auth", req.url));
   }
 

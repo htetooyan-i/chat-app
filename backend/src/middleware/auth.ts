@@ -4,13 +4,13 @@ import { verifyToken } from "../lib/jwt";
 
 export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
 
-    const authHeader = req.headers.authorization;
+    const accessToken = req.cookies.accessToken;
     
-    // check if the header is present and starts with "Bearer "
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    // check if the token is present
+    if (!accessToken) {
       return res.status(401).json({ message: "Missing token" });
     }
-    const token = authHeader.split(" ")[1];
+    const token = accessToken.startsWith("Bearer ") ? accessToken.slice(7) : accessToken;
 
     try {
       const payload = await verifyToken<{

@@ -2,6 +2,7 @@ import { prisma } from '../lib/prisma';
 import { AuthErrorCode } from '../errors/authErrors';
 import { Hash } from '../lib/hash';
 import { createAccessToken, createRefreshToken, verifyToken } from '../lib/jwt';
+import e from 'cors';
 
 export class AuthService {
 
@@ -38,7 +39,7 @@ export class AuthService {
 
     // LOGIN USER
     static async login (email: string, password: string) {
-
+        
         const user = await prisma.user.findUnique({ where: { email } });
         const isPasswordValid = user ? await Hash.verify(user.passwordHash, password) : false;
 
