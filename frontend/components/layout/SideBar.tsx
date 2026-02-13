@@ -48,26 +48,27 @@ function SideBar({ siderStyle }: SideBarProps) {
     };
 
     return (
-        <div>
-            <Sider width={100} style={{ ...siderStyle, backgroundColor: "var(--sidebar)", scrollbarWidth: "none" }}>
+        <div className="relative bg-sidebar">
+            {/* User Avatar */}
+            <header className='flex justify-center items-center pt-3 pb-3 bg-sidebar border-b border-muted-border'>
+                <a href="/maintenance?from=/">
+                    <Badge dot color="green" className="bottom-badge">
+                        <Avatar shape="square" size={50}>
+                            <Image
+                            src="/profile-img.jpg"
+                            alt="avatar"
+                            width={50}
+                            height={50}
+                            style={{ objectFit: "cover", borderRadius: "10px"}}
+                            />
+                        </Avatar>
+                    </Badge>
+                </a>
+            </header>
+            <Sider width={80} style={{ ...siderStyle, backgroundColor: "var(--sidebar)", scrollbarWidth: "none" }}>
                 <div className="flex flex-col items-center h-full py-5">
                     <div className="flex flex-col items-center h-full">
-                        {/* User Avatar */}
-                        <div className='mb-5'>
-                            <a href="/maintenance?from=/">
-                                <Badge dot color="green" className="bottom-badge">
-                                    <Avatar shape="square" size={60}>
-                                        <Image
-                                        src="/profile-img.jpg"
-                                        alt="avatar"
-                                        width={60}
-                                        height={60}
-                                        style={{ objectFit: "cover", borderRadius: "15px"}}
-                                        />
-                                    </Avatar>
-                                </Badge>
-                            </a>
-                        </div>
+                        
 
                         {/* Server List */}
                         {servers.map((server) => (
@@ -81,6 +82,7 @@ function SideBar({ siderStyle }: SideBarProps) {
                                         size={50}
                                         shape="circle"
                                         style={{
+                                            border: 0,
                                             backgroundColor: "var(--muted-background)",
                                             ...(server.id === 1
                                             ? { outlineColor: "var(--accent)", outlineWidth: "2px", outlineStyle: "solid" }
@@ -93,44 +95,47 @@ function SideBar({ siderStyle }: SideBarProps) {
                         ))}
                     </div>
 
-                    {/* Add Server Button */}
-                    <div onClick={handleCreateNewServer} className="server-item flex items-center justify-center relative my-2 cursor-pointer">
-                        <Badge>
-                            <Avatar
-                            size={50}
-                            shape="circle"
-                            style={{
-                                backgroundColor: "var(--accent)",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center", 
-                            }}
-                            >
-                                <Plus width={32} height={32}/>
-                            </Avatar>
-                        </Badge>
-                    </div>
-
-                    {/* Logout Button */}
-                    <div onClick={handleLogout} className="server-item flex items-center justify-center relative my-2 cursor-pointer">
-                        <Badge>
-                            <Avatar
-                            size={50}
-                            shape="square"
-                            style={{
-                                backgroundColor: "var(--error)",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center", 
-                            }}
-                            >
-                                <LogOut width={32} height={32}/>
-                            </Avatar>
-                        </Badge>
-                    </div>
+                    
 
                 </div>
             </Sider>
+            <footer className="absolute bottom-0 left-0 w-full flex flex-col items-center py-5 bg-sidebar border-t border-muted-border">
+                {/* Add Server Button */}
+                <div onClick={handleCreateNewServer} className="server-item flex items-center justify-center relative my-2 cursor-pointer">
+                    <Badge>
+                        <Avatar
+                        size={40}
+                        shape="circle"
+                        style={{
+                            backgroundColor: "var(--accent)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center", 
+                        }}
+                        >
+                            <Plus width={24} height={24}/>
+                        </Avatar>
+                    </Badge>
+                </div>
+
+                {/* Logout Button */}
+                <div onClick={handleLogout} className="server-item flex items-center justify-center relative my-2 cursor-pointer">
+                    <Badge>
+                        <Avatar
+                        size={40}
+                        shape="square"
+                        style={{
+                            backgroundColor: "var(--error)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center", 
+                        }}
+                        >
+                            <LogOut width={24} height={24}/>
+                        </Avatar>
+                    </Badge>
+                </div>
+            </footer>
         </div>
     );
 }

@@ -1,20 +1,19 @@
 "use client";
 import { Layout } from "antd";
+import type { Metadata } from "next";
 
 import SideBar from "@/components/layout/SideBar";
 import ChannelPanel from "@/components/layout/ChannelPanel";
 
-
 const siderStyle: React.CSSProperties = {
   overflow: 'auto',
-  height: '100vh',
   position: 'sticky',
   insetInlineStart: 0,
   top: 0,
-  scrollbarWidth: 'thin',
-  scrollbarGutter: 'stable',
+  height: '100vh',
+  // scrollbarWidth: 'thin',
+  // scrollbarGutter: 'auto',
 };
-
 
 export default function ServerLayout({
   children,
@@ -22,9 +21,11 @@ export default function ServerLayout({
   children: React.ReactNode;
 }) {
   return (
-    <Layout hasSider>
-      <SideBar siderStyle={siderStyle} />
-      <ChannelPanel siderStyle={siderStyle} />
+    <Layout hasSider style={{ height: "100vh", overflow: "hidden" }}>
+      <div className="flex">
+        <SideBar siderStyle={siderStyle} />
+        <ChannelPanel siderStyle={siderStyle} />
+      </div>
       {children}
     </Layout>
   );

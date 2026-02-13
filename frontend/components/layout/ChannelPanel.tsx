@@ -14,26 +14,27 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
     };
     return (
         <div>
+            {/* Header */}
+            <header className='sticky top-0 z-10 h-[64px] w-full flex justify-center items-end pb-1 px-5 bg-background'>
+                <button
+                onClick={handleCreateChannel}
+                className="bg-accent w-full text-white py-2 font-semibold rounded flex items-center justify-center gap-2 hover:bg-accent-hover transition-colors"
+                >
+                Create New Channel
+                </button>
+            </header>
+
+            {/* Channel List */}
             <Sider
             width={300}
             style={{
                 ...siderStyle,
                 backgroundColor: "var(--background)",
-                paddingInline: "20px",
-                scrollbarGutter: "auto",
+                scrollbarWidth: "thin",
             }}
-            className="!w-full"
             >
-                <div className="w-full mt-7">
-                    <button
-                    onClick={handleCreateChannel}
-                    className="bg-accent w-full text-white py-2 font-semibold rounded mb-4 flex items-center justify-center gap-2 hover:bg-accent-hover transition-colors"
-                    >
-                    Create New Channel
-                    </button>
-
-                    {/* Channel List */}
-                    <div className="flex flex-col gap-3 py-4">
+                <div className="w-full">
+                    <div className="flex flex-col gap-3 py-4 px-5">
                         <div className="text-[15px] h-[45px] p-2 border-s-4 border-accent bg-chat-panel rounded-r-sm cursor-pointer flex items-center">
                             <p className='capitalize'><span>#</span> general</p>
                         </div>
