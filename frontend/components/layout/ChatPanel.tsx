@@ -2,37 +2,40 @@
 import React, { useState } from 'react';
 import { Layout } from 'antd';
 import { SettingFilled } from '@ant-design/icons';
-import { ChevronRight, FileText, UsersRound } from 'lucide-react';
+import { ChevronRight, FileText, Paperclip, Send, Sticker, UsersRound } from 'lucide-react';
 
 import InfoPanel from '@/components/layout/InfoPanel';
+import { useServerLayout } from '@/hooks/useServerLayout';
+import { handleMaintenanceRoute } from '@/lib/helper';
 
 const { Header, Content, Footer } = Layout;
 
 type Tabs = "settings" | "files" | "users" | "none";
 
 function ChatPanel() {
+
+    const { collapsed, setCollapsed } = useServerLayout();
     const [activeTab, setActiveTab] = useState<Tabs>("none");
     const [changeTab, setChangeTab] = useState(false);
+
     return (
-        <div className="flex w-full h-screen">
+        <div className="flex w-full h-screen bg-chat-panel">
             <Layout 
                 className='flex-1 flex flex-col' 
             >
                 <Header 
-                    className='flex items-center' 
+                    className='flex items-center border-b border-muted-border' 
                     style={{ 
-                        padding: "20px", 
-                        background: "var(--chat-panel)", 
-                        borderBottomWidth: 1, 
-                        borderBottomColor: "var(--muted-border)",
+                        background: "var(--chat-panel)",
+                        paddingInline: "20px",
                     }}
                 >
                     <div className='flex w-full justify-between items-center'>
                         <div className='flex justify-start items-center gap-2 flex-1 min-w-0 overflow-hidden'>
-                            <p className='text-white text-lg font-semibold text-[26px] capitalize'>Family</p>
+                            <p onClick={() => setCollapsed(!collapsed)} className='text-white text-lg font-semibold text-[26px] capitalize cursor-pointer'>Chat</p>
                             <ChevronRight className='text-foreground flex-shrink-0' size={32}/>
                             {/* FIX: Channel name should be dynamic and width doesn't work for now */}
-                            <p className='text-[15px] w-[50px] sm:w-[300px] truncate text-muted-text capitalize font-semibold'>
+                            <p className='text-[15px] min-w-0 max-w-[300px] truncate text-muted-text capitalize font-semibold'>
                                 # General
                             </p>
                         </div>
@@ -95,6 +98,7 @@ function ChatPanel() {
                     style={{ 
                         flex: 1,
                         background: "var(--chat-panel)",
+                        paddingInline: "20px",
                         overflowY: "auto",
                         scrollbarWidth: "thin",
                         color: "var(--foreground)",
@@ -110,11 +114,20 @@ function ChatPanel() {
                         <p>long content</p>
                     </div>
                 </Content>
+                <Footer style={{ height: "60px", background: "var(--chat-panel)", paddingTop: "0", paddingInline: "20px" }}>
+                    <div className='flex items-center gap-4 border rounded-lg border-muted-border bg-background h-[50px] px-2 text-foreground'>
+                        <Paperclip className="cursor-pointer" onClick={handleMaintenanceRoute}/>
+                        <input type="text" className='flex-1 bg-transparent outline-none placeholder:text-placeholder font-medium' placeholder='Type a message...' />
+                        <div className='flex gap-2'>
+                            <Sticker className="cursor-pointer" onClick={handleMaintenanceRoute}/>
+                            <Send className="cursor-pointer" onClick={handleMaintenanceRoute}/>
+                        </div>
+
+                    </div>
+                </Footer>
             </Layout>
                 
-            {activeTab !== "none" && 
-                <InfoPanel type={activeTab} />
-            }
+            <InfoPanel type={activeTab} />
         </div>
     );
 }

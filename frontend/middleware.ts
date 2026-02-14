@@ -5,21 +5,23 @@ export function middleware(req: NextRequest) {
   const token = req.cookies.get("refreshToken")?.value;
   const { pathname } = req.nextUrl;
 
-  const isAuthRoute = pathname.startsWith("/auth");
+  const isAuthRoute = pathname === "/"; // only login page
   const isMaintenanceRoute = pathname.startsWith("/maintenance");
+  const isProtectedRoute = pathname.startsWith("/servers");
 
-  // Not logged in, so block access to protected routes
-  if (!token && !isAuthRoute && !isMaintenanceRoute) {
+  if (!token && isProtectedRoute) {
     return NextResponse.redirect(new URL("/auth", req.url));
   }
 
-  // Logged in, so block access to auth routes
   if (token && isAuthRoute) {
-    return NextResponse.redirect(new URL("/", req.url));
+    return NextResponse.redirect(
+      new URL("/servers/1/channels/1", req.url)
+    );
   }
 
   return NextResponse.next();
 }
+
 
 export const config = {
   matcher: [

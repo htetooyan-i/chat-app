@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.error('Logout error:', error);
     } finally {
       setUser(null);
-      router.replace('/auth');
+      router.replace('/');
     }
   }, [router]);
 

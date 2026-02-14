@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 
 type RegisterFormProps = {
     isSubmitting: boolean;
@@ -16,6 +17,8 @@ function RegisterForm({ onSubmit, isSubmitting }: RegisterFormProps) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
 
     const parsePasswordValidation = (pwd: string) => {
         const hasMinLength = pwd.length >= 8;
@@ -54,11 +57,29 @@ function RegisterForm({ onSubmit, isSubmitting }: RegisterFormProps) {
                 </div>
                 <div className='flex flex-col gap-1'>
                     <label htmlFor="password" className='text-[14px] font-semibold'>Password</label><br/>
-                    <input type="password" id="password" name="password" value={password} onChange={(e) => setPassword(e.target.value)} className='border border-muted-border rounded-md px-3 py-2 bg-chat-panel focus:border-accent focus:outline focus:outline-2 focus:outline-accent'/>
+                    <div className="relative">
+                        <input type={isPasswordVisible ? "text" : "password"} id="password" name="password" value={password} onChange={(e) => setPassword(e.target.value)} className='w-full border border-muted-border rounded-md px-3 py-2 bg-chat-panel focus:border-accent focus:outline focus:outline-2 focus:outline-accent'/>
+                        {
+                            isPasswordVisible ? (
+                                <EyeOff type="button" onClick={() => setIsPasswordVisible(false)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"/>
+                            ) : (
+                                <Eye type="button" onClick={() => setIsPasswordVisible(true)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"/>
+                            )
+                        }
+                    </div>
                 </div>
                 <div className='flex flex-col gap-1'>
                     <label htmlFor="confirmPassword" className='text-[14px] font-semibold'>Confirm Password</label><br/>
-                    <input type="password" id="confirmPassword" name="confirmPassword" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className='border border-muted-border rounded-md px-3 py-2 bg-chat-panel focus:border-accent focus:outline focus:outline-2 focus:outline-accent'/>
+                    <div className="relative">
+                        <input type={isConfirmPasswordVisible ? "text" : "password"} id="confirmPassword" name="confirmPassword" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className='w-full border border-muted-border rounded-md px-3 py-2 bg-chat-panel focus:border-accent focus:outline focus:outline-2 focus:outline-accent'/>
+                        {
+                            isConfirmPasswordVisible ? (
+                                <EyeOff type="button" onClick={() => setIsConfirmPasswordVisible(false)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"/>
+                            ) : (
+                                <Eye type="button" onClick={() => setIsConfirmPasswordVisible(true)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"/>
+                            )
+                        }
+                    </div>
                 </div>
 
                 <div>

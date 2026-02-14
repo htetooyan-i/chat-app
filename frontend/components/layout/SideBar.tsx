@@ -5,6 +5,7 @@ import { Avatar, Badge, Layout } from 'antd';
 import Image from 'next/image';
 
 import { useAuth } from '@/hooks/useAuth';
+import { useServerLayout } from '@/hooks/useServerLayout';
 
 const { Sider } = Layout;
 
@@ -16,22 +17,72 @@ const servers = [
     {
         id: 1,
         name: "Server 1",
-        avatar: "/profile-img.jpg",
+        avatar: "/server-img.jpg",
+        title: "Chat"
     },
     {
         id: 2,
         name: "Server 2",
-        avatar: "/profile-img.jpg",
+        avatar: "/server-img.jpg",
+        title: "Gaming"
     },
     {
         id: 3,
         name: "Server 3",
-        avatar: "/profile-img.jpg",
+        avatar: "/server-img.jpg",
+        title: "Development"
     },
+    // {
+    //     id: 4,
+    //     name: "Server 4",
+    //     avatar: "/profile-img.jpg",
+    // },
+    // {
+    //     id: 5,
+    //     name: "Server 5",
+    //     avatar: "/profile-img.jpg",
+    // },
+    // {
+    //     id: 6,
+    //     name: "Server 6",
+    //     avatar: "/profile-img.jpg",
+    // },
+    // {
+    //     id: 7,
+    //     name: "Server 7",
+    //     avatar: "/profile-img.jpg",
+    // },
+    // {
+    //     id: 8,
+    //     name: "Server 8",
+    //     avatar: "/profile-img.jpg",
+    // },
+    // {
+    //     id: 9,
+    //     name: "Server 9",
+    //     avatar: "/profile-img.jpg",
+    // },
+    // {
+    //     id: 10,
+    //     name: "Server 10",
+    //     avatar: "/profile-img.jpg",
+    // },
+    // {
+    //     id: 11,
+    //     name: "Server 11",
+    //     avatar: "/profile-img.jpg",
+    // },
+    // {
+    //     id: 12,
+    //     name: "Server 12",
+    //     avatar: "/profile-img.jpg",
+    // },
+
 ];
 
 function SideBar({ siderStyle }: SideBarProps) {
 
+    const { collapsed, setCollapsed, showUserSettings, setShowUserSettings } = useServerLayout();
     const { logout } = useAuth();
 
     const handleCreateNewServer = () => {
@@ -48,13 +99,24 @@ function SideBar({ siderStyle }: SideBarProps) {
     };
 
     return (
-        <div className="relative bg-sidebar">
-            {/* User Avatar */}
-            <header className='flex justify-center items-center pt-3 pb-3 bg-sidebar border-b border-muted-border'>
-                <a href="/maintenance?from=/">
-                    <Badge dot color="green" className="bottom-badge">
+        <Sider 
+        width={80} 
+        collapsible
+        breakpoint='lg'
+        collapsed={collapsed}
+        collapsedWidth={0}
+        onBreakpoint={(broken) => {
+            setCollapsed(broken);
+        }}
+        style={{ ...siderStyle, backgroundColor: "var(--sidebar)", scrollbarWidth: "none", display: "flex", flexDirection: "column" }}
+        >
+            <div className="flex flex-col h-full">
+                {/* User Avatar */}
+                <header className='h-[64px] sticky top-0 z-10 flex justify-center items-center pt-3 pb-3 bg-sidebar border-b border-muted-border'>
+                    <Badge dot color="green" className="bottom-badge cursor-pointer">
                         <Avatar shape="square" size={50}>
                             <Image
+                            onClick={() => setShowUserSettings(true)}
                             src="/profile-img.jpg"
                             alt="avatar"
                             width={50}
@@ -63,18 +125,14 @@ function SideBar({ siderStyle }: SideBarProps) {
                             />
                         </Avatar>
                     </Badge>
-                </a>
-            </header>
-            <Sider width={80} style={{ ...siderStyle, backgroundColor: "var(--sidebar)", scrollbarWidth: "none" }}>
-                <div className="flex flex-col items-center h-full py-5">
-                    <div className="flex flex-col items-center h-full">
-                        
-
-                        {/* Server List */}
-                        {servers.map((server) => (
+                </header>
+                <div className="flex flex-col items-center flex-1 overflow-y-auto py-5 hide-scrollbar">
+                    {/* Server List */}
+                    {servers.map((server) => (
                             <div
                                 key={server.id}
                                 className="server-item flex items-center justify-center relative my-2 cursor-pointer"
+                                title={server.title}
                             >
                                 <Badge>
                                     <Avatar
@@ -92,14 +150,9 @@ function SideBar({ siderStyle }: SideBarProps) {
 
                                 </Badge>
                             </div>
-                        ))}
-                    </div>
-
-                    
-
+                    ))}
                 </div>
-            </Sider>
-            <footer className="absolute bottom-0 left-0 w-full flex flex-col items-center py-5 bg-sidebar border-t border-muted-border">
+                <footer className="flex flex-col items-center py-5 bg-sidebar border-t border-muted-border">
                 {/* Add Server Button */}
                 <div onClick={handleCreateNewServer} className="server-item flex items-center justify-center relative my-2 cursor-pointer">
                     <Badge>
@@ -136,7 +189,8 @@ function SideBar({ siderStyle }: SideBarProps) {
                     </Badge>
                 </div>
             </footer>
-        </div>
+            </div>
+        </Sider>
     );
 }
 

@@ -98,7 +98,7 @@ api.interceptors.response.use(
     // If error is 401 (Unauthorized) and we haven't retried yet
     if (error.response?.status === 401 && !originalRequest._retry) {
 
-        if (originalRequest.url?.includes('/auth')) {
+        if (originalRequest.url?.includes('/')) {
             return Promise.reject(error);
         }
       
@@ -140,7 +140,7 @@ api.interceptors.response.use(
             localStorage.removeItem('user');
             
             // Redirect to auth page
-            window.location.href = '/auth';
+            window.location.href = '/';
             
             return Promise.reject(refreshError);
         } finally {
