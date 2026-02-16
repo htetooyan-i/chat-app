@@ -8,10 +8,32 @@ export function middleware(req: NextRequest) {
   const isAuthRoute = pathname === "/"; // only login page
   const isMaintenanceRoute = pathname.startsWith("/maintenance");
   const isProtectedRoute = pathname.startsWith("/servers");
+  const isSettingsRoute = pathname.startsWith("/settings");
+
+  // Allow access to maintenance page without authentication
+  if (isMaintenanceRoute) {
+    return NextResponse.next();
+  }
+
+  // Allow access to settings page only if authenticated
+  if (isSettingsRoute && !token) {
+    return NextResponse.redirect(new URL("/auth", req.url));
+  }
 
   if (!token && isProtectedRoute) {
     return NextResponse.redirect(new URL("/auth", req.url));
   }
+
+  if (token && isAuthRoute) {
+    return NextResponse.redirect(
+      new URL("/servers/1/channels/1", req.url)
+    );
+  }
+
+  if (!token && isAuthRoute) {
+    return NextResponse.redirect(new URL("/auth", req.url));
+  }
+
 
   if (token && isAuthRoute) {
     return NextResponse.redirect(

@@ -1,15 +1,9 @@
 "use client";
 import { Layout } from "antd";
-import type { Metadata } from "next";
 
 import SideBar from "@/components/layout/SideBar";
 import ChannelPanel from "@/components/layout/ChannelPanel";
-import { ServerLayoutContext } from "@/context/ServerLayoutContext";
-import { useState } from "react";
-import { User } from "lucide-react";
-import UserSettingsModal from "@/components/user/UserSettingsModal";
-
-const { Sider } = Layout;
+import { ServerLayoutProvider } from "@/context/ServerLayoutContext";
 
 const siderStyle: React.CSSProperties = {
   overflow: 'hidden',
@@ -24,20 +18,16 @@ export default function ServerLayout({
 }: {
   children: React.ReactNode;
 }) {
-
-  const [collapsed, setCollapsed] = useState(false);
-  const [showUserSettings, setShowUserSettings] = useState(false);
   
   return (
-    <ServerLayoutContext.Provider value={{ collapsed, setCollapsed, showUserSettings, setShowUserSettings }}>
+    <ServerLayoutProvider>
       <Layout>
-        <UserSettingsModal showUserSettings={showUserSettings} setShowUserSettings={setShowUserSettings} />
         <SideBar siderStyle={siderStyle} />
         <ChannelPanel siderStyle={siderStyle} />
         <div className="flex-1">
           {children}
         </div>
       </Layout>
-    </ServerLayoutContext.Provider>
+    </ServerLayoutProvider>
   );  
 }

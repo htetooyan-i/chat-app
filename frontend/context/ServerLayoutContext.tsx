@@ -1,14 +1,24 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useState } from "react";
 
 type ServerLayoutContextType = {
   collapsed: boolean;
   setCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
-  showUserSettings: boolean;
-  setShowUserSettings: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export const ServerLayoutContext = createContext<ServerLayoutContextType | null>(null);
 
+export const ServerLayoutProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const [collapsed, setCollapsed] = useState(false);
 
+  return (
+    <ServerLayoutContext.Provider value={{ collapsed, setCollapsed }}>
+      {children}
+    </ServerLayoutContext.Provider>
+  );
+};

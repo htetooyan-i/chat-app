@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 
+import { parsePasswordValidation } from '@/lib/helper';
+
 type RegisterFormProps = {
     isSubmitting: boolean;
     onSubmit: (data: {
@@ -19,14 +21,6 @@ function RegisterForm({ onSubmit, isSubmitting }: RegisterFormProps) {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
-
-    const parsePasswordValidation = (pwd: string) => {
-        const hasMinLength = pwd.length >= 8;
-        const hasUppercase = /[A-Z]/.test(pwd);
-        const hasLowercase = /[a-z]/.test(pwd);
-        const hasNumber = /[0-9]/.test(pwd);
-        return hasMinLength && hasUppercase && hasLowercase && hasNumber;
-    };
 
     const isPasswordInvalid = !parsePasswordValidation(password) || password !== confirmPassword;
 
@@ -81,10 +75,10 @@ function RegisterForm({ onSubmit, isSubmitting }: RegisterFormProps) {
                         }
                     </div>
                 </div>
+                    <div className='flex flex-col gap-0'>
 
-                <div>
-                    {!parsePasswordValidation(password) && password && <p className="text-red-500 text-[12px] mt-1">Password must be at least 8 characters with uppercase, lowercase, and a number</p>}
-                    {parsePasswordValidation(password) && isPasswordInvalid && <p className="text-red-500 text-[12px] mt-1">Passwords do not match</p>}
+                    <p className={`text-red-500 text-[12px] mt-1`} style={{ visibility: !parsePasswordValidation(password) && password ? "visible" : "hidden" }}>Password must be at least 8 characters with uppercase, lowercase, and a number</p>
+                    <p className={` text-red-500 text-[12px] mt-1`} style={{ visibility: parsePasswordValidation(password) && isPasswordInvalid ? "visible" : "hidden" }}>Passwords do not match</p>
                 </div>
                 <button type="submit" disabled={isPasswordInvalid || isSubmitting} className={`${isPasswordInvalid || isSubmitting ? "bg-muted-background cursor-not-allowed" : "bg-accent cursor-pointer hover:opacity-80"} text-primary rounded-md py-2 mt-5 font-[14px] font-semibold transition-all`}>Sign Up</button>
             </form>

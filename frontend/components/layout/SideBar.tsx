@@ -2,6 +2,7 @@
 import React from 'react';
 import { LogOut, Plus } from 'lucide-react';
 import { Avatar, Badge, Layout } from 'antd';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 import { useAuth } from '@/hooks/useAuth';
@@ -82,7 +83,8 @@ const servers = [
 
 function SideBar({ siderStyle }: SideBarProps) {
 
-    const { collapsed, setCollapsed, showUserSettings, setShowUserSettings } = useServerLayout();
+    const router = useRouter();
+    const { collapsed, setCollapsed } = useServerLayout();
     const { logout } = useAuth();
 
     const handleCreateNewServer = () => {
@@ -96,6 +98,10 @@ function SideBar({ siderStyle }: SideBarProps) {
         } catch (error) {
             console.error("Logout failed:", error);
         }
+    };
+
+    const handleShowUserSettings = () => {
+        router.push("/settings?from=/");
     };
 
     return (
@@ -116,7 +122,7 @@ function SideBar({ siderStyle }: SideBarProps) {
                     <Badge dot color="green" className="bottom-badge cursor-pointer">
                         <Avatar shape="square" size={50}>
                             <Image
-                            onClick={() => setShowUserSettings(true)}
+                            onClick={handleShowUserSettings}
                             src="/profile-img.jpg"
                             alt="avatar"
                             width={50}

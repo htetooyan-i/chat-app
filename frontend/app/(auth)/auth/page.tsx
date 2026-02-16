@@ -20,7 +20,8 @@ function AuthPage() {
     const handleFormSubmit = async (data: { username?: string; email: string; password: string; confirmPassword?: string }) => {
         setIsSubmitting(true);
         try {
-            const response = await api.post(
+            
+            await api.post(
                 `/auth/${isLogin ? "login" : "register"}`, 
                 data,
                 { withCredentials: true } 

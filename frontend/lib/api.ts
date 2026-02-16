@@ -31,18 +31,18 @@ let failedQueue: Array<{
   reject: (reason?: any) => void;
 }> = [];
 
-// Process queued requests after refresh
-const processQueue = (error: any, token: string | null = null) => {
-  failedQueue.forEach(prom => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
-  });
+// // Process queued requests after refresh
+// const processQueue = (error: any, token: string | null = null) => {
+//   failedQueue.forEach(prom => {
+//     if (error) {
+//       prom.reject(error);
+//     } else {
+//       prom.resolve(token);
+//     }
+//   });
   
-  failedQueue = [];
-};
+//   failedQueue = [];
+// };
 
 // OPTIONAL: Request interceptor - refresh before expiry
 // api.interceptors.request.use(
@@ -87,69 +87,69 @@ const processQueue = (error: any, token: string | null = null) => {
 // );
 
 // Response interceptor - handles token refresh
-api.interceptors.response.use(
-  (response) => {
-    // If response is successful, just return it
-    return response;
-  },
-  async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+// api.interceptors.response.use(
+//   (response) => {
+//     // If response is successful, just return it
+//     return response;
+//   },
+//   async (error: AxiosError) => {
+//     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    // If error is 401 (Unauthorized) and we haven't retried yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
+//     // If error is 401 (Unauthorized) and we haven't retried yet
+//     if (error.response?.status === 401 && !originalRequest._retry) {
 
-        if (originalRequest.url?.includes('/')) {
-            return Promise.reject(error);
-        }
+//         if (originalRequest.url?.includes('/')) {
+//             return Promise.reject(error);
+//         }
       
-        // If already refreshing, queue this request
-        if (isRefreshing) {
-            return new Promise((resolve, reject) => {
-                failedQueue.push({ resolve, reject });
-            })
-            .then(() => {
-                return api(originalRequest);
-            })
-            .catch((err) => {
-                return Promise.reject(err);
-            });
-        }
+//         // If already refreshing, queue this request
+//         if (isRefreshing) {
+//             return new Promise((resolve, reject) => {
+//                 failedQueue.push({ resolve, reject });
+//             })
+//             .then(() => {
+//                 return api(originalRequest);
+//             })
+//             .catch((err) => {
+//                 return Promise.reject(err);
+//             });
+//         }
 
-        originalRequest._retry = true;
-        isRefreshing = true;
+//         originalRequest._retry = true;
+//         isRefreshing = true;
 
-        try {
-            // Request new access token
-            await axios.post(
-                `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/auth/refresh-access-token`,
-                {},
-                { withCredentials: true }
-            );
+//         try {
+//             // Request new access token
+//             await axios.post(
+//                 `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/auth/refresh-access-token`,
+//                 {},
+//                 { withCredentials: true }
+//             );
 
-            // Refresh successful, process queued requests
-            processQueue(null, null);
+//             // Refresh successful, process queued requests
+//             processQueue(null, null);
             
-            // Retry original request
-            return api(originalRequest);
+//             // Retry original request
+//             return api(originalRequest);
 
-        } catch (refreshError) {
-            // Refresh failed - logout user
-            processQueue(refreshError, null);
+//         } catch (refreshError) {
+//             // Refresh failed - logout user
+//             processQueue(refreshError, null);
             
-            // Clear any user data
-            localStorage.removeItem('user');
+//             // Clear any user data
+//             localStorage.removeItem('user');
             
-            // Redirect to auth page
-            window.location.href = '/';
+//             // Redirect to auth page
+//             window.location.href = '/';
             
-            return Promise.reject(refreshError);
-        } finally {
-            isRefreshing = false;
-        }
-    }
+//             return Promise.reject(refreshError);
+//         } finally {
+//             isRefreshing = false;
+//         }
+//     }
 
-    return Promise.reject(error);
-});
+//     return Promise.reject(error);
+// });
 
 
 export default api;

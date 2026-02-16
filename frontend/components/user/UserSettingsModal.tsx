@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { Modal, ModalProps, Avatar, Badge } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
-import Image from 'next/image';
-import { Camera, User } from 'lucide-react';
 
 import { useAuth } from '@/hooks/useAuth';
 import UserGeneralInfo from '@/components/user/UserGeneralInfo';
+import UserSettingsPassword from './UserSettingsPassword';
 
 const styles: ModalProps['styles'] = {
     mask: {
@@ -52,7 +51,13 @@ function UserSettingsModal({ showUserSettings, setShowUserSettings }: UserSettin
             onCancel={() => setShowUserSettings(false)}
             width={"80%"}
             >
+                {/* Avatar, username, email, phone number(optional) */}
                 <UserGeneralInfo />
+                
+                {/* Password */}
+
+                <UserSettingsPassword />
+
             </Modal>
         </div>
     );

@@ -1,25 +1,17 @@
 import React from 'react';
 import { Camera, User } from 'lucide-react';
-import { Avatar } from 'antd';
+import { Avatar, ModalProps } from 'antd';
 import Image from 'next/image';
 
 import api from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
-import UserSettingsEditInput from '@/components/user/UserSettingsEditInput';
+import { useUserSettingLayout } from '@/hooks/useUserSettingsLayout';
 
 function UserGeneralInfo() {
 
     const { user, refreshUser } = useAuth();
-
-    const handleChangeUsername = async (newUsername: string) => {
-        try {
-            const res = await api.patch('/users/me', { username: newUsername });
-            console.log('Username updated successfully:', res.data);
-            await refreshUser();
-        } catch (error) {
-            console.error('Error updating username:', error);
-        }
-    }
+    const { setShowUsernameEditingModal, setShowEmailEditingModal } = useUserSettingLayout();
+    
 
     const handleChangeEmail = async (newEmail: string) => {
         try {
@@ -32,7 +24,7 @@ function UserGeneralInfo() {
     }
 
     return (
-        <div className="flex flex-col items-center gap-4 w-2/3 mx-auto bg-sidebar mt-10 p-5 rounded-lg">
+        <div className="flex flex-col items-center gap-4 mx-auto bg-sidebar mt-10 p-5 rounded-lg">
             <div className='flex justify-start items-center py-4 gap-4 w-full'>
                 <div className="relative group cursor-pointer">
                     <Avatar shape="circle" size={86}>
@@ -63,7 +55,7 @@ function UserGeneralInfo() {
                 <p className="text-lg font-semibold">{user?.username}</p>
             </div>
             <div className='flex flex-col gap-4 bg-muted-background p-4 rounded-lg w-full'>
-                <UserSettingsEditInput 
+                {/* <UserSettingsEditInput 
                     label="Username"
                     value={user?.username || ""}
                     changeValue={handleChangeUsername}
@@ -72,7 +64,37 @@ function UserGeneralInfo() {
                     label="Email"
                     value={user?.email || ""}
                     changeValue={handleChangeEmail}
-                />
+                /> */}
+
+                <div className='flex justify-between items-start gap-4'>
+                    <div className='relative flex-1 flex flex-col gap-1'>
+                        <p className='font-bold text-[14px]'>Username</p>
+                        <p className='font-medium text-[12px]'>{user?.username}</p>
+                    </div>
+                    <div>
+                        <button 
+                            className="px-4 py-1 rounded-lg border border-muted-border cursor-pointer hover:border-accent hover:text-accent transition-colors duration-200"
+                            onClick={() => setShowUsernameEditingModal(true)}
+                        >
+                            Edit
+                        </button>
+                    </div>
+                </div>
+
+                <div className='flex justify-between items-start gap-4'>
+                    <div className='relative flex-1 flex flex-col gap-1'>
+                        <p className='font-bold text-[14px]'>Email</p>
+                        <p className='font-medium text-[12px]'>{user?.email}</p>
+                    </div>
+                    <div>
+                        <button 
+                            className="px-4 py-1 rounded-lg border border-muted-border cursor-pointer hover:border-accent hover:text-accent transition-colors duration-200"
+                            onClick={() => setShowEmailEditingModal(true)}
+                        >
+                            Edit
+                        </button>
+                    </div>
+                </div>
 
                 {/* Placeholder for future phone number field */}
                 <div className='flex justify-between items-start'>

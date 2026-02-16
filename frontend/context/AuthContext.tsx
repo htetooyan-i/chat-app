@@ -14,6 +14,7 @@ type AuthContextType = {
   loading: boolean;
   isAuthenticated: boolean;
   logout: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
   refreshUser: () => Promise<void>;
 };
 
@@ -28,6 +29,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const res = await api.get('/auth/me');
       setUser(res.data.data);
+      console.log('Fetched user data:', res.data.data);
     } catch (error) {
       setUser(null);
     } finally {
@@ -47,9 +49,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.error('Logout error:', error);
     } finally {
       setUser(null);
-      router.replace('/');
+      router.replace('/auth');
     }
   }, [router]);
+
+  const deleteAccount = useCallback(async () => {
+    try {
+      await api.delete('/auth/delete');
+    } catch (error) {
+      console.error('Account deletion error:', error);
+    } finally {
+      setUser(null);
+      router.replace('/auth');
+    }
+    
+  }, [router]);
+
 
   // Refresh user data
   const refreshUser = useCallback(async () => {
@@ -63,6 +78,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         loading,
         isAuthenticated: !!user,
         logout,
+        deleteAccount,
         refreshUser,
       }}
     >
