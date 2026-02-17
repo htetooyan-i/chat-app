@@ -6,7 +6,8 @@ import {
     UpdateCurrentUser,
     FindUserById,
     UpdateAvatar,
-    DeleteAvatar
+    DeleteAvatar,
+    UpdateEmail
  } from '../controllers/users.controller';
  
 const router = express.Router();
@@ -15,9 +16,8 @@ router.get('/me', authMiddleware, GetCurrentUser);
 router.patch('/me', authMiddleware, UpdateCurrentUser);
 router.patch('/me/avatar', authMiddleware, UpdateAvatar);
 router.delete('/me/avatar', authMiddleware, DeleteAvatar);
+router.patch('/me/email', authMiddleware, UpdateEmail);
 
 router.get('/:id', authMiddleware, FindUserById);
-
-
 
 export default router;

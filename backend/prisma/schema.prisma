@@ -9,6 +9,20 @@ enum VerifyTokenType {
   PASSWORD_RESET
   PHONE_VERIFICATION
 }
+
+enum MemberRole {
+  ADMIN
+  MODERATOR
+  MEMBER
+  OWNER
+}
+
+enum ChannelType {
+  TEXT
+  ANNOUNCEMENT
+  BUSINESS
+}
+
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -16,7 +30,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -31,6 +44,8 @@ model User {
   updatedAt DateTime @updatedAt
 
   tokens    UserToken[] 
+  memberships   ServerMember[]
+  ownedServers  Server[] @relation("ServerOwner")
 }
 
 model UserToken {
@@ -43,4 +58,40 @@ model UserToken {
   used      Boolean   @default(false)
   createdAt DateTime  @default(now())
 }
+
+model Server {
+  id          Int      @id @default(autoincrement())
+  name        String
+  ownerId     Int
+  createdAt   DateTime @default(now())
+
+  owner       User @relation("ServerOwner", fields: [ownerId], references: [id])
+  members     ServerMember[]
+  channels    Channel[]
+}
+
+model ServerMember {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  serverId  Int
+  role      MemberRole   @default(MEMBER) // admin | moderator | member
+  joinedAt  DateTime @default(now())
+
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  server    Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, serverId])
+}
+
+model Channel {
+  id        Int      @id @default(autoincrement())
+  name      String
+  serverId  Int
+  type ChannelType
+  createdAt DateTime @default(now())
+
+  server    Server @relation(fields: [serverId], references: [id])
+}
+
+
 

@@ -1,5 +1,9 @@
-import { UsersService } from '../services/users.service';
 import { Request, Response } from 'express';
+
+import { UsersService } from '../services/users.service';
+import { TokenService } from '../services/token.service';
+import { EmailService } from '../services/email.service';
+import { AuthService } from '../services/auth.service';
 
 export async function GetCurrentUser(req: Request, res: Response) {
     const userId = req.user?.userId;
@@ -18,17 +22,46 @@ export async function GetCurrentUser(req: Request, res: Response) {
 
 export async function UpdateCurrentUser(req: Request, res: Response) {
     const userId = req.user?.userId;
-    const { username, bio } = req.body;
+    const { username, bio, password } = req.body;
     if (!userId) {
         res.status(401).json({ message: 'Unauthorized' });
     }   
 
     try {
-        const updatedUser = await UsersService.updateProfile(userId, { username, bio });
+        const updatedUser = await UsersService.updateProfile(userId, password, { username, bio });
         res.status(200).json({data: updatedUser});
     } catch (error) {
         console.error('Error updating user profile:', error);
         res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+export async function UpdateEmail(req: Request, res: Response) {
+    const userId = req.user?.userId;
+    const { newEmail, password } = req.body;
+
+    if (!userId) {
+        res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    try {
+        await UsersService.updateEmail(userId, password, newEmail);
+
+        // Generate email verification token and send verification email
+        const rawToken = await TokenService.generate(userId, "EMAIL_VERIFICATION", 60); // Generate token with 1 hour expiration
+        await EmailService.sendVerificationEmail(newEmail, rawToken).catch(console.error);
+
+        await AuthService.changeUserVerificationStatus(userId, false); // Set user's verification status to false after email change
+            
+        res.status(200).json({ message: 'Email updated successfully' });
+    } catch (error: unknown) {
+        console.error("Error updating user email:", error);
+
+        if (error instanceof Error) {
+            return res.status(500).json({ error: error.message });
+        }
+
+        return res.status(500).json({ error: "Internal server error" });
     }
 }
 

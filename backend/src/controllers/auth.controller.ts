@@ -179,7 +179,7 @@ export async function VerifyEmail(req: Request, res: Response) {
     }
 
     try {
-        await AuthService.verifyUser(tokenRecord.userId);
+        await AuthService.changeUserVerificationStatus(tokenRecord.userId, true); // Update user's verification status to true
         res.status(200).json({ message: "Email verified successfully"});
     } catch (error) {
         res.status(400).json({ error: "Invalid or expired token" });

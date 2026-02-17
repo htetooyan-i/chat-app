@@ -2,7 +2,6 @@ import { prisma } from '../lib/prisma';
 import { AuthErrorCode } from '../errors/authErrors';
 import { Hash } from '../lib/hash';
 import { createAccessToken, createRefreshToken, verifyToken } from '../lib/jwt';
-import e from 'cors';
 
 export class AuthService {
 
@@ -137,11 +136,11 @@ export class AuthService {
     }
 
     // Update user verification status
-    static async verifyUser(userId: number) {
+    static async changeUserVerificationStatus(userId: number, verified: boolean) {
         try {
             await prisma.user.update({
                 where: { id: userId },
-                data: { verified: true },
+                data: { verified: verified },
             });
         } catch (err) {
             throw new Error("Failed to verify user");

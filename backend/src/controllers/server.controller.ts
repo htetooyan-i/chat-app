@@ -1,0 +1,48 @@
+import { Request, Response } from 'express';
+
+import ServerService from "../services/server.service";
+import ServerMemberService from '../services/serverMember.service';
+
+export async function createServer(req: Request, res: Response) {
+    const userId = req.user?.userId;
+    const { name } = req.body;
+    if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+    try {
+        const data = await ServerService.createServer(name, userId);
+        res.status(200).json({ message: 'Server created successfully', data });
+    } catch (error: any) {
+        console.error('Error creating server:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export async function getCurrentUserServers(req: Request, res: Response) {
+    const userId = req.user?.userId;
+    if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+    try {
+        const servers = await ServerMemberService.getCurrentUserServers(userId);
+        res.status(200).json({ message: 'Servers retrieved successfully', data: servers });
+    } catch (error: any) {
+        console.error('Error retrieving servers:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export async function deleteServer(req: Request, res: Response) {
+    const userId = req.user?.userId;
+    const { serverId } = req.params;
+    if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+    try {
+        await ServerService.deleteServer(Number(serverId), userId);
+        res.status(200).json({ message: 'Server deleted successfully' });
+    } catch (error: any) {
+        console.error('Error deleting server:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+}
