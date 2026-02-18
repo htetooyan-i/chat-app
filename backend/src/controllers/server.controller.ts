@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 
+import { prisma } from '../lib/prisma';
 import ServerService from "../services/server.service";
 import ServerMemberService from '../services/serverMember.service';
 
@@ -10,10 +11,37 @@ export async function createServer(req: Request, res: Response) {
         return res.status(401).json({ message: 'Unauthorized' });
     }
     try {
-        const data = await ServerService.createServer(name, userId);
-        res.status(200).json({ message: 'Server created successfully', data });
+        const data = await prisma.$transaction(async (tx) => {
+            const server = await tx.server.create({
+                data: { name, ownerId: userId },
+            });
+
+            await tx.serverMember.create({
+                data: { serverId: server.id, userId },
+            });
+
+            return server;
+        });
+        res.status(200).json({ message: 'Server created successfully', data: data });
+
     } catch (error: any) {
         console.error('Error creating server:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export async function updateServerName(req: Request, res: Response) {
+    const userId = req.user?.userId;
+    const { serverId } = req.params;
+    const { name } = req.body;
+    if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+    try {
+        const data = await ServerService.updateServerName(Number(serverId), name, userId);
+        res.status(200).json({ message: 'Server name updated successfully', data });
+    } catch (error: any) {
+        console.error('Error updating server name:', error.message);
         res.status(500).json({ message: error.message });
     }
 }

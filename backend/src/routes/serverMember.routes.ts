@@ -7,6 +7,6 @@ import {
 
 const router = express.Router();
 
-router.get('/:serverId/members', authMiddleware, getServerMembers);
+
 
 export default router;

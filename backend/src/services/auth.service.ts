@@ -2,6 +2,7 @@ import { prisma } from '../lib/prisma';
 import { AuthErrorCode } from '../errors/authErrors';
 import { Hash } from '../lib/hash';
 import { createAccessToken, createRefreshToken, verifyToken } from '../lib/jwt';
+import { checkPasswordStrength } from '../lib/helper';
 
 export class AuthService {
 
@@ -18,6 +19,10 @@ export class AuthService {
         if (existingUsername) {
             throw new Error(AuthErrorCode.EXIST_USERNAME);
         }  
+
+        if (!checkPasswordStrength(password)) {
+            throw new Error(AuthErrorCode.WEAK_PASSWORD);
+        }
 
         const hashedPassword = await Hash.hash(password);
 
