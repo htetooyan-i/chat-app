@@ -33,16 +33,56 @@ class ServerMemberService {
 
     }
 
-    static async removeMember(serverId: number, userId: number) {
+    static async removeMember(serverId: number, requesterId: number, memberId: number) {
         try {
-            await prisma.serverMember.delete({
-                where: { userId_serverId: { userId, serverId } },
+            const server = await prisma.server.findUnique({
+                where: { id: serverId },
             });
+
+            if (!server) {
+                throw new Error("Server not found");
+            }
+
+            // Get requester role
+            const requesterMembership = await prisma.serverMember.findUnique({
+                where: { userId_serverId: { userId: requesterId, serverId } },
+            });
+
+            if (
+                !requesterMembership ||
+                (
+                    requesterMembership.role !== MemberRole.ADMIN &&
+                    requesterMembership.role !== MemberRole.MODERATOR &&
+                    server.ownerId !== requesterId
+                )
+            ) {
+                throw new Error("Unauthorized");
+            }
+
+            // Get the member being removed
+            const member = await prisma.serverMember.findUnique({
+                where: { id: memberId },
+            });
+
+            if (!member || member.serverId !== serverId) {
+                throw new Error("Invalid member");
+            }
+
+            // Prevent removing owner
+            if (member.userId === server.ownerId) {
+                throw new Error("Cannot remove server owner");
+            }
+
+            await prisma.serverMember.delete({
+                where: { id: memberId },
+            });
+
         } catch (error: any) {
-            console.error('Error removing member from server:', error.message);
+            console.error("Error removing member from server:", error.message);
             throw error;
         }
     }
+
 
     static async getServerMembers(serverId: number) {
         try {
