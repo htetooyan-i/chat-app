@@ -12,47 +12,6 @@ const { Sider } = Layout;
 
 type Tabs = "settings" | "files" | "users" | "none";
 
-
-const items: MenuProps['items'] = [
-  {
-    label: (
-      <div className="flex items-center gap-2">
-        <span className="">Open in Mod View </span>
-      </div>
-    ),
-    key: '1',
-  },
-  {
-    label: (
-      <div className="flex items-center gap-2 text-error hover:text-foreground">
-        <span className="">Ban User</span>
-      </div>
-    ),
-    key: '2',
-    danger: true,
-  },
-  {
-    label: (
-      <div className="flex items-center gap-2 text-error hover:text-foreground">
-        <span className="">Kick User</span>
-      </div>
-    ),
-    key: '3',
-    danger: true,
-  },
-  {
-    type: 'divider',
-  },
-  {
-    label: (
-      <div className="flex items-center gap-2">
-        <span className="">Copy ID</span>
-      </div>
-    ),
-    key: '4',
-  },
-];
-
 export default function InfoPanel({ type }: { type: Tabs }) {
 
 
@@ -60,14 +19,13 @@ export default function InfoPanel({ type }: { type: Tabs }) {
   const [serverMembers, setServerMembers] = React.useState<any[]>([]);
 
   useEffect(() => {
-    if (type !== "users" || !selectedServer || serverMembers.length > 0) return;
-
+    if (type !== "users" || !selectedServer ) return;
     const fetchMembers = async () => {
       try {
         const res = await api.get(
           `/servers/${selectedServer.id}/members`
         );
-        console.log("Fetched server members:", res.data.data);
+
         setServerMembers(res.data.data);
       } catch (error) {
         console.error("Error fetching server members:", error);
@@ -77,12 +35,12 @@ export default function InfoPanel({ type }: { type: Tabs }) {
     fetchMembers();
   }, [type, selectedServer]);
 
-  const handleKickMember = async (userId: string) => {
+  // Kick user from server and close the context menu
+  const handleKickMember = async (memberId: string) => {
     if (!selectedServer) return;
-
     try {
-      await api.post(`/servers/${selectedServer.id}/kick`, { userId });
-      setServerMembers(prev => prev.filter(member => member.user.id !== userId));
+      await api.delete(`/servers/${selectedServer.id}/leave`, { data: { memberId } });
+      setServerMembers(prev => prev.filter(member => member.id !== memberId));
     } catch (error) {
       console.error("Error kicking member:", error);
     }
@@ -114,7 +72,7 @@ export default function InfoPanel({ type }: { type: Tabs }) {
         serverMembers.map(member => (
           
             <div key={member.id} className="px-2">
-              <DropdownComponent items={items}>
+              <DropdownComponent kickMember={handleKickMember} memberId={member.id}>
                 <div className={`w-full flex justify-between items-center gap-2 rounded cursor-pointer px-2 py-1 serverMember`} onMouseEnter={() => console.log("hovered")}>
                   <div className="flex items-center gap-2">
                     <Badge dot color="green" className="bottom-badge cursor-pointer" style={{}}>

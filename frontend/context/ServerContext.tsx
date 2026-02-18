@@ -31,7 +31,7 @@ export const ServerProvider: React.FC<{children: React.ReactNode}> = ({ children
     try {
       const res = await api.get('/servers/my-servers'); 
       const data = res.data;
-      console.log('Fetched servers:', data.data);
+
       setServers(data.data);
     } catch (error) {
       console.error('Error fetching servers:', error);
