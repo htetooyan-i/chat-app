@@ -7,6 +7,7 @@ import { ChevronRight, FileText, Paperclip, Send, Sticker, UsersRound } from 'lu
 import InfoPanel from '@/components/layout/InfoPanel';
 import { useServerLayout } from '@/hooks/useServerLayout';
 import { handleMaintenanceRoute } from '@/lib/helper';
+import { useServer } from '@/hooks/useServer';
 
 const { Header, Content, Footer } = Layout;
 
@@ -14,6 +15,7 @@ type Tabs = "settings" | "files" | "users" | "none";
 
 function ChatPanel() {
 
+    const { selectedServer } = useServer();
     const { collapsed, setCollapsed } = useServerLayout();
     const [activeTab, setActiveTab] = useState<Tabs>("none");
     const [changeTab, setChangeTab] = useState(false);
@@ -32,7 +34,7 @@ function ChatPanel() {
                 >
                     <div className='flex w-full justify-between items-center'>
                         <div className='flex justify-start items-center gap-2 flex-1 min-w-0 overflow-hidden'>
-                            <p onClick={() => setCollapsed(!collapsed)} className='text-white text-lg font-semibold text-[26px] capitalize cursor-pointer'>Chat</p>
+                            <p onClick={() => setCollapsed(!collapsed)} className='text-white text-lg font-semibold text-[26px] capitalize cursor-pointer'>{selectedServer?.name || "Chat"}</p>
                             <ChevronRight className='text-foreground flex-shrink-0' size={32}/>
                             {/* FIX: Channel name should be dynamic and width doesn't work for now */}
                             <p className='text-[15px] min-w-0 max-w-[300px] truncate text-muted-text capitalize font-semibold'>

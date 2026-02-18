@@ -7,89 +7,93 @@ import Image from 'next/image';
 
 import { useAuth } from '@/hooks/useAuth';
 import { useServerLayout } from '@/hooks/useServerLayout';
+import { useServer } from '@/hooks/useServer';
 
 const { Sider } = Layout;
 
 type SideBarProps = {
     siderStyle: React.CSSProperties;
+    showServerCreationModal: boolean;
+    setShowServerCreationModal: (show: boolean) => void;
 }
 
-const servers = [
-    {
-        id: 1,
-        name: "Server 1",
-        avatar: "/server-img.jpg",
-        title: "Chat"
-    },
-    {
-        id: 2,
-        name: "Server 2",
-        avatar: "/server-img.jpg",
-        title: "Gaming"
-    },
-    {
-        id: 3,
-        name: "Server 3",
-        avatar: "/server-img.jpg",
-        title: "Development"
-    },
-    // {
-    //     id: 4,
-    //     name: "Server 4",
-    //     avatar: "/profile-img.jpg",
-    // },
-    // {
-    //     id: 5,
-    //     name: "Server 5",
-    //     avatar: "/profile-img.jpg",
-    // },
-    // {
-    //     id: 6,
-    //     name: "Server 6",
-    //     avatar: "/profile-img.jpg",
-    // },
-    // {
-    //     id: 7,
-    //     name: "Server 7",
-    //     avatar: "/profile-img.jpg",
-    // },
-    // {
-    //     id: 8,
-    //     name: "Server 8",
-    //     avatar: "/profile-img.jpg",
-    // },
-    // {
-    //     id: 9,
-    //     name: "Server 9",
-    //     avatar: "/profile-img.jpg",
-    // },
-    // {
-    //     id: 10,
-    //     name: "Server 10",
-    //     avatar: "/profile-img.jpg",
-    // },
-    // {
-    //     id: 11,
-    //     name: "Server 11",
-    //     avatar: "/profile-img.jpg",
-    // },
-    // {
-    //     id: 12,
-    //     name: "Server 12",
-    //     avatar: "/profile-img.jpg",
-    // },
+// const servers = [
+//     {
+//         id: 1,
+//         name: "Server 1",
+//         avatar: "/server-img.jpg",
+//         title: "Chat"
+//     },
+//     {
+//         id: 2,
+//         name: "Server 2",
+//         avatar: "/server-img.jpg",
+//         title: "Gaming"
+//     },
+//     {
+//         id: 3,
+//         name: "Server 3",
+//         avatar: "/server-img.jpg",
+//         title: "Development"
+//     },
+//     // {
+//     //     id: 4,
+//     //     name: "Server 4",
+//     //     avatar: "/profile-img.jpg",
+//     // },
+//     // {
+//     //     id: 5,
+//     //     name: "Server 5",
+//     //     avatar: "/profile-img.jpg",
+//     // },
+//     // {
+//     //     id: 6,
+//     //     name: "Server 6",
+//     //     avatar: "/profile-img.jpg",
+//     // },
+//     // {
+//     //     id: 7,
+//     //     name: "Server 7",
+//     //     avatar: "/profile-img.jpg",
+//     // },
+//     // {
+//     //     id: 8,
+//     //     name: "Server 8",
+//     //     avatar: "/profile-img.jpg",
+//     // },
+//     // {
+//     //     id: 9,
+//     //     name: "Server 9",
+//     //     avatar: "/profile-img.jpg",
+//     // },
+//     // {
+//     //     id: 10,
+//     //     name: "Server 10",
+//     //     avatar: "/profile-img.jpg",
+//     // },
+//     // {
+//     //     id: 11,
+//     //     name: "Server 11",
+//     //     avatar: "/profile-img.jpg",
+//     // },
+//     // {
+//     //     id: 12,
+//     //     name: "Server 12",
+//     //     avatar: "/profile-img.jpg",
+//     // },
 
-];
+// ];
 
-function SideBar({ siderStyle }: SideBarProps) {
+function SideBar({ siderStyle, showServerCreationModal, setShowServerCreationModal }: SideBarProps) {
 
     const router = useRouter();
     const { collapsed, setCollapsed } = useServerLayout();
     const { logout } = useAuth();
+    const { servers, selectedServer, setSelectedServer } = useServer();
 
-    const handleCreateNewServer = () => {
-        // Navigate to the maintenance page
-        window.location.href = "/maintenance?from=/";
+    const hndleSelectServer = (serverId: string) => {
+        const server = servers.find(s => s.id === serverId) || null;
+        setSelectedServer(server);
     };
 
     const handleLogout = async () => {
@@ -138,17 +142,18 @@ function SideBar({ siderStyle }: SideBarProps) {
                             <div
                                 key={server.id}
                                 className="server-item flex items-center justify-center relative my-2 cursor-pointer"
-                                title={server.title}
+                                title={server.name}
+                                onClick={() => hndleSelectServer(server.id)}
                             >
                                 <Badge>
                                     <Avatar
-                                        src={server.avatar}
+                                        src='/server-img.jpg'
                                         size={50}
                                         shape="circle"
                                         style={{
                                             border: 0,
                                             backgroundColor: "var(--muted-background)",
-                                            ...(server.id === 1
+                                            ...((selectedServer?.id === server.id)
                                             ? { outlineColor: "var(--accent)", outlineWidth: "2px", outlineStyle: "solid" }
                                             : {}),
                                         }}
@@ -160,7 +165,7 @@ function SideBar({ siderStyle }: SideBarProps) {
                 </div>
                 <footer className="flex flex-col items-center py-5 bg-sidebar border-t border-muted-border">
                 {/* Add Server Button */}
-                <div onClick={handleCreateNewServer} className="server-item flex items-center justify-center relative my-2 cursor-pointer">
+                <div onClick={() => setShowServerCreationModal(true)} className="server-item flex items-center justify-center relative my-2 cursor-pointer hover:opacity-80 transition-opacity duration-200">
                     <Badge>
                         <Avatar
                         size={40}

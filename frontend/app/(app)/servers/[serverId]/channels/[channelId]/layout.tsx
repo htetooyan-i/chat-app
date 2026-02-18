@@ -1,9 +1,11 @@
 "use client";
+import { useState } from "react";
 import { Layout } from "antd";
 
 import SideBar from "@/components/layout/SideBar";
 import ChannelPanel from "@/components/layout/ChannelPanel";
 import { ServerLayoutProvider } from "@/context/ServerLayoutContext";
+import CreateServer from "@/components/server/CreateServer";
 
 const siderStyle: React.CSSProperties = {
   overflow: 'hidden',
@@ -19,10 +21,13 @@ export default function ServerLayout({
   children: React.ReactNode;
 }) {
   
+  const [showServerCreationModal, setShowServerCreationModal] = useState(false);
+  
   return (
     <ServerLayoutProvider>
+      <CreateServer showServerCreationModal={showServerCreationModal} setShowServerCreationModal={setShowServerCreationModal} />
       <Layout>
-        <SideBar siderStyle={siderStyle} />
+        <SideBar siderStyle={siderStyle} showServerCreationModal={showServerCreationModal} setShowServerCreationModal={setShowServerCreationModal} />
         <ChannelPanel siderStyle={siderStyle} />
         <div className="flex-1">
           {children}

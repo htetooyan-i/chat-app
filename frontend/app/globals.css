@@ -121,6 +121,19 @@ div.thin-scrollbar::-webkit-scrollbar-thumb:hover {
 }
 
 
+.serverMember:hover {
+  background-color: var(--muted-background);
+  transition: all;
+  transition-duration: 0.2s;
+}
+
+.custom-dropdown {
+  background: var(--chat-panel) !important;
+  border: 2px solid var(--muted-border) !important;
+  border-radius: 8px !important;
+}
+
+
 /* Hide scrollbars in Ant Design Sider */
 /* .ant-layout-sider {
   overflow-y: auto !important;
