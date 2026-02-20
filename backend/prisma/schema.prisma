@@ -33,19 +33,20 @@ datasource db {
 }
 
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  username  String @unique
-  passwordHash String
-  avatarUrl String?
-  bio String?
-  verified Boolean @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              Int     @id @default(autoincrement())
+  email           String  @unique
+  username        String @unique
+  passwordHash    String
+  avatarUrl       String?
+  bio             String?
+  verified        Boolean @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  tokens    UserToken[] 
-  memberships   ServerMember[]
-  ownedServers  Server[] @relation("ServerOwner")
+  tokens          UserToken[] 
+  memberships     ServerMember[]
+  ownedServers    Server[] @relation("ServerOwner")
+  createdInvites  ServerInvite[]
 }
 
 model UserToken {
@@ -68,6 +69,7 @@ model Server {
   owner       User @relation("ServerOwner", fields: [ownerId], references: [id])
   members     ServerMember[]
   channels    Channel[]
+  invites     ServerInvite[]
 }
 
 model ServerMember {
@@ -90,7 +92,22 @@ model Channel {
   type ChannelType
   createdAt DateTime @default(now())
 
-  server    Server @relation(fields: [serverId], references: [id])
+  server    Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
+}
+
+model ServerInvite {
+  id           Int       @id @default(autoincrement())
+  code         String    @unique
+  serverId     Int
+  maxUses      Int?
+  currentUses  Int       @default(0)
+  expiresAt    DateTime?
+  createdById  Int
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  server       Server    @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  createdBy    User      @relation(fields: [createdById], references: [id])
 }
 
 

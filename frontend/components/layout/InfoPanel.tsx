@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect } from "react";
 import { Avatar, Badge, Dropdown, Layout } from 'antd';
-import type { MenuProps } from 'antd';
 import { UserRoundPlus } from "lucide-react";
 
 import { useServer } from "@/hooks/useServer";

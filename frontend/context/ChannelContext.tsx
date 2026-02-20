@@ -36,6 +36,7 @@ export const ChannelProvider: React.FC<{children: React.ReactNode}> = ({ childre
             const data = res.data;
             console.log('Fetched channels:', data);
             setChannels(data);
+            setSelectedChannel(res.data[0] || null);
 
         } catch (error) {
             console.error('Error fetching channels:', error);
@@ -44,16 +45,14 @@ export const ChannelProvider: React.FC<{children: React.ReactNode}> = ({ childre
     }, [selectedServer?.id]);
 
     useEffect(() => {
-        if (!selectedServer?.id) return;
+        if (!selectedServer?.id) {
+            setChannels([]);
+            setSelectedChannel(null);
+            return;
+        }
+
         fetchChannels();
-    }, [fetchChannels]);
-
-    useEffect(() => {
-        setChannels([]);
-        setSelectedChannel(null);
-    }, [selectedServer?.id]);
-
-
+    }, [selectedServer?.id, fetchChannels]);
 
     const addChannel = (channel: Channel) => {
         setChannels(prev => [...prev, channel]);

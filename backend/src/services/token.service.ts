@@ -19,9 +19,9 @@ export class TokenService {
                     expiresAt,
                 },
             });
-        } catch (error) {
-            console.error("Error creating token:", error);
-            throw new Error("Failed to create token");
+        } catch (error: any) {
+            console.error("Error creating token:", error.message);
+            throw new Error("Failed to create token", { cause: error });
         }
     }
 
@@ -31,7 +31,7 @@ export class TokenService {
         const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
         const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000);
 
-        await prisma.userToken.create({ data: { userId, token: hashedToken, type, expiresAt } });
+        await this.create(userId, type, hashedToken, expiresAt);
         return rawToken;
     }
 
@@ -51,9 +51,9 @@ export class TokenService {
 
             if (!tokenRecord) return null;
             return tokenRecord;
-        } catch (error) {
-            console.error("Error verifying token:", error);
-            throw new Error("Failed to verify token");
+        } catch (error: any) {
+            console.error("Error verifying token:", error.message);
+            throw new Error("Failed to verify token", { cause: error });
         }
 
     }
@@ -66,9 +66,9 @@ export class TokenService {
                 data: { used: true },
             });
             return updated;
-        } catch (error) {
-            console.error("Error updating token:", error);
-            throw new Error("Failed to update token");
+        } catch (error: any) {
+            console.error("Error updating token:", error.message);
+            throw new Error("Failed to update token", { cause: error });
         }
     }
 
@@ -78,9 +78,9 @@ export class TokenService {
             await prisma.userToken.deleteMany({
                 where: { userId },
             });
-        } catch (error) {
-            console.error("Error deleting tokens:", error);
-            throw new Error("Failed to delete tokens");
+        } catch (error: any) {
+            console.error("Error deleting tokens:", error.message);
+            throw new Error("Failed to delete tokens", { cause: error } );
         }   
     }
 

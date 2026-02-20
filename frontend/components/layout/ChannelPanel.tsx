@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Layout } from 'antd';
 
 import { useServerLayout } from '@/hooks/useServerLayout';
@@ -18,7 +18,7 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
 
     const { contextHolder, showError, showSuccess } = useNotification();
     const { selectedServer } = useServer();
-    const { channels, setChannels } = useChannel();
+    const { channels, selectedChannel, setSelectedChannel, refreshChannels } = useChannel();
     const serverId = selectedServer?.id || "";
     const { collapsed, setCollapsed } = useServerLayout();
     const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
@@ -31,6 +31,7 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
         try {
             await api.post(`/servers/${serverId}/channels`, { name: channelName });
             showSuccess("Channel created successfully!");
+            refreshChannels();
             setShowCreateChannelModal(false);
         }
         catch (error) {
@@ -79,7 +80,7 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
                     <div className="flex flex-col gap-3 items-center flex-1 overflow-y-auto p-5 thin-scrollbar" >
                         {
                             channels.map(channel => (
-                                <div key={channel.id} className={`text-[15px] h-[45px] w-full p-2 border-s-4 rounded-r-sm cursor-pointer flex items-center ${Number(channel.id) === 3 ? 'border-accent  bg-chat-panel' : 'border-muted-border'}`}>
+                                <div key={channel.id} onClick={() => setSelectedChannel(channel)} className={`text-[15px] h-[45px] w-full p-2 border-s-4 rounded-r-sm cursor-pointer flex items-center ${channel.id === selectedChannel?.id ? 'border-accent  bg-chat-panel' : 'border-muted-border'}`}>
                                     <p className='capitalize truncate'><span>#</span> {channel.name}</p>
                                 </div>
                             ))

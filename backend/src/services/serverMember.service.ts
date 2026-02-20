@@ -18,11 +18,24 @@ class ServerMemberService {
 
     static async addMember(serverId: number, userId: number) {
         try {
+            
+            const existingMember = await prisma.serverMember.findUnique({
+                where: {
+                    userId_serverId: {
+                        userId,
+                        serverId,
+                    },
+                },
+            });
+
+            if (existingMember) {
+                throw new Error("User is already a member");
+            }
             const serverMember = await prisma.serverMember.create({
                 data: {
                     userId,
                     serverId,
-                    role: MemberRole.ADMIN,
+                    role: MemberRole.MEMBER,
                 },
             });
             return serverMember;
@@ -61,8 +74,14 @@ class ServerMemberService {
 
             // Get the member being removed
             const member = await prisma.serverMember.findUnique({
-                where: { id: memberId },
+                where: {
+                    userId_serverId: {
+                        userId: memberId,
+                        serverId,
+                    },
+                },
             });
+
 
             if (!member || member.serverId !== serverId) {
                 throw new Error("Invalid member");
@@ -74,7 +93,12 @@ class ServerMemberService {
             }
 
             await prisma.serverMember.delete({
-                where: { id: memberId },
+                where: {
+                    userId_serverId: {
+                        userId: memberId,
+                        serverId,
+                    },
+                },
             });
 
         } catch (error: any) {

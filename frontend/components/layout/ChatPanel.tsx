@@ -8,6 +8,7 @@ import InfoPanel from '@/components/layout/InfoPanel';
 import { useServerLayout } from '@/hooks/useServerLayout';
 import { handleMaintenanceRoute } from '@/lib/helper';
 import { useServer } from '@/hooks/useServer';
+import { useChannel } from '@/hooks/userChannel';
 
 const { Header, Content, Footer } = Layout;
 
@@ -16,9 +17,9 @@ type Tabs = "settings" | "files" | "users" | "none";
 function ChatPanel() {
 
     const { selectedServer } = useServer();
+    const { selectedChannel } = useChannel();
     const { collapsed, setCollapsed } = useServerLayout();
     const [activeTab, setActiveTab] = useState<Tabs>("none");
-    const [changeTab, setChangeTab] = useState(false);
 
     return (
         <div className="flex w-full h-screen bg-chat-panel">
@@ -38,14 +39,13 @@ function ChatPanel() {
                             <ChevronRight className='text-foreground flex-shrink-0' size={32}/>
                             {/* FIX: Channel name should be dynamic and width doesn't work for now */}
                             <p className='text-[15px] min-w-0 max-w-[300px] truncate text-muted-text capitalize font-semibold'>
-                                # General
+                                # {selectedChannel?.name || "Channel"}
                             </p>
                         </div>
                         <div className='flex-shrink-0 flex justify-between items-center gap-4' style={{paddingLeft: "5px"}}>
                             <div
                                 onClick={() => {
                                     setActiveTab(activeTab === "settings" ? "none" : "settings");
-                                    setChangeTab(activeTab === "settings" ? false : true);
                                 }}
                                 className={`flex justify-center items-center 
                                     w-[36px] h-[36px] 
@@ -62,7 +62,6 @@ function ChatPanel() {
                             <div
                                 onClick={() => {
                                     setActiveTab(activeTab === "files" ? "none" : "files");
-                                    setChangeTab(activeTab === "files" ? false : true);
                                 }}
                                 className={`flex justify-center items-center 
                                     w-[36px] h-[36px] 
@@ -79,7 +78,6 @@ function ChatPanel() {
                             <div
                                 onClick={() => {
                                     setActiveTab(activeTab === "users" ? "none" : "users");
-                                    setChangeTab(activeTab === "users" ? false : true);
                                 }}
                                 className={`flex justify-center items-center 
                                     w-[36px] h-[36px] 
