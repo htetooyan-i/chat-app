@@ -5,9 +5,12 @@ import { Avatar, Badge, Layout } from 'antd';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
+import api from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useServerLayout } from '@/hooks/useServerLayout';
 import { useServer } from '@/hooks/useServer';
+import { useNotification } from '@/hooks/useNotification';
+import DropdownComponent, { DropdownItem } from '@/components/ui/Dropdown';
 
 const { Sider } = Layout;
 
@@ -86,10 +89,19 @@ type SideBarProps = {
 
 function SideBar({ siderStyle, showServerCreationModal, setShowServerCreationModal }: SideBarProps) {
 
+    const dropDownItems: DropdownItem[] = [
+        {
+            label: "Leave Server",
+            onClick: async () => await handleLeaveServer(),
+            type: "danger",
+        },
+    ];
+
     const router = useRouter();
     const { collapsed, setCollapsed } = useServerLayout();
     const { logout } = useAuth();
     const { servers, selectedServer, setSelectedServer } = useServer();
+    const { contextHolder, showSuccess, showError } = useNotification();
 
     const hndleSelectServer = (serverId: string) => {
         const server = servers.find(s => s.id === serverId) || null;
@@ -104,104 +116,121 @@ function SideBar({ siderStyle, showServerCreationModal, setShowServerCreationMod
         }
     };
 
+    const handleLeaveServer = async () => {
+        try {
+            await api.delete(`/servers/${selectedServer?.id}/leave`);
+            showSuccess("You have left the server.");
+            setSelectedServer(null);
+        } catch (error: any) {
+            console.error("Failed to leave server:", error);
+            showError(error.response?.data?.message || "Failed to leave server.");
+        }
+    };
+
     const handleShowUserSettings = () => {
         router.push("/settings?from=/");
     };
 
     return (
-        <Sider 
-        width={80} 
-        collapsible
-        breakpoint='lg'
-        collapsed={collapsed}
-        collapsedWidth={0}
-        onBreakpoint={(broken) => {
-            setCollapsed(broken);
-        }}
-        style={{ ...siderStyle, backgroundColor: "var(--sidebar)", scrollbarWidth: "none", display: "flex", flexDirection: "column" }}
-        >
-            <div className="flex flex-col h-full">
-                {/* User Avatar */}
-                <header className='h-[64px] sticky top-0 z-10 flex justify-center items-center pt-3 pb-3 bg-sidebar border-b border-muted-border'>
-                    <Badge dot color="green" className="bottom-badge cursor-pointer">
-                        <Avatar shape="square" size={50}>
-                            <Image
-                            onClick={handleShowUserSettings}
-                            src="/profile-img.jpg"
-                            alt="avatar"
-                            width={50}
-                            height={50}
-                            style={{ objectFit: "cover", borderRadius: "10px"}}
-                            />
-                        </Avatar>
-                    </Badge>
-                </header>
-                <div className="flex flex-col items-center flex-1 overflow-y-auto py-5 hide-scrollbar">
+        <div>
+            {contextHolder}
+            <Sider 
+            width={80} 
+            collapsible
+            breakpoint='lg'
+            collapsed={collapsed}
+            collapsedWidth={0}
+            onBreakpoint={(broken) => {
+                setCollapsed(broken);
+            }}
+            style={{ ...siderStyle, backgroundColor: "var(--sidebar)", scrollbarWidth: "none", display: "flex", flexDirection: "column" }}
+            >
+                <div className="flex flex-col h-full">
+                    {/* User Avatar */}
+                    <header className='h-[64px] sticky top-0 z-10 flex justify-center items-center pt-3 pb-3 bg-sidebar border-b border-muted-border'>
+                        <Badge dot color="green" className="bottom-badge cursor-pointer">
+                            <Avatar shape="square" size={50}>
+                                <Image
+                                onClick={handleShowUserSettings}
+                                src="/profile-img.jpg"
+                                alt="avatar"
+                                width={50}
+                                height={50}
+                                style={{ objectFit: "cover", borderRadius: "10px"}}
+                                />
+                            </Avatar>
+                        </Badge>
+                    </header>
                     {/* Server List */}
-                    {servers.map((server) => (
-                            <div
-                                key={server.id}
-                                className="server-item flex items-center justify-center relative my-2 cursor-pointer"
-                                title={server.name}
-                                onClick={() => hndleSelectServer(server.id)}
+                    <div className="flex flex-col items-center flex-1 overflow-y-auto py-5 hide-scrollbar">
+                        {/* Server List */}
+                        {servers.map((server) => (
+                                <div
+                                    key={server.id}
+                                    className="server-item flex items-center justify-center relative my-2 cursor-pointer"
+                                    title={server.name}
+                                    onClick={() => hndleSelectServer(server.id)}
+                                >
+                                    <DropdownComponent items={dropDownItems}>
+                                        <Badge>
+                                            <Avatar
+                                                src='/server-img.jpg'
+                                                size={50}
+                                                shape="circle"
+                                                style={{
+                                                    border: 0,
+                                                    backgroundColor: "var(--muted-background)",
+                                                    ...((selectedServer?.id === server.id)
+                                                    ? { outlineColor: "var(--accent)", outlineWidth: "2px", outlineStyle: "solid" }
+                                                    : {}),
+                                                }}
+                                            />
+
+                                        </Badge>
+                                    </DropdownComponent>
+                                </div>
+                        ))}
+                    </div>
+                    <footer className="flex flex-col items-center py-5 bg-sidebar border-t border-muted-border">
+                    {/* Add Server Button */}
+                    <div onClick={() => setShowServerCreationModal(true)} className="server-item flex items-center justify-center relative my-2 cursor-pointer hover:opacity-80 transition-opacity duration-200">
+                        <Badge>
+                            <Avatar
+                            size={40}
+                            shape="circle"
+                            style={{
+                                backgroundColor: "var(--accent)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center", 
+                            }}
                             >
-                                <Badge>
-                                    <Avatar
-                                        src='/server-img.jpg'
-                                        size={50}
-                                        shape="circle"
-                                        style={{
-                                            border: 0,
-                                            backgroundColor: "var(--muted-background)",
-                                            ...((selectedServer?.id === server.id)
-                                            ? { outlineColor: "var(--accent)", outlineWidth: "2px", outlineStyle: "solid" }
-                                            : {}),
-                                        }}
-                                    />
+                                <Plus width={24} height={24}/>
+                            </Avatar>
+                        </Badge>
+                    </div>
 
-                                </Badge>
-                            </div>
-                    ))}
+                    {/* Logout Button */}
+                    <div onClick={handleLogout} className="server-item flex items-center justify-center relative my-2 cursor-pointer">
+                        <Badge>
+                            <Avatar
+                            size={40}
+                            shape="square"
+                            style={{
+                                backgroundColor: "var(--error)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center", 
+                            }}
+                            >
+                                <LogOut width={24} height={24}/>
+                            </Avatar>
+                        </Badge>
+                    </div>
+                </footer>
                 </div>
-                <footer className="flex flex-col items-center py-5 bg-sidebar border-t border-muted-border">
-                {/* Add Server Button */}
-                <div onClick={() => setShowServerCreationModal(true)} className="server-item flex items-center justify-center relative my-2 cursor-pointer hover:opacity-80 transition-opacity duration-200">
-                    <Badge>
-                        <Avatar
-                        size={40}
-                        shape="circle"
-                        style={{
-                            backgroundColor: "var(--accent)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center", 
-                        }}
-                        >
-                            <Plus width={24} height={24}/>
-                        </Avatar>
-                    </Badge>
-                </div>
-
-                {/* Logout Button */}
-                <div onClick={handleLogout} className="server-item flex items-center justify-center relative my-2 cursor-pointer">
-                    <Badge>
-                        <Avatar
-                        size={40}
-                        shape="square"
-                        style={{
-                            backgroundColor: "var(--error)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center", 
-                        }}
-                        >
-                            <LogOut width={24} height={24}/>
-                        </Avatar>
-                    </Badge>
-                </div>
-            </footer>
-            </div>
-        </Sider>
+            </Sider>
+        </div>
     );
 }
 

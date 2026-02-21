@@ -5,7 +5,7 @@ import { Layout } from "antd";
 import SideBar from "@/components/layout/SideBar";
 import ChannelPanel from "@/components/layout/ChannelPanel";
 import { ServerLayoutProvider } from "@/context/ServerLayoutContext";
-import CreateServer from "@/components/server/CreateServer";
+import NewServerModal from "@/components/server/NewServerModal";
 
 const siderStyle: React.CSSProperties = {
   overflow: 'hidden',
@@ -25,7 +25,7 @@ export default function ServerLayout({
   
   return (
     <ServerLayoutProvider>
-      <CreateServer showServerCreationModal={showServerCreationModal} setShowServerCreationModal={setShowServerCreationModal} />
+      <NewServerModal showServerCreationModal={showServerCreationModal} setShowServerCreationModal={setShowServerCreationModal} />
       <Layout>
         <SideBar siderStyle={siderStyle} showServerCreationModal={showServerCreationModal} setShowServerCreationModal={setShowServerCreationModal} />
         <ChannelPanel siderStyle={siderStyle} />

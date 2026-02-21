@@ -1,20 +1,23 @@
 import React from 'react';
 import Menu from '@mui/material/Menu';
+import MenuList from '@mui/material/MenuList';
 import Divider from '@mui/material/Divider';
 import MenuItem from '@mui/material/MenuItem';
 import { IdCard } from 'lucide-react';
 
-import api from '@/lib/api';
-import { useServer } from '@/hooks/useServer';
-
-
-type DropdownComponentProps = {
-  children: React.ReactNode;
-  kickMember: (memberId: string) => void;
-  memberId: string;
+export type DropdownItem = {
+  label: string;
+  onClick: () => void;
+  type: 'normal' | 'danger' | 'divider';
+  icon?: React.ReactNode;
 }
 
-function DropdownComponent({ children, kickMember, memberId }: DropdownComponentProps) {
+type DropdownComponentProps = {
+  items: DropdownItem[];
+  children: React.ReactNode;
+}
+
+function DropdownComponent({ children, items}: DropdownComponentProps) {
 
   const [contextMenu, setContextMenu] = React.useState<{
     mouseX: number;
@@ -72,15 +75,46 @@ function DropdownComponent({ children, kickMember, memberId }: DropdownComponent
                   border: "1px solid var(--muted-border)",
                   borderRadius: "5px",
                   minWidth: "150px",
+                  padding: "0",
                 },
                 "& .MuiMenu-list": {
-                  paddingInline: "10px",
+                  paddingInline: "5px",
+                  paddingBlock: "0",
                   borderRadius: "5px",
                 },
               }}
             >
-              {/* Open in mod view */}
-              <MenuItem
+              <MenuList>
+                {items.map((item, index) => {
+                  if (item.type === "divider") {
+                    return <Divider key={index} sx={{ borderColor: "var(--muted-border)" }} />;
+                  }
+
+                  return (
+                    <MenuItem
+                      key={index}
+                      onClick={() => {
+                        item.onClick();
+                        handleClose();
+                      }}
+                      sx={{
+                        color: item.type === "danger" ? "var(--error)" : "inherit",
+                        borderRadius: "5px",
+                        fontWeight: "bold",
+                        fontSize: "14px",
+                        padding: "5px",
+                        "&:hover": {
+                          backgroundColor: item.type === "danger" ? "rgb(255, 0, 0, 0.2)" : "rgb(255, 255, 255, 0.1)",
+                        },
+                      }}
+                    >
+                      {item.icon && <span className='mr-2'>{item.icon}</span>}
+                      {item.label}
+                    </MenuItem>
+                  );
+                })}
+              </MenuList>
+              {/* <MenuItem
                 onClick={handleClose}
                 sx={{
                   borderRadius: "5px",
@@ -94,8 +128,6 @@ function DropdownComponent({ children, kickMember, memberId }: DropdownComponent
               >
                 Open in Mod View
               </MenuItem>
-
-              {/* Ban user */}
               <MenuItem
                 onClick={handleClose}
                 sx={{
@@ -111,10 +143,8 @@ function DropdownComponent({ children, kickMember, memberId }: DropdownComponent
               >
                 Ban User
               </MenuItem>
-
-              {/* Kick user */}
               <MenuItem
-                onClick={() => {kickMember(memberId); handleClose();}}
+                onClick={() => {handleClose();}}
                 sx={{
                   color: "var(--error)",
                   borderRadius: "5px",
@@ -136,7 +166,6 @@ function DropdownComponent({ children, kickMember, memberId }: DropdownComponent
                 }}
               />
 
-              {/* Copy ID */}
               <MenuItem
                 onClick={handleClose}
                 sx={{
@@ -153,7 +182,7 @@ function DropdownComponent({ children, kickMember, memberId }: DropdownComponent
                   <IdCard /> 
                   <span>Copy User ID</span>
                 </div>
-              </MenuItem>
+              </MenuItem> */}
 
             </Menu>
           </div>

@@ -36,7 +36,7 @@ export const ServerProvider: React.FC<{children: React.ReactNode}> = ({ children
     } catch (error) {
       console.error('Error fetching servers:', error);
     }
-  }, []);
+  }, [selectedServer]);
 
   useEffect(() => {
     if (user) {

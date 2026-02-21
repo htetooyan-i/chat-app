@@ -29,87 +29,46 @@ const styles: ModalProps['styles'] = {
 
 };
 
+
 type CreateServerModalProps = {
-    showServerCreationModal: boolean;
-    setShowServerCreationModal: (show: boolean) => void;
+    handleCreateNewServer: () => void;
+    isSuccessed: boolean;
+    setIsSuccessed: (success: boolean) => void;
+    serverName: string;
+    setServerName: (name: string) => void;
+    
 }
 
-function CreateServer({ showServerCreationModal, setShowServerCreationModal }: CreateServerModalProps) {
+function CreateServer({ handleCreateNewServer, isSuccessed, setIsSuccessed, serverName, setServerName }: CreateServerModalProps) {
 
-    const { contextHolder, showSuccess, showError } = useNotification();
-    const [serverName, setServerName] = React.useState(""); 
-    const [ isSuccessed, setIsSuccessed ] = React.useState(false);
-    const { refreshServers } = useServer();
-
-    const handleCreateNewServer = async () => {
-        try {
-            await api.post('/servers', { name: serverName });
-            showSuccess("Server created successfully!");
-            refreshServers();
-            setIsSuccessed(true);
-        } catch (error: any) {
-            console.error("Error creating server:", error.message);
-            showError(error.response?.data?.message || "Failed to create server.");
-        }
-    }
     return (
         <div>
-            {contextHolder}
-            <Modal
-            centered
-            title={ isSuccessed ? "Your server is ready!" : "Customize Your Server" }
-            open={showServerCreationModal}
-            onCancel={() => setShowServerCreationModal(false)}
-            width={"25%"}
-            styles={styles}
-            closable={false}
-            footer={
-                <div className="flex justify-end gap-2">
-                    <button
-                        className="flex-1 px-4 py-2 bg-muted-background border border-muted-border font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
-                        onClick={() => setShowServerCreationModal(false)}
-                    >
-                        Cancel
-                    </button>
-                    { !isSuccessed && ( 
-                        <button
-                            className="flex-1 px-4 py-2 bg-accent font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
-                            onClick={handleCreateNewServer}
-                        >
-                            Create
-                        </button>
-                    )}
-                </div>
+            {!isSuccessed ? (
+                <main className="flex flex-col gap-10 items-center justify-center">
+                    <p className='text-[12px] text-muted-text'>Give your new server a personality with a name and an icon. You can always change it later.</p>
+                    <div className="px-4 py-4 rounded-full text-muted-text cursor-pointer" style={{border: "2px dashed var(--muted-text)"}}>
+                        <CameraOutlined className="text-[40px]" />
+                    </div>
+                    <div className='flex flex-col gap-1 w-full'>
+                        <label htmlFor="serverName" className="text-[14px] font-bold">Server Name <span className='text-error'>*</span></label>
+                        <input 
+                            type="text" 
+                            id="serverName" 
+                            value={serverName}
+                            onChange={(e) => setServerName(e.target.value)}
+                            className="bg-chat-panel border border-muted-border rounded-lg p-2 text-[12px] outline-none focus:ring-0 focus:border-accent"
+                        />
+                    </div>
+                </main>
+
+            ) : (
+                <main className='flex flex-col gap-4'>
+                    <p className='text-[12px] text-muted-text'>Invite others to join your server using the link below.</p>
+
+                    <button className="w-full px-4 py-2 bg-accent text-foreground rounded hover:opacity-80 cursor-pointer">#2wefdsf</button>
+                </main>
+            )
             }
-            >
-                {!isSuccessed ? (
-                    <main className="flex flex-col gap-10 items-center justify-center">
-                        <p className='text-[12px] text-muted-text'>Give your new server a personality with a name and an icon. You can always change it later.</p>
-                        <div className="px-4 py-4 rounded-full text-muted-text cursor-pointer" style={{border: "2px dashed var(--muted-text)"}}>
-                            <CameraOutlined className="text-[40px]" />
-                        </div>
-                        <div className='flex flex-col gap-1 w-full'>
-                            <label htmlFor="newEmail" className="text-[14px] font-bold">Server Name <span className='text-error'>*</span></label>
-                            <input 
-                                type="text" 
-                                id="newEmail" 
-                                value={serverName}
-                                onChange={(e) => setServerName(e.target.value)}
-                                className="bg-chat-panel border border-muted-border rounded-lg p-2 text-[12px] outline-none focus:ring-0 focus:border-accent"
-                            />
-                        </div>
-                    </main>
-
-                ) : (
-                    <main className='flex flex-col gap-4'>
-                        <p className='text-[12px] text-muted-text'>Invite others to join your server using the link below.</p>
-
-                        <button className="w-full px-4 py-2 bg-accent text-foreground rounded hover:opacity-80 cursor-pointer">#2wefdsf</button>
-                    </main>
-                )
-                }
-
-            </Modal>
         </div>
     );
 }

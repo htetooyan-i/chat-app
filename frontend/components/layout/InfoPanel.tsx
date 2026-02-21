@@ -1,11 +1,12 @@
 "use client";
 import React, { useEffect } from "react";
 import { Avatar, Badge, Dropdown, Layout } from 'antd';
-import { UserRoundPlus } from "lucide-react";
+import { UserRoundPlus, IdCard } from "lucide-react";
 
 import { useServer } from "@/hooks/useServer";
 import api from "@/lib/api";
 import DropdownComponent from "@/components/ui/Dropdown";
+import { DropdownItem } from "@/components/ui/Dropdown";
 
 const { Sider } = Layout;
 
@@ -13,6 +14,34 @@ type Tabs = "settings" | "files" | "users" | "none";
 
 export default function InfoPanel({ type }: { type: Tabs }) {
 
+  const getDropdownItems = (memberId: string): DropdownItem[] => [
+    {
+      label: "Open in Mod View",
+      onClick: () => console.log("View profile"),
+      type: "normal",
+    },
+    {
+      label: "Ban Member",
+      onClick: () => console.log("Ban member"),
+      type: "danger",
+    },
+    {
+      label: "Kick Member",
+      onClick: () => handleKickMember(memberId),
+      type: "danger",
+    },
+    {
+      label: "",
+      onClick: () => {},
+      type: "divider",
+    },
+    {
+      label: "Copy Member ID",
+      onClick: () => navigator.clipboard.writeText(memberId),
+      type: "normal",
+      icon: <IdCard width={16} height={16} />,
+    },
+  ];
 
   const { selectedServer } = useServer();
   const [serverMembers, setServerMembers] = React.useState<any[]>([]);
@@ -26,6 +55,7 @@ export default function InfoPanel({ type }: { type: Tabs }) {
         );
 
         setServerMembers(res.data.data);
+        console.log("Fetched server members:", res.data.data);
       } catch (error) {
         console.error("Error fetching server members:", error);
       }
@@ -38,8 +68,8 @@ export default function InfoPanel({ type }: { type: Tabs }) {
   const handleKickMember = async (memberId: string) => {
     if (!selectedServer) return;
     try {
-      await api.delete(`/servers/${selectedServer.id}/leave`, { data: { memberId } });
-      setServerMembers(prev => prev.filter(member => member.id !== memberId));
+      await api.delete(`/servers/${selectedServer.id}/kick`, { data: { memberId } });
+      setServerMembers(prev => prev.filter(member => member.userId !== memberId));
     } catch (error) {
       console.error("Error kicking member:", error);
     }
@@ -71,7 +101,7 @@ export default function InfoPanel({ type }: { type: Tabs }) {
         serverMembers.map(member => (
           
             <div key={member.id} className="px-2">
-              <DropdownComponent kickMember={handleKickMember} memberId={member.id}>
+              <DropdownComponent items={getDropdownItems(member.userId)}>
                 <div className={`w-full flex justify-between items-center gap-2 rounded cursor-pointer px-2 py-1 serverMember`} onMouseEnter={() => console.log("hovered")}>
                   <div className="flex items-center gap-2">
                     <Badge dot color="green" className="bottom-badge cursor-pointer" style={{}}>
