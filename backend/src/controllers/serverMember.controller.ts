@@ -35,8 +35,25 @@ export async function removeMemberFromServer(req: express.Request, res: express.
     }
 }
 
+export async function leaveServer(req: express.Request, res: express.Response) {
+    const userId = req.user?.userId;
+    const { serverId } = req.params;
+
+    if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+    try {
+        await ServerMemberService.leaveServer(Number(serverId), userId);
+        res.status(200).json({ message: 'Left server successfully' });
+    } catch (error: any) {
+        console.error('Error leaving server:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+}
+
 export async function getServerMembers(req: express.Request, res: express.Response) {
     const { serverId } = req.params;
+    console.log('Getting members for server ID:', serverId);
     try {
         const members = await ServerMemberService.getServerMembers(Number(serverId));
         res.status(200).json({ message: 'Server members retrieved successfully', data: members });

@@ -121,6 +121,34 @@ class ServerMemberService {
         }
     }
 
+    static async leaveServer(serverId: number, userId: number) {
+        try {
+            const server = await prisma.server.findUnique({
+                where: { id: serverId },
+            });
+
+            if (!server) {
+                throw new Error("Server not found");
+            }
+
+            if (server.ownerId === userId) {
+                throw new Error("Owner cannot leave the server");
+            }
+
+            await prisma.serverMember.delete({
+                where: {
+                    userId_serverId: {
+                        userId,
+                        serverId,
+                    },
+                },
+            });
+        } catch (error: any) {
+            console.error('Error leaving server:', error.message);
+            throw error;
+        }
+    }
+
 }
 
 export default ServerMemberService;
