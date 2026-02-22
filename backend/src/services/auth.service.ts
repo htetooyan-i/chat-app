@@ -43,7 +43,7 @@ export class AuthService {
 
     // LOGIN USER
     static async login (email: string, password: string) {
-        
+
         const user = await prisma.user.findUnique({ where: { email } });
         const isPasswordValid = user ? await Hash.verify(user.passwordHash, password) : false;
 
@@ -62,7 +62,8 @@ export class AuthService {
             userId: user.id,
             });
             return { accessToken, refreshToken };
-        } catch (err) {
+        } catch (err: any) {
+            console.error("Error generating tokens:", err.message);
             throw err;
         }
         

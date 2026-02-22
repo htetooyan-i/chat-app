@@ -3,6 +3,7 @@
 import crypto from 'crypto';
 
 import { prisma } from "../lib/prisma";
+import { ServerInvite } from '../../generated/prisma/browser';
 
 class ServerInvitesService {
 
@@ -12,7 +13,7 @@ class ServerInvitesService {
         inviterId: number,
         expiresInMinutes?: number,
         maxUses?: number
-    ): Promise<string> {
+    ): Promise<ServerInvite> {
 
         while (true) {
             const rawCode = crypto.randomBytes(6).toString("base64url");
@@ -22,7 +23,7 @@ class ServerInvitesService {
             //     .digest("hex");
 
             try {
-                await prisma.serverInvite.create({
+                const invite = await prisma.serverInvite.create({
                     data: {
                         serverId,
                         createdById: inviterId,
@@ -35,7 +36,7 @@ class ServerInvitesService {
                     },
                 });
 
-                return rawCode;
+                return invite;
 
             } catch (error: any) {
                 // If unique constraint fails → retry

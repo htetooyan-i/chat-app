@@ -64,6 +64,10 @@ export async function JoinServerViaCode(req: Request, res: Response) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
+    if (code.length !== 8) {
+        return res.status(400).json({ error: "Invalid invite code format" });
+    }
+
     try {
         const invite = await ServerInvitesService.verifyInvite(code as string);
         if (!invite) {

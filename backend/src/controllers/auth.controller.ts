@@ -52,10 +52,10 @@ export async function LoginUser(req: Request, res: Response) {
         });
 
         res.cookie("accessToken", accessToken, {
-            httpOnly: false, // We need access token to be accessible by client-side JavaScript to include in Authorization header for API requests
+            httpOnly: false, // I need access token to be accessible by client-side JavaScript to include in Authorization header for API requests
             secure: process.env.NODE_ENV === "production",
             sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
-            maxAge: 15 * 60 * 1000, // 15 minutes
+            maxAge: 7 * 24 * 60 * 60 * 1000, // Currently set for 7 days for testing, but in production it should be much shorter like 15 minutes
         });
 
         res.status(200).json({

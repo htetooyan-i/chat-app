@@ -22,7 +22,7 @@ export async function createServer(req: Request, res: Response) {
 
             return server;
         });
-        res.status(200).json({ message: 'Server created successfully', data: data });
+        res.status(200).json({ message: 'Server created successfully', server: data });
 
     } catch (error: any) {
         console.error('Error creating server:', error.message);

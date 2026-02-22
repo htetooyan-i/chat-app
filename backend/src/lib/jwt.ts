@@ -13,10 +13,11 @@ export async function createAccessToken(payload: {
   userId: number;
   email: string;
 }) {
+  const accessExpires = process.env.ACCESS_TOKEN_EXPIRES?.trim() || "15m";
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime(process.env.ACCESS_TOKEN_EXPIRES || "15m")
+    .setExpirationTime(accessExpires)
     .sign(key);
 }
 
@@ -24,10 +25,11 @@ export async function createAccessToken(payload: {
 export async function createRefreshToken(payload: {
   userId: number;
 }) {
+  const refreshExpires = process.env.REFRESH_TOKEN_EXPIRES?.trim() || "7d";
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime(process.env.REFRESH_TOKEN_EXPIRES || "7d")
+    .setExpirationTime(refreshExpires)
     .sign(key);
 }
 
