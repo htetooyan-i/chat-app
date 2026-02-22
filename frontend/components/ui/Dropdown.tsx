@@ -57,12 +57,15 @@ function DropdownComponent({ children, items}: DropdownComponentProps) {
   
   return (
       <div>
-          <div onContextMenu={handleContextMenu} style={{ cursor: 'context-menu' }}>
+          <div onContextMenu={handleContextMenu}>
             {children}
             <Menu
               open={contextMenu !== null}
               onClose={handleClose}
               anchorReference="anchorPosition"
+              disableAutoFocusItem
+              disableEnforceFocus
+              disableRestoreFocus
               anchorPosition={
                 contextMenu !== null
                   ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
@@ -108,81 +111,14 @@ function DropdownComponent({ children, items}: DropdownComponentProps) {
                         },
                       }}
                     >
-                      {item.icon && <span className='mr-2'>{item.icon}</span>}
-                      {item.label}
+                      <div className='flex gap-2 justify-between items-center w-full'>
+                        {item.label}
+                        {item.icon && <span className='mr-2'>{item.icon}</span>}
+                      </div>
                     </MenuItem>
                   );
                 })}
               </MenuList>
-              {/* <MenuItem
-                onClick={handleClose}
-                sx={{
-                  borderRadius: "5px",
-                  fontWeight: "bold",
-                  fontSize: "14px",
-                  paddingInlineStart: "5px",
-                  "&:hover": {
-                    backgroundColor: "rgb(255, 255, 255, 0.1)",
-                  },
-                }}
-              >
-                Open in Mod View
-              </MenuItem>
-              <MenuItem
-                onClick={handleClose}
-                sx={{
-                  color: "var(--error)",
-                  borderRadius: "5px",
-                  fontWeight: "bold",
-                  fontSize: "14px",
-                  paddingInlineStart: "5px",
-                  "&:hover": {
-                    backgroundColor: "rgb(255, 0, 0, 0.2)",
-                  },
-                }}
-              >
-                Ban User
-              </MenuItem>
-              <MenuItem
-                onClick={() => {handleClose();}}
-                sx={{
-                  color: "var(--error)",
-                  borderRadius: "5px",
-                  fontWeight: "bold",
-                  fontSize: "14px",
-                  paddingInlineStart: "5px",
-                  "&:hover": {
-                    backgroundColor: "rgb(255, 0, 0, 0.2)",
-                  },
-                }}
-              >
-                Kick User
-              </MenuItem>
-
-
-              <Divider 
-                sx={{
-                  borderColor: "var(--muted-border)",
-                }}
-              />
-
-              <MenuItem
-                onClick={handleClose}
-                sx={{
-                  borderRadius: "5px",
-                  fontWeight: "bold",
-                  fontSize: "14px",
-                  paddingInlineStart: "5px",
-                  "&:hover": {
-                    backgroundColor: "rgb(255, 255, 255, 0.1)",
-                  },
-                }}
-              >
-                <div className='flex gap-2 items-center'>
-                  <IdCard /> 
-                  <span>Copy User ID</span>
-                </div>
-              </MenuItem> */}
 
             </Menu>
           </div>

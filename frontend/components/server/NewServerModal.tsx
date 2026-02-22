@@ -43,11 +43,14 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
     const [serverName, setServerName] = useState(""); 
     const [inviteCode, setInviteCode] = useState("");
     const { contextHolder, showSuccess, showError } = useNotification();
-    const { refreshServers } = useServer();
+    const { refreshServers, setSelectedServer } = useServer();
 
     const handleCreateNewServer = async () => {
         try {
-            await api.post('/servers', { name: serverName });
+            const res = await api.post('/servers', { name: serverName });
+            const inviteRes = await api.post(`/servers/${res.data.server.id}/invites`);
+            setSelectedServer(res.data.server);
+            setInviteCode(inviteRes.data.code);
             showSuccess("Server created successfully!");
             refreshServers();
             setIsSuccessed(true);
@@ -58,14 +61,27 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
     }
 
     const handleJoinServer = async () => {
+
+        // If the invite code is a URL, extract the code from the URL
+        if (inviteCode.startsWith("http")) {
+            const parts = inviteCode.split("/");
+            setInviteCode(parts[parts.length - 1]);
+        }
+
         try {
             await api.post(`/invites/${inviteCode}`);
             showSuccess("Joined server successfully!");
             refreshServers();
             setShowServerCreationModal(false);
         } catch (error: any) {
-            console.error("Error joining server:", error.message);
-            showError(error.response?.data?.message || "Failed to join server.");
+            console.error("Error joining server:", error);
+
+            const message =
+                error.response?.data?.error || 
+                error.message || 
+                "Failed to join server.";
+
+            showError(message);
         }
     }
 
@@ -133,9 +149,9 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
             >
                 {
                     isCreating ? (
-                        <CreateServer handleCreateNewServer={handleCreateNewServer} isSuccessed={isSuccessed} setIsSuccessed={setIsSuccessed} serverName={serverName} setServerName={setServerName} />
+                        <CreateServer isSuccessed={isSuccessed} serverName={serverName} setServerName={setServerName} inviteCode={inviteCode} />
                     ) : (
-                        <JoinServer handleJoinServer={handleJoinServer} inviteCode={inviteCode} setInviteCode={setInviteCode} />
+                        <JoinServer inviteCode={inviteCode} setInviteCode={setInviteCode} />
                     )   
                 }
 

@@ -1,6 +1,6 @@
 "use client";
-import React from 'react';
-import { LogOut, Plus } from 'lucide-react';
+import React, { useState } from 'react';
+import { LogOut, Plus, Settings } from 'lucide-react';
 import { Avatar, Badge, Layout } from 'antd';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -11,6 +11,7 @@ import { useServerLayout } from '@/hooks/useServerLayout';
 import { useServer } from '@/hooks/useServer';
 import { useNotification } from '@/hooks/useNotification';
 import DropdownComponent, { DropdownItem } from '@/components/ui/Dropdown';
+import ServerSettingsModal from '../server/settings/ServerSettingsModal';
 
 const { Sider } = Layout;
 
@@ -91,6 +92,12 @@ function SideBar({ siderStyle, showServerCreationModal, setShowServerCreationMod
 
     const dropDownItems: DropdownItem[] = [
         {
+            label: "Settings",
+            onClick: () => setShowServerSettingsModal(true),
+            type: "normal",
+            icon: <Settings width={20} height={20}/>,
+        },
+        {
             label: "Leave Server",
             onClick: async () => await handleLeaveServer(),
             type: "danger",
@@ -98,10 +105,13 @@ function SideBar({ siderStyle, showServerCreationModal, setShowServerCreationMod
     ];
 
     const router = useRouter();
-    const { collapsed, setCollapsed } = useServerLayout();
     const { logout } = useAuth();
-    const { servers, selectedServer, setSelectedServer } = useServer();
     const { contextHolder, showSuccess, showError } = useNotification();
+    const { servers, selectedServer, setSelectedServer } = useServer();
+    const { collapsed, setCollapsed } = useServerLayout();
+
+    const [ showServerSettingsModal, setShowServerSettingsModal ] = useState(false);
+
 
     const hndleSelectServer = (serverId: string) => {
         const server = servers.find(s => s.id === serverId) || null;
@@ -134,6 +144,7 @@ function SideBar({ siderStyle, showServerCreationModal, setShowServerCreationMod
     return (
         <div>
             {contextHolder}
+            <ServerSettingsModal show={showServerSettingsModal} onClose={() => setShowServerSettingsModal(false)} />
             <Sider 
             width={80} 
             collapsible

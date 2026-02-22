@@ -34,7 +34,6 @@ export const ChannelProvider: React.FC<{children: React.ReactNode}> = ({ childre
         try {
             const res = await api.get(`/servers/${selectedServer?.id}/channels`); 
             const data = res.data;
-            console.log('Fetched channels:', data);
             setChannels(data);
             setSelectedChannel(res.data[0] || null);
 

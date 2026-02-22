@@ -32,7 +32,9 @@ export const ServerProvider: React.FC<{children: React.ReactNode}> = ({ children
       const res = await api.get('/servers/my-servers'); 
       const data = res.data;
       setServers(data.data);
-      setSelectedServer(data.data[0] || null);
+      if (!selectedServer && data.data.length > 0) { // Set the first server as selected if none is selected
+        setSelectedServer(data.data[0]);
+      }
     } catch (error) {
       console.error('Error fetching servers:', error);
     }

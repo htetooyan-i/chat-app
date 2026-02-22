@@ -31,16 +31,27 @@ const styles: ModalProps['styles'] = {
 
 
 type CreateServerModalProps = {
-    handleCreateNewServer: () => void;
     isSuccessed: boolean;
-    setIsSuccessed: (success: boolean) => void;
     serverName: string;
     setServerName: (name: string) => void;
+    inviteCode: string;
     
 }
 
-function CreateServer({ handleCreateNewServer, isSuccessed, setIsSuccessed, serverName, setServerName }: CreateServerModalProps) {
+function CreateServer({ isSuccessed, serverName, setServerName, inviteCode }: CreateServerModalProps) {
 
+    const [ copied, setCopied ] = React.useState(false);
+
+    const handleCopyInviteLink = () => {
+        navigator.clipboard.writeText(inviteCode)
+            .then(() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            })
+            .catch((err) => {
+                console.error("Failed to copy invite link:", err);
+            });
+    }
     return (
         <div>
             {!isSuccessed ? (
@@ -65,7 +76,7 @@ function CreateServer({ handleCreateNewServer, isSuccessed, setIsSuccessed, serv
                 <main className='flex flex-col gap-4'>
                     <p className='text-[12px] text-muted-text'>Invite others to join your server using the link below.</p>
 
-                    <button className="w-full px-4 py-2 bg-accent text-foreground rounded hover:opacity-80 cursor-pointer">#2wefdsf</button>
+                    <button className={`w-full px-4 py-2 text-foreground rounded hover:opacity-80 cursor-pointer ${copied ? 'bg-green-500/10 border border-success' : 'bg-accent'}`} onClick={handleCopyInviteLink}>{copied ? "Copied!" : inviteCode}</button>
                 </main>
             )
             }
