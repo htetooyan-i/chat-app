@@ -45,7 +45,7 @@ function CreateNewChannelModal({ showCreateChannelModal, setShowCreateChannelMod
             centered
             title={ "Customize Your New Channel" }
             open={showCreateChannelModal}
-            onCancel={() => setShowCreateChannelModal(false)}
+            onCancel={() => {setShowCreateChannelModal(false), setChannelName("")}}
             width={"25%"}
             styles={styles}
             closable={false}
@@ -53,7 +53,7 @@ function CreateNewChannelModal({ showCreateChannelModal, setShowCreateChannelMod
                 <div className="flex justify-end gap-2">
                     <button
                         className="flex-1 px-4 py-2 bg-muted-background border border-muted-border font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
-                        onClick={() => setShowCreateChannelModal(false)}
+                        onClick={() => {setShowCreateChannelModal(false), setChannelName("")}}
                     >
                         Cancel
                     </button>

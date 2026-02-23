@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Layout } from 'antd';
 
-import { useServerLayout } from '@/hooks/useServerLayout';
-import CreateNewChannelModal from "@/components/channel/CreateNewChannelModal";
-import { useNotification } from '@/hooks/useNotification';
-import { useServer } from '@/hooks/useServer';
-import { useChannel } from '@/hooks/userChannel';
 import api from '@/lib/api';
+import CreateNewChannelModal from "@/components/channel/CreateNewChannelModal";
+import DropdownComponent, { DropdownItem } from '../ui/Dropdown';
+import DeleteChannelModal from '../channel/settings/DeleteChannelModal';
+import { useChannel } from '@/hooks/userChannel';
+import { useNotification } from '@/hooks/useNotification';
+import { useServerLayout } from '@/hooks/useServerLayout';
+import { useServer } from '@/hooks/useServer';
+import type { Channel } from '@/context/ChannelContext';
 
 const { Sider } = Layout;
 
@@ -18,10 +21,27 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
 
     const { contextHolder, showError, showSuccess } = useNotification();
     const { selectedServer } = useServer();
-    const { channels, selectedChannel, setSelectedChannel, refreshChannels } = useChannel();
+    const { channels, setChannels, selectedChannel, setSelectedChannel, refreshChannels } = useChannel();
     const serverId = selectedServer?.id || "";
     const { collapsed, setCollapsed } = useServerLayout();
     const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
+    const [showDeleteChannelModal, setShowDeleteChannelModal] = useState(false);
+    const [channelToDelete, setChannelToDelete] = useState<Channel | null>(null);    
+    const dropdownItems = (channel: Channel): DropdownItem[] => [
+        {
+            label: "Edit Channel",
+            onClick: () => {},
+            type: "normal"
+        },
+        {
+            label: "Delete Channel",
+            onClick: () => {
+                setChannelToDelete(channel);
+                setShowDeleteChannelModal(true);
+            },
+            type: "danger"
+        }
+    ];
     
     const handleCreateChannel = async (channelName: string) => {
         if (channelName.trim() === "") {
@@ -36,15 +56,38 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
         }
         catch (error) {
             showError("Failed to create channel.");
-        }
-        
-
-            
+        } 
     };
+
+    const handleDeleteChannel = async (channelToDelete: Channel) => {
+        try {
+            await api.delete(`/channels/${channelToDelete.id}`);
+            showSuccess("Channel deleted successfully!");
+            setChannels(prevChannels => prevChannels.filter(channel => channel.id !== channelToDelete.id));
+            refreshChannels();
+            setShowDeleteChannelModal(false);
+        }
+        catch (error) {
+            showError("Failed to delete channel.");
+        } 
+    };
+
     return (
         <div>
             {contextHolder}
             <CreateNewChannelModal showCreateChannelModal={showCreateChannelModal} setShowCreateChannelModal={setShowCreateChannelModal} handleCreateChannel={handleCreateChannel}  />
+            <DeleteChannelModal 
+            show={showDeleteChannelModal} 
+            channelName={channelToDelete?.name || ""}
+            onClose={() => {
+                setShowDeleteChannelModal(false);
+                setChannelToDelete(null);
+            }}
+            onConfirm={() => {
+                if (channelToDelete) {
+                handleDeleteChannel(channelToDelete);
+                }
+            }} />
             <Sider
             trigger={null}
             width={300}
@@ -64,7 +107,7 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
                 scrollbarWidth: "thin",
             }}
             >
-                <div className={`flex flex-col h-full ${collapsed ? 'hidden' : ''}`}>
+                <div className={`flex flex-col w-full h-full ${collapsed ? 'hidden' : ''}`}>
                     {/* Header */}
                     <header className='sticky top-0 z-10 h-[64px] w-full flex justify-center items-end pb-1 px-5 bg-background'>
                         <button
@@ -77,12 +120,14 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
                 
 
                     {/* Channel List */}
-                    <div className="flex flex-col gap-3 items-center flex-1 overflow-y-auto p-5 thin-scrollbar" >
+                    <div className="flex flex-col w-full gap-3 items-center justify-start flex-1 overflow-y-auto p-5 thin-scrollbar" >
                         {
                             channels.map(channel => (
-                                <div key={channel.id} onClick={() => setSelectedChannel(channel)} className={`text-[15px] h-[45px] w-full p-2 border-s-4 rounded-r-sm cursor-pointer flex items-center ${channel.id === selectedChannel?.id ? 'border-accent  bg-chat-panel' : 'border-muted-border'}`}>
-                                    <p className='capitalize truncate'><span>#</span> {channel.name}</p>
-                                </div>
+                                <DropdownComponent items={dropdownItems(channel)} key={channel.id}>
+                                    <div onClick={() => setSelectedChannel(channel)} className={`text-[15px] h-[45px] w-full p-2 border-s-4 rounded-r-sm cursor-pointer flex items-center ${channel.id === selectedChannel?.id ? 'border-accent  bg-chat-panel' : 'border-muted-border'}`}>
+                                        <p className='capitalize truncate'><span>#</span> {channel.name}</p>
+                                    </div>
+                                </DropdownComponent>
                             ))
                         }
                     </div>

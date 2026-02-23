@@ -1,8 +1,9 @@
-import React from 'react';
-import { Avatar, Layout, Modal, ModalProps } from 'antd';
+import React, { useState } from 'react';
+import { Layout, Modal, ModalProps } from 'antd';
 import { CircleX } from 'lucide-react';
 
 import api from '@/lib/api';
+import DeleteServerTab from '@/components/server/settings/DeleteServerTab';
 import { useServer } from '@/hooks/useServer';
 import { useNotification } from '@/hooks/useNotification';
 
@@ -20,7 +21,12 @@ const modalStyles: ModalProps['styles'] = {
         border: '1px solid var(--muted-border)',
         padding: 0,
         overflow: 'hidden',
+        height: "70vh",
     },
+    body: {
+        padding: 0,
+        height: "100%",
+    }
 };
 
 type ServerSettingsModalProps = {
@@ -28,10 +34,21 @@ type ServerSettingsModalProps = {
     onClose: () => void;
 };
 
+type SettingsTab = "profile" | "members" | "invites" | "bans" | "delete";
+
+const tabTitles: Record<SettingsTab, string> = {
+  profile: "Server Profile",
+  members: "Members",
+  invites: "Invites",
+  bans: "Member Ban List",
+  delete: "Delete Server",
+};
+
 function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
 
     const { selectedServer, setSelectedServer, setServers, refreshServers } = useServer();
     const { contextHolder, showSuccess, showError } = useNotification();
+    const [ activeTab, setActiveTab ] = useState<SettingsTab>("profile");
 
     const handleDeleteServer = async () => {
         try {
@@ -62,7 +79,7 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
             }
             
             >
-                <Layout>
+                <Layout style={{ height: "100%" }}>
                     <Sider style={{
                         backgroundColor: "var(--sidebar)",
                         height: "100%",
@@ -71,23 +88,41 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
                     }}
                     width={"25%"}
                     >
-                        <div className="flex flex-col justify-between items-center">
-                            <div className="flex flex-col items-center">
-                                <Avatar src='/server-img.jpg' size={80} shape="circle" />
-                                <h3 className="text-[18px] font-bold mt-3">{selectedServer?.name}</h3>
-                            </div>
-                            <div className="flex flex-col items-center">
-                                <button className="bg-green-500 text-white px-4 py-2 rounded mb-2">Invite People</button>
-                                <button className="bg-red-500 text-white px-4 py-2 rounded" onClick={handleDeleteServer}>Delete Server</button>
-                            </div>
+                        <div className="flex flex-col justify-start items-start h-full gap-4">
+                            <header>
+                                <p className='uppercase text-[11px] font-bold'>{selectedServer?.name}</p>
+                            </header>
+                            {/* Settings List */}
+                            <main className='flex flex-col w-full gap-4'>
+                                <div className={`text-[15px] h-[30px] w-full p-2 border-s-3 rounded-r-sm cursor-pointer flex items-center ${activeTab === "profile" ? 'border-accent  bg-chat-panel' : 'border-muted-border'}`} onClick={() => setActiveTab("profile")}>
+                                    <p className='capitalize truncate font-semibold'>Profile</p>
+                                </div>
+                                <div className={`text-[15px] h-[30px] w-full p-2 border-s-3 rounded-r-sm cursor-pointer flex items-center ${activeTab === "members" ? 'border-accent  bg-chat-panel' : 'border-muted-border'}`} onClick={() => setActiveTab("members")}>
+                                    <p className='capitalize truncate font-semibold'>Members</p>
+                                </div>
+                                <div className={`text-[15px] h-[30px] w-full p-2 border-s-3 rounded-r-sm cursor-pointer flex items-center ${activeTab === "invites" ? 'border-accent  bg-chat-panel' : 'border-muted-border'}`} onClick={() => setActiveTab("invites")}>
+                                    <p className='capitalize truncate font-semibold'>Invites</p>
+                                </div>
+                                <div className={`text-[15px] h-[30px] w-full p-2 border-s-3 rounded-r-sm cursor-pointer flex items-center ${activeTab === "bans" ? 'border-accent  bg-chat-panel' : 'border-muted-border'}`} onClick={() => setActiveTab("bans")}>
+                                    <p className='capitalize truncate font-semibold'>Bans</p>
+                                </div>
+                                <div className={`text-[15px] h-[30px] w-full p-2 border-s-3 rounded-r-sm cursor-pointer flex items-center ${activeTab === "delete" ? 'border-error  bg-chat-panel' : 'border-muted-border'}`} onClick={() => setActiveTab("delete")}>
+                                    <p className='capitalize truncate text-error font-semibold'>Delete Server</p>
+                                </div>
+
+                            </main>
                         </div>
                     </Sider>
                     <Content style={{
-                        backgroundColor: "var(--chat-panel)",
+                        backgroundColor: "var(--background)",
+                        color: "var(--foreground)",
                         padding: "20px",
                         flex: 1,
                     }}>
-                        <p>Server settings content goes here...</p>
+                        <header>
+                            <p className="text-xl font-bold capitalize">{tabTitles[activeTab]}</p>
+                            { activeTab === "delete" && <DeleteServerTab deleteServer={handleDeleteServer} serverName={selectedServer?.name || "Server"} onclose={() => onClose()} /> }
+                        </header>
                     </Content>
                 </Layout>
 

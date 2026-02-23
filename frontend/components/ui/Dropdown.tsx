@@ -10,6 +10,7 @@ export type DropdownItem = {
   onClick: () => void;
   type: 'normal' | 'danger' | 'divider';
   icon?: React.ReactNode;
+  meta?: { [key: string]: any };
 }
 
 type DropdownComponentProps = {
@@ -56,7 +57,7 @@ function DropdownComponent({ children, items}: DropdownComponentProps) {
 
   
   return (
-      <div>
+      <div className='w-full'>
           <div onContextMenu={handleContextMenu}>
             {children}
             <Menu

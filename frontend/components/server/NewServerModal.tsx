@@ -61,17 +61,20 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
     }
 
     const handleJoinServer = async () => {
+        let finalCode = inviteCode;
 
-        // If the invite code is a URL, extract the code from the URL
+        // If the invite code is a URL, extract the code
         if (inviteCode.startsWith("http")) {
             const parts = inviteCode.split("/");
-            setInviteCode(parts[parts.length - 1]);
+            finalCode = parts[parts.length - 1];
         }
 
         try {
-            await api.post(`/invites/${inviteCode}`);
+            await api.post(`/invites/${finalCode}`);
             showSuccess("Joined server successfully!");
             refreshServers();
+            setInviteCode("");
+            setIsCreating(true);
             setShowServerCreationModal(false);
         } catch (error: any) {
             console.error("Error joining server:", error);
@@ -83,7 +86,7 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
 
             showError(message);
         }
-    }
+    };
 
     return (
         <div>
@@ -155,7 +158,9 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
                     )   
                 }
 
-                <button type="button" onClick={() => setIsCreating(prev => !prev)} className="underline text-accent font-[11px] my-2">{ isCreating ? "Already have an invite?" : "Want to create a new server?" }</button>
+                {
+                    !isSuccessed && <button type="button" onClick={() => setIsCreating(prev => !prev)} className="underline text-accent font-[11px] my-2">{ isCreating ? "Already have an invite?" : "Want to create a new server?" }</button>    
+                }
             </Modal>
         </div>
     );

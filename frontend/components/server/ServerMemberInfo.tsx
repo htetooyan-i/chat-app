@@ -8,6 +8,7 @@ import DropdownComponent from "@/components/ui/Dropdown";
 import InviteServerModal from './InviteServerModal';
 import { DropdownItem } from "@/components/ui/Dropdown";
 import { useServer } from '@/hooks/useServer';
+import { useNotification } from '@/hooks/useNotification';
 
 type ServerMemberInfoProps = {
     type: "settings" | "files" | "users" | "none";
@@ -18,6 +19,7 @@ function ServerMemberInfo({ type }: ServerMemberInfoProps) {
     const { selectedServer } = useServer();
     const [serverMembers, setServerMembers] = useState<any[]>([]);
     const [ showInviteServerModal, setShowInviteServerModal ] = useState(false);
+    const { contextHolder, showSuccess, showError } = useNotification();
 
 
     useEffect(() => {
@@ -29,7 +31,7 @@ function ServerMemberInfo({ type }: ServerMemberInfoProps) {
             );
 
             setServerMembers(res.data.data);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error fetching server members:", error);
         }
         };
@@ -71,15 +73,17 @@ function ServerMemberInfo({ type }: ServerMemberInfoProps) {
     const handleKickMember = async (memberId: string) => {
         if (!selectedServer) return;
         try {
-        await api.delete(`/servers/${selectedServer.id}/kick`, { data: { memberId } });
-        setServerMembers(prev => prev.filter(member => member.userId !== memberId));
-        } catch (error) {
-        console.error("Error kicking member:", error);
+            await api.delete(`/servers/${selectedServer.id}/kick`, { data: { memberId } });
+            setServerMembers(prev => prev.filter(member => member.userId !== memberId));
+            showSuccess("Member kicked successfully");
+        } catch (error: any) {
+        showError(error.response?.data?.message || error.message);
         }
     };
 
     return (
         <div>
+            {contextHolder}
             <InviteServerModal showInviteServerModal={showInviteServerModal} setShowInviteServerModal={setShowInviteServerModal} />
             <header className="p-4 flex justify-between items-center">
                 <h2 className="text-[21px] font-bold py-2">Members</h2> 

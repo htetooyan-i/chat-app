@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import api from '@/lib/api';
 import { useServer } from '@/hooks/useServer';
 
-type Channel = {
+export type Channel = {
   id: string;
   name: string;
   type: 'text' | 'voice';
