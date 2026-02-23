@@ -69,7 +69,7 @@ class ServerMemberService {
                     server.ownerId !== requesterId
                 )
             ) {
-                throw new Error("Unauthorized");
+                throw new Error("You do not have permission to remove members from this server");
             }
 
             // Get the member being removed
