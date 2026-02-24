@@ -4,10 +4,12 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/lib/api';
 
-type Server = {
+export type Server = {
   id: string;
   name: string;
   icon?: string;
+  memberCount: number;
+  createdAt: string;
 };
 
 type ServerContextType = {

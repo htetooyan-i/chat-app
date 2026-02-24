@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Layout, Modal, ModalProps } from 'antd';
 import { CircleX } from 'lucide-react';
 
@@ -6,6 +6,8 @@ import api from '@/lib/api';
 import DeleteServerTab from '@/components/server/settings/DeleteServerTab';
 import { useServer } from '@/hooks/useServer';
 import { useNotification } from '@/hooks/useNotification';
+import ProfileServerTab from './ProfileServerTab';
+import type { Server } from '@/context/ServerContext';
 
 const { Content, Sider } = Layout;
 
@@ -49,6 +51,21 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
     const { selectedServer, setSelectedServer, setServers, refreshServers } = useServer();
     const { contextHolder, showSuccess, showError } = useNotification();
     const [ activeTab, setActiveTab ] = useState<SettingsTab>("profile");
+    const [ hasUnsavedChanges, setHasUnsavedChanges ] = useState(false);
+    const [ profileForm, setProfileForm ] = useState<Server>(selectedServer || {
+        id: "",
+        name: "",
+        icon: "",
+        memberCount: 0,
+        createdAt: ""
+    });
+
+    useEffect(() => {
+        if (selectedServer) {
+            setProfileForm(selectedServer);
+            setHasUnsavedChanges(false);
+        }
+    }, [selectedServer]);
 
     const handleDeleteServer = async () => {
         try {
@@ -63,6 +80,19 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
             showError(error.error || "Failed to delete server.");
         }   
     }
+
+    const handleSaveProfileChanges = async () => {
+        try {
+            await api.patch(`/servers/${selectedServer?.id}`, {name: profileForm.name});
+            showSuccess("Server profile updated successfully");
+            refreshServers();
+            setSelectedServer(profileForm);
+            setHasUnsavedChanges(false);
+        } catch (error: any) {
+            console.error("Error saving server profile:", error.message);
+            showError(error.error || "Failed to update server profile.");
+        }
+    }
     return (
         <div>
             {contextHolder}
@@ -73,7 +103,26 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
             onCancel={onClose}
             width={"70%"}
             styles={modalStyles}
-            footer={null}
+            footer={
+                <div className={`absolute bottom-5 right-20 flex justify-between items-center gap-2 px-4 py-2 bg-chat-panel rounded-md w-[75%] shadow-lg shadow-accent/10 transition-all duration-500 ease-in-out ${hasUnsavedChanges ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}>
+                    <div>
+                        <p className="text-md font-semibold text-foreground">Careful - you have unsaved changes!</p>
+                    </div>
+                    <div className="flex gap-2">
+                        <button className="bg-muted-background text-error border border-muted-border hover:bg-muted-background/70 px-2 py-1 rounded-lg font-semibold cursor-pointer" onClick={() => { // FIX: This should be changed in future, this works but it's not ideal to reset the form like this
+                            setHasUnsavedChanges(false);
+                            setProfileForm(selectedServer || {
+                                id: "",
+                                name: "",
+                                icon: "",
+                                memberCount: 0,
+                                createdAt: ""
+                            });
+                        }}>Reset</button>
+                        <button className="bg-accent text-foreground hover:bg-accent/70 px-2 py-1 rounded-lg font-semibold cursor-pointer" onClick={handleSaveProfileChanges}>Save Changes</button>
+                    </div>
+                </div>
+            }
             closeIcon={
                 <CircleX color="#ffffff" width={32} height={32} />
             }
@@ -86,7 +135,7 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
                         paddingBlock: "20px",
                         paddingInline: "10px",
                     }}
-                    width={"25%"}
+                    width={"15%"}
                     >
                         <div className="flex flex-col justify-start items-start h-full gap-4">
                             <header>
@@ -116,13 +165,12 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
                     <Content style={{
                         backgroundColor: "var(--background)",
                         color: "var(--foreground)",
-                        padding: "20px",
+                        paddingBlock: "20px",
+                        paddingInline: "50px",
                         flex: 1,
                     }}>
-                        <header>
-                            <p className="text-xl font-bold capitalize">{tabTitles[activeTab]}</p>
-                            { activeTab === "delete" && <DeleteServerTab deleteServer={handleDeleteServer} serverName={selectedServer?.name || "Server"} onclose={() => onClose()} /> }
-                        </header>
+                        { activeTab === "profile" && <ProfileServerTab hasUnsavedChanges={hasUnsavedChanges} onDirtyChange={setHasUnsavedChanges} serverProfile={profileForm} setServerProfile={setProfileForm} /> }
+                        { activeTab === "delete" && <DeleteServerTab deleteServer={handleDeleteServer} serverName={selectedServer?.name || "Server"} onclose={() => onClose()} /> }
                     </Content>
                 </Layout>
 

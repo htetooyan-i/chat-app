@@ -10,3 +10,8 @@ export const parsePasswordValidation = (pwd: string) => {
     const hasNumber = /[0-9]/.test(pwd);
     return hasMinLength && hasUppercase && hasLowercase && hasNumber;
 };
+
+export const formatDate = (date: Date) => {
+    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: undefined };
+    return date.toLocaleDateString(undefined, options);
+};
