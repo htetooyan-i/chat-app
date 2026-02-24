@@ -6,12 +6,24 @@ class ServerMemberService {
     static async getCurrentUserServers(userId: number) {
         try {
             const servers = await prisma.serverMember.findMany({
-                where: { userId },
-                include: { server: true },
+            where: { userId },
+            include: {
+                server: {
+                include: {
+                    _count: {
+                    select: { members: true },
+                    },
+                },
+                },
+            },
             });
-            return servers.map((member) => member.server);
+
+            return servers.map((member) => ({
+            ...member.server,
+            memberCount: member.server._count.members,
+            }));
         } catch (error: any) {
-            console.error('Error retrieving user servers:', error.message);
+            console.error("Error retrieving user servers:", error.message);
             throw error;
         }
     }
