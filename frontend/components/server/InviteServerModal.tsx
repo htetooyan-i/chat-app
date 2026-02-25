@@ -4,6 +4,7 @@ import { ConfigProvider, Modal, ModalProps, Select, SelectProps } from 'antd';
 import { useNotification } from '@/hooks/useNotification';
 import api from '@/lib/api';
 import { useServer } from '@/hooks/useServer';
+import CreateInviteCode from './CreateInviteCode';
 
 
 const styles: ModalProps['styles'] = {
@@ -68,11 +69,13 @@ type Invite = {
 }
 
 type InviteServerModalProps = {
-    showInviteServerModal: boolean;
-    setShowInviteServerModal: (show: boolean) => void;
+    show: boolean;
+    onClose: () => void;
+    fromSettings?: boolean;
+    refreshInvites?: () => void;
 }
 
-function InviteServerModal({ showInviteServerModal, setShowInviteServerModal }: InviteServerModalProps) {
+function InviteServerModal({ show, onClose, fromSettings, refreshInvites }: InviteServerModalProps) {
 
     const { selectedServer } = useServer();
     const { contextHolder, showSuccess, showError } = useNotification();
@@ -85,15 +88,28 @@ function InviteServerModal({ showInviteServerModal, setShowInviteServerModal }: 
     const [ maxUses, setMaxUses ] = useState("No Limit");
 
     useEffect(() => {
-        try {
-            api.get(`/servers/${selectedServer?.id}/invites`).then((res) => {
-                setInviteCode(res.data[0] || null);
-            });
-        } catch (error) {
-            console.error("Error fetching invite codes:", error);
-            showError("Failed to fetch invite codes. Please try again.");
+        if (show) {
+            setCreateNewCode(!!fromSettings);
         }
-    }, []);
+    }, [show, fromSettings]);
+
+    
+
+    useEffect(() => { // FIX: this will fetch only when this modal is opened from member info, but not from settings, need to add a condition to check if it's from settings or not
+        if (!selectedServer?.id) return;
+
+        const fetchInvites = async () => {
+            try {
+                const res = await api.get(`/servers/${selectedServer.id}/invites`);
+                setInviteCode(res.data[0] || null);
+            } catch (error) {
+                console.error("Error fetching invite codes:", error);
+                showError("Failed to fetch invite codes. Please try again.");
+            }
+        };
+
+        fetchInvites();
+    }, [selectedServer?.id]);
     
     const handleCopyInviteLink = () => {
         const inviteLink = `https://localhost:4000/invites/${inviteCode?.code}`;
@@ -116,9 +132,14 @@ function InviteServerModal({ showInviteServerModal, setShowInviteServerModal }: 
             });
             setInviteCode(res.data);
             showSuccess("New invite link generated successfully!");
-            setCreateNewCode(false);
             setExpireAfter("7");
             setMaxUses("No Limit");
+            if (fromSettings) {
+                refreshInvites?.();
+                onClose();
+            }else {
+                setCreateNewCode(false);
+            }
         } catch (error) {
             console.error("Error generating new invite link:", error);
             showError("Failed to generate new invite link. Please try again.");
@@ -130,9 +151,9 @@ function InviteServerModal({ showInviteServerModal, setShowInviteServerModal }: 
             <Modal
             centered
             title={ createNewCode ? "Server invite link settings" : "Invite People to Your Server" }
-            open={showInviteServerModal}
+            open={show}
             onCancel={() => {
-                        setShowInviteServerModal(false);
+                        onClose();
                         setCreateNewCode(false);
                     }}
             width={"30%"}
@@ -146,7 +167,11 @@ function InviteServerModal({ showInviteServerModal, setShowInviteServerModal }: 
                                 <button
                                     className="flex-1 px-4 py-2 bg-muted-background border border-muted-border font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
                                     onClick={() => {
-                                        setCreateNewCode(false);
+                                        if (fromSettings) {
+                                            onClose();
+                                        } else {
+                                            setCreateNewCode(false);
+                                        }
                                     }}
                                 >
                                     Back
@@ -155,7 +180,11 @@ function InviteServerModal({ showInviteServerModal, setShowInviteServerModal }: 
                                     className="flex-1 px-4 py-2 bg-accent border border-accent font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
                                     onClick={() => {
                                         handleGenerateNewLink();
-                                        setCreateNewCode(false);
+                                        if (fromSettings) {
+                                            onClose();
+                                        } else {
+                                            setCreateNewCode(false);
+                                        }
                                     }}
                                 >
                                     Generate New Link
@@ -165,7 +194,7 @@ function InviteServerModal({ showInviteServerModal, setShowInviteServerModal }: 
                             <button
                                 className="flex-1 px-4 py-2 bg-muted-background border border-muted-border font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
                                 onClick={() => {
-                                    setShowInviteServerModal(false);
+                                    onClose();
                                 }}
                             >
                                 Close
@@ -177,65 +206,7 @@ function InviteServerModal({ showInviteServerModal, setShowInviteServerModal }: 
             >
                 {
                     createNewCode ? (
-                        <main className="flex flex-col gap-5 items-start justify-center">
-                            <div className='flex flex-col gap-2 w-full'>
-                                <label htmlFor="serverName" className="text-[15px] font-bold">Expire After</label>
-                                <ConfigProvider
-                                    theme={{
-                                        components: {
-                                            Select: {
-                                                optionSelectedBg: "var(--accent)",
-                                            },
-                                        },
-                                    }}
-                                >
-                                    <Select
-                                        defaultValue="7"
-                                        styles={selectStyles}
-                                        onChange={(value) => {
-                                            setExpireAfter(value);
-                                        }}
-                                        options={[
-                                            { value: '7', label: '7 days' },
-                                            { value: '30', label: '30 days' },
-                                            { value: '90', label: '90 days' },
-                                            { value: 'never', label: 'Never' },
-                                        ]}
-                                    />
-                                </ConfigProvider>
-                                
-
-                            </div>
-
-                            <div className='flex flex-col gap-2 w-full'>
-                                <label htmlFor="serverName" className="text-[15px] font-bold">Max Number of Uses</label>
-                                <ConfigProvider
-                                    theme={{
-                                        components: {
-                                            Select: {
-                                                optionSelectedBg: "var(--accent)",
-                                            },
-                                        },
-                                    }}
-                                >
-                                    <Select
-                                        defaultValue="No Limit"
-                                        styles={selectStyles}
-                                        onChange={(value) => {
-                                            setMaxUses(value);
-                                        }}
-                                        options={[
-                                            { value: 'No Limit', label: 'No Limit' },
-                                            { value: '1', label: '1 use' },
-                                            { value: '5', label: '5 uses' },
-                                            { value: '10', label: '10 uses' },
-                                        ]}
-                                    />
-                                </ConfigProvider>
-                                
-
-                            </div>
-                        </main>
+                        <CreateInviteCode expireAfter={expireAfter} setExpireAfter={setExpireAfter} maxUses={maxUses} setMaxUses={setMaxUses} />
                     ) : (
                         <main className="flex flex-col gap-10 items-start justify-center">
                             {/* Need to check the expire date */}

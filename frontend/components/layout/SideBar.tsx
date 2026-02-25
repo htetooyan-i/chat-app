@@ -10,7 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useServerLayout } from '@/hooks/useServerLayout';
 import { useServer } from '@/hooks/useServer';
 import { useNotification } from '@/hooks/useNotification';
-import DropdownComponent, { DropdownItem } from '@/components/ui/Dropdown';
+import ContextDropdownComponent, { ContextDropdownItem } from '@/components/ui/ContextDropdown';
 import ServerSettingsModal from '../server/settings/ServerSettingsModal';
 
 const { Sider } = Layout;
@@ -21,76 +21,9 @@ type SideBarProps = {
     setShowServerCreationModal: (show: boolean) => void;
 }
 
-// const servers = [
-//     {
-//         id: 1,
-//         name: "Server 1",
-//         avatar: "/server-img.jpg",
-//         title: "Chat"
-//     },
-//     {
-//         id: 2,
-//         name: "Server 2",
-//         avatar: "/server-img.jpg",
-//         title: "Gaming"
-//     },
-//     {
-//         id: 3,
-//         name: "Server 3",
-//         avatar: "/server-img.jpg",
-//         title: "Development"
-//     },
-//     // {
-//     //     id: 4,
-//     //     name: "Server 4",
-//     //     avatar: "/profile-img.jpg",
-//     // },
-//     // {
-//     //     id: 5,
-//     //     name: "Server 5",
-//     //     avatar: "/profile-img.jpg",
-//     // },
-//     // {
-//     //     id: 6,
-//     //     name: "Server 6",
-//     //     avatar: "/profile-img.jpg",
-//     // },
-//     // {
-//     //     id: 7,
-//     //     name: "Server 7",
-//     //     avatar: "/profile-img.jpg",
-//     // },
-//     // {
-//     //     id: 8,
-//     //     name: "Server 8",
-//     //     avatar: "/profile-img.jpg",
-//     // },
-//     // {
-//     //     id: 9,
-//     //     name: "Server 9",
-//     //     avatar: "/profile-img.jpg",
-//     // },
-//     // {
-//     //     id: 10,
-//     //     name: "Server 10",
-//     //     avatar: "/profile-img.jpg",
-//     // },
-//     // {
-//     //     id: 11,
-//     //     name: "Server 11",
-//     //     avatar: "/profile-img.jpg",
-//     // },
-//     // {
-//     //     id: 12,
-//     //     name: "Server 12",
-//     //     avatar: "/profile-img.jpg",
-//     // },
-
-// ];
-
 function SideBar({ siderStyle, showServerCreationModal, setShowServerCreationModal }: SideBarProps) {
 
-    const dropDownItems: DropdownItem[] = [
+    const dropDownItems: ContextDropdownItem[] = [
         {
             label: "Settings",
             onClick: () => setShowServerSettingsModal(true),
@@ -182,7 +115,7 @@ function SideBar({ siderStyle, showServerCreationModal, setShowServerCreationMod
                                     title={server.name}
                                     onClick={() => hndleSelectServer(server.id)}
                                 >
-                                    <DropdownComponent items={dropDownItems}>
+                                    <ContextDropdownComponent items={dropDownItems}>
                                         <Badge>
                                             <Avatar
                                                 src='/server-img.jpg'
@@ -198,7 +131,7 @@ function SideBar({ siderStyle, showServerCreationModal, setShowServerCreationMod
                                             />
 
                                         </Badge>
-                                    </DropdownComponent>
+                                    </ContextDropdownComponent>
                                 </div>
                         ))}
                     </div>

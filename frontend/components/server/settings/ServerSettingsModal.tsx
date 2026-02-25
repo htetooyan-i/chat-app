@@ -4,10 +4,13 @@ import { CircleX } from 'lucide-react';
 
 import api from '@/lib/api';
 import DeleteServerTab from '@/components/server/settings/DeleteServerTab';
+import InviteServerTab from './InviteServerTab';
+import ServerMemberTab from './ServerMemberTab';
+import ProfileServerTab from './ProfileServerTab';
 import { useServer } from '@/hooks/useServer';
 import { useNotification } from '@/hooks/useNotification';
-import ProfileServerTab from './ProfileServerTab';
 import type { Server } from '@/context/ServerContext';
+import BanServerTab from './BanServerTab';
 
 const { Content, Sider } = Layout;
 
@@ -67,6 +70,13 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
         }
     }, [selectedServer]);
 
+    useEffect(() => {
+        if (!show) {
+            setActiveTab("profile");
+            setHasUnsavedChanges(false);
+        }
+    }, [show]);
+
     const handleDeleteServer = async () => {
         try {
             await api.delete(`/servers/${selectedServer?.id}`);
@@ -101,7 +111,7 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
             title={null}
             open={show}
             onCancel={onClose}
-            width={"70%"}
+            width={"60%"}
             styles={modalStyles}
             footer={
                 <div className={`absolute bottom-5 right-20 flex justify-between items-center gap-2 px-4 py-2 bg-chat-panel rounded-md w-[75%] shadow-lg shadow-accent/10 transition-all duration-500 ease-in-out ${hasUnsavedChanges ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}>
@@ -155,7 +165,7 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
                                 <div className={`text-[15px] h-[30px] w-full p-2 border-s-3 rounded-r-sm cursor-pointer flex items-center ${activeTab === "bans" ? 'border-accent  bg-chat-panel' : 'border-muted-border'}`} onClick={() => setActiveTab("bans")}>
                                     <p className='capitalize truncate font-semibold'>Bans</p>
                                 </div>
-                                <div className={`text-[15px] h-[30px] w-full p-2 border-s-3 rounded-r-sm cursor-pointer flex items-center ${activeTab === "delete" ? 'border-error  bg-chat-panel' : 'border-muted-border'}`} onClick={() => setActiveTab("delete")}>
+                                <div className={`text-[15px] h-[30px] w-full p-2 border-s-3 rounded-r-sm cursor-pointer flex items-center border-error ${activeTab === "delete" ? 'bg-error/20' : 'bg-transparent'}`} onClick={() => setActiveTab("delete")}>
                                     <p className='capitalize truncate text-error font-semibold'>Delete Server</p>
                                 </div>
 
@@ -170,6 +180,9 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
                         flex: 1,
                     }}>
                         { activeTab === "profile" && <ProfileServerTab hasUnsavedChanges={hasUnsavedChanges} onDirtyChange={setHasUnsavedChanges} serverProfile={profileForm} setServerProfile={setProfileForm} /> }
+                        { activeTab === "members" && <ServerMemberTab /> }
+                        { activeTab === "invites" && <InviteServerTab /> }
+                        { activeTab === "bans" && <BanServerTab /> }
                         { activeTab === "delete" && <DeleteServerTab deleteServer={handleDeleteServer} serverName={selectedServer?.name || "Server"} onclose={() => onClose()} /> }
                     </Content>
                 </Layout>

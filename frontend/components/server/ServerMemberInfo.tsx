@@ -4,9 +4,8 @@ import { UserRoundPlus, IdCard } from "lucide-react";
 import { Avatar, Badge } from 'antd';
 
 import api from "@/lib/api";
-import DropdownComponent from "@/components/ui/Dropdown";
 import InviteServerModal from './InviteServerModal';
-import { DropdownItem } from "@/components/ui/Dropdown";
+import ContextDropdownComponent, { ContextDropdownItem } from "@/components/ui/ContextDropdown";
 import { useServer } from '@/hooks/useServer';
 import { useNotification } from '@/hooks/useNotification';
 
@@ -39,7 +38,7 @@ function ServerMemberInfo({ type }: ServerMemberInfoProps) {
         fetchMembers();
     }, [type, selectedServer]);
 
-    const getDropdownItems = (memberId: string): DropdownItem[] => [
+    const getDropdownItems = (memberId: string): ContextDropdownItem[] => [
     {
         label: "Open in Mod View",
         onClick: () => console.log("View profile"),
@@ -84,7 +83,7 @@ function ServerMemberInfo({ type }: ServerMemberInfoProps) {
     return (
         <div>
             {contextHolder}
-            <InviteServerModal showInviteServerModal={showInviteServerModal} setShowInviteServerModal={setShowInviteServerModal} />
+            <InviteServerModal show={showInviteServerModal} onClose={() => setShowInviteServerModal(false)} />
             <header className="p-4 flex justify-between items-center">
                 <h2 className="text-[21px] font-bold py-2">Members</h2> 
                 <div className="p-2 rounded-full cursor-pointer bg-accent " title="Invite People" onClick={() => setShowInviteServerModal(true)}>
@@ -95,7 +94,7 @@ function ServerMemberInfo({ type }: ServerMemberInfoProps) {
                 serverMembers.map(member => (
                 
                     <div key={member.id} className="px-2">
-                        <DropdownComponent items={getDropdownItems(member.userId)}>
+                        <ContextDropdownComponent items={getDropdownItems(member.userId)}>
                             <div className={`w-full flex justify-between items-center gap-2 rounded cursor-pointer px-2 py-1 serverMember`}>
                                 <div className="flex items-center gap-2">
                                     <Badge dot color="green" className="bottom-badge cursor-pointer" style={{}}>
@@ -110,7 +109,7 @@ function ServerMemberInfo({ type }: ServerMemberInfoProps) {
                                 </div>
                                 <span className="font-semibold" style={{fontSize: "12px"}}>{member.role}</span>
                             </div>
-                        </DropdownComponent> 
+                        </ContextDropdownComponent> 
                     </div>
                 ))
             }

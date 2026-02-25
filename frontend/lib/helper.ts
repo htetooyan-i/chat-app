@@ -11,7 +11,14 @@ export const parsePasswordValidation = (pwd: string) => {
     return hasMinLength && hasUppercase && hasLowercase && hasNumber;
 };
 
-export const formatDate = (date: Date) => {
-    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: undefined };
-    return date.toLocaleDateString(undefined, options);
+export const formatDate = (dateInput: Date | string, dayIncluded: boolean = false) => {
+    const date = dateInput instanceof Date 
+        ? dateInput 
+        : new Date(dateInput);
+
+    return date.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'long',
+        day: dayIncluded ? 'numeric' : undefined,
+    });
 };

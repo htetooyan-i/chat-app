@@ -5,7 +5,7 @@ import Divider from '@mui/material/Divider';
 import MenuItem from '@mui/material/MenuItem';
 import { IdCard } from 'lucide-react';
 
-export type DropdownItem = {
+export type ContextDropdownItem = {
   label: string;
   onClick: () => void;
   type: 'normal' | 'danger' | 'divider';
@@ -13,12 +13,12 @@ export type DropdownItem = {
   meta?: { [key: string]: any };
 }
 
-type DropdownComponentProps = {
-  items: DropdownItem[];
+type ContextDropdownComponentProps = {
+  items: ContextDropdownItem[];
   children: React.ReactNode;
 }
 
-function DropdownComponent({ children, items}: DropdownComponentProps) {
+function ContextDropdownComponent({ children, items}: ContextDropdownComponentProps) {
 
   const [contextMenu, setContextMenu] = React.useState<{
     mouseX: number;
@@ -127,4 +127,4 @@ function DropdownComponent({ children, items}: DropdownComponentProps) {
   );
 }
 
-export default DropdownComponent;
+export default ContextDropdownComponent;

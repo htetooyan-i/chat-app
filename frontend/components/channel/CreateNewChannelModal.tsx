@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, ModalProps } from 'antd';
 
 const styles: ModalProps['styles'] = {
@@ -33,6 +33,10 @@ type CreateNewChannelModalProps = {
 function CreateNewChannelModal({ showCreateChannelModal, setShowCreateChannelModal, handleCreateChannel }: CreateNewChannelModalProps) {
 
     const [channelName, setChannelName] = useState("");
+
+    useEffect(() => {
+        setChannelName("");
+    }, [showCreateChannelModal]);
 
     const handleSubmit = () => {
         handleCreateChannel(channelName);
