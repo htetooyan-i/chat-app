@@ -28,6 +28,7 @@ class ChannelService {
         try {
             const channels = await prisma.channel.findMany({
                 where: { serverId },
+                orderBy: { createdAt: 'asc' },
             });
             return channels;
         } catch (error: any) {

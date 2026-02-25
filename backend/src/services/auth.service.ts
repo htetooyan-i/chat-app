@@ -4,7 +4,7 @@ import { Hash } from '../lib/hash';
 import { createAccessToken, createRefreshToken, verifyToken } from '../lib/jwt';
 import { checkPasswordStrength } from '../lib/helper';
 
-export class AuthService {
+class AuthService {
 
     // CREATE USER
     static async create (username: string, email: string, password: string) {
@@ -80,6 +80,14 @@ export class AuthService {
 
     static async getUserByEmail(email: string) {
         const user = await prisma.user.findUnique({ where: { email } });
+        if (!user) {
+            throw new Error(AuthErrorCode.USER_NOT_FOUND);
+        }
+        return user;
+    }
+
+    static async getUserById(id: number) {
+        const user = await prisma.user.findUnique({ where: { id } });
         if (!user) {
             throw new Error(AuthErrorCode.USER_NOT_FOUND);
         }
@@ -162,8 +170,17 @@ export class AuthService {
         return user.verified;
     }
 
+    static async verifyPassword(user: any, password: string) {
+        try {
+            await Hash.verify(user.passwordHash, password);
+        } catch (err: any) {
+            console.error("Error verifying password:", err.message);
+            throw new Error("Failed to verify password");
+        }
+    }
+
 
 
 }
 
-
+export default AuthService;

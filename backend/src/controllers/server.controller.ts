@@ -17,7 +17,7 @@ export async function createServer(req: Request, res: Response) {
             });
 
             await tx.serverMember.create({
-                data: { serverId: server.id, userId },
+                data: { serverId: server.id, userId, role: server.ownerId === userId ? "OWNER" : "MEMBER" },
             });
 
             return server;

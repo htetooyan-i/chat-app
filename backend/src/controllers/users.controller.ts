@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { UsersService } from '../services/users.service';
 import { TokenService } from '../services/token.service';
 import { EmailService } from '../services/email.service';
-import { AuthService } from '../services/auth.service';
+import AuthService from '../services/auth.service';
 
 export async function GetCurrentUser(req: Request, res: Response) {
     const userId = req.user?.userId;

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 
-import { AuthService } from '../services/auth.service';
+import AuthService from '../services/auth.service';
 import { AuthErrorMessage } from '../errors/authErrors';
 import { EmailService } from '../services/email.service';
 import { TokenService } from '../services/token.service';
