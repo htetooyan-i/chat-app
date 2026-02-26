@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import { useParams } from 'next/navigation';
 import { Avatar, Upload, ButtonProps } from 'antd';
 import Textarea from '@mui/joy/Textarea';
 
@@ -16,7 +17,9 @@ type ProfileServerTabProps = {
 
 function ProfileServerTab({ hasUnsavedChanges, onDirtyChange, serverProfile, setServerProfile }: ProfileServerTabProps) {
 
-    const { selectedServer, servers } = useServer();
+    const { serverId } = useParams();
+    const { servers } = useServer();
+    const selectedServer = servers.find(s => String(s.id) === String(serverId));
 
     return (
         <div>

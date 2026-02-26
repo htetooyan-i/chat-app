@@ -1,34 +1,5 @@
 import React from 'react';
-import { Modal, ModalProps } from 'antd';
 import { CameraOutlined } from '@ant-design/icons';
-
-import api from '@/lib/api';
-import { useNotification } from '@/hooks/useNotification';
-import { useServer } from '@/hooks/useServer';
-
-const styles: ModalProps['styles'] = {
-    mask: {
-        backgroundImage: `linear-gradient(to top, #18181b 0, rgba(21, 21, 22, 0.2) 100%)`,
-    },
-  
-    container: { 
-        backgroundColor: 'var(--background)',
-        color: 'var(--foreground)',
-        borderRadius: '10px',
-        border: '1px solid var(--muted-border)',
-    },
-    title: { 
-        color: 'var(--foreground)',
-        fontSize: '23px', 
-        fontWeight: 'bold',
-    },
-    body: {
-        color: 'var(--foreground)',
-        overflowY: 'auto',
-    },
-
-};
-
 
 type CreateServerModalProps = {
     isSuccessed: boolean;

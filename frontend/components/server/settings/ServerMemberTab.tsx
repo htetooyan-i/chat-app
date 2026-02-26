@@ -1,22 +1,27 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { ArrowDownWideNarrow, Ellipsis } from 'lucide-react';
 import { Avatar } from 'antd';
-import Button from '@mui/material/Button';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import PopupState, { bindTrigger, bindMenu } from 'material-ui-popup-state';
 
 import api from '@/lib/api';
+import ButtonDropDown, { ButtonDropDownItem } from '@/components/ui/ButtonDropDown';
+import ChangeMemberRoleModal from './ChangeMemberRoleModal';
 import { useServer } from '@/hooks/useServer';
 import { formatDate } from '@/lib/helper';
-import ButtonDropDown, { ButtonDropDownItem } from '@/components/ui/ButtonDropDown';
+import { useNotification } from '@/hooks/useNotification';
 
 function ServerMemberTab() {
 
-    const { selectedServer } = useServer();
+    const { serverId } = useParams();
+    const { servers } = useServer();
+    const selectedServer = servers.find(s => String(s.id) === String(serverId));
+    const { contextHolder, showSuccess, showError } = useNotification();
     const [serverMembers, setServerMembers] = useState<any[]>([]);
     const [ memberfilter, setMemberFilter ] = useState("");
+    const [ isUpdated, setIsUpdated ] = useState(false);
     const [ sortOption, setSortOption ] = useState<"asc" | "desc">("asc");
+    const [ showChangeRoleModal, setShowChangeRoleModal ] = useState(false);
+    const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
     const processedMembers = serverMembers
                                 .filter(member =>
                                     member.user.username
@@ -45,15 +50,28 @@ function ServerMemberTab() {
         }
     ];
 
-    const moreOptionItems: ButtonDropDownItem[] = [
+    const moreOptionItems:(memberId: string) => ButtonDropDownItem[] = (memberId) => [
+        {
+            label: "Change Role",
+            onClick: () => {
+                setSelectedMemberId(memberId);
+                setShowChangeRoleModal(true);
+            },
+            type: "normal",
+        },
+        {
+            label: "Divider",
+            onClick: () => {},
+            type: "divider",
+        },
         {
             label: "Kick Member",
-            onClick: () => console.log("Kick Member"),
+            onClick: () => handleKickMember(memberId),
             type: "danger",
         },
         {
             label: "Ban Member",
-            onClick: () => console.log("Ban Member"),
+            onClick: () => handleBanMember(memberId),
             type: "danger",
         }
     ];
@@ -68,16 +86,68 @@ function ServerMemberTab() {
             );
 
             setServerMembers(res.data.data);
+            setIsUpdated(false); // Reset the update flag after fetching members
         } catch (error: any) {
             console.error("Error fetching server members:", error);
         }
         };
 
         fetchMembers();
-    }, [selectedServer]);
+    }, [selectedServer, isUpdated]);
+
+    // Kick user from server and close the context menu
+    const handleKickMember = async (memberId: string) => {
+        if (!selectedServer) return;
+        try {
+            await api.delete(`/servers/${selectedServer.id}/kick`, { data: { memberId } });
+            setServerMembers(prev => prev.filter(member => member.userId !== memberId));
+            setIsUpdated(prev => !prev);
+            showSuccess("Member kicked successfully");
+        } catch (error: any) {
+            console.error(error.response?.data?.message || error.message);
+            showError(error.response?.data?.message || "Failed to kick member.");
+        }
+    };
+
+    const handleBanMember = async (memberId: string) => {
+        if (!selectedServer) return;
+        try {
+            await api.post(`/servers/${selectedServer.id}/bans/${memberId}`);
+            setServerMembers(prev => prev.filter(member => member.userId !== memberId));
+            setIsUpdated(prev => !prev);
+            showSuccess("Member banned successfully");
+        } catch (error: any) {
+            console.error(error.response?.data?.error || error.message);
+            showError(error.response?.data?.error || "Failed to ban member.");
+        }
+    };
+
+    const handleChangeMemberRole = async (newRole: string) => {
+        if (!selectedServer || !selectedMemberId) return;
+
+        const selectedMember = serverMembers.find(member => member.userId === selectedMemberId);
+        if (!selectedMember || selectedMember.role === newRole) {
+            setShowChangeRoleModal(false);
+            setSelectedMemberId(null);
+            return;
+        }
+
+        try {
+            await api.patch(`/servers/${selectedServer.id}/members/${selectedMemberId}`, { newRole });
+            setIsUpdated(prev => !prev);
+            setShowChangeRoleModal(false);
+            setSelectedMemberId(null);
+            showSuccess("Member role updated successfully");
+        } catch (error: any) {
+            console.error(error.response?.data?.message || error.message);
+            showError(error.response?.data?.message || "Failed to change member role.");
+        }
+    };
 
     return (
         <div>
+            {contextHolder}
+            <ChangeMemberRoleModal show={showChangeRoleModal} onClose={() => setShowChangeRoleModal(false)} changeMemberRole={handleChangeMemberRole}/>
             <p className="text-xl font-bold capitalize mb-4">Server Members</p>
             <p className="text-md font-bold text-foreground capitalize">Show members in channel list.</p>
             <p className='text-[11px] text-muted-text mt-2'>Enabling this will show the members page in channel list, allowing you to quickly see who’s recently joined your server, and find any users flagged for unusual activity.</p>
@@ -145,7 +215,7 @@ function ServerMemberTab() {
                                                 /> */}
                                             </td>
                                             <td className='px-4 py-2'>
-                                                <ButtonDropDown items={moreOptionItems} removeStyles><Ellipsis /></ButtonDropDown>
+                                                <ButtonDropDown items={moreOptionItems(member.userId)} removeStyles><Ellipsis /></ButtonDropDown>
                                             </td>
                                         </tr>
                                     )

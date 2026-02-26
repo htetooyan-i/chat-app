@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { UserRoundPlus, IdCard } from "lucide-react";
 import { Avatar, Badge } from 'antd';
 
@@ -15,10 +16,14 @@ type ServerMemberInfoProps = {
 
 function ServerMemberInfo({ type }: ServerMemberInfoProps) {
 
-    const { selectedServer } = useServer();
+    const { serverId } = useParams();
+    const { servers } = useServer();
+    const selectedServer = servers.find(s => String(s.id) === String(serverId));
+    
     const [serverMembers, setServerMembers] = useState<any[]>([]);
     const [ showInviteServerModal, setShowInviteServerModal ] = useState(false);
     const { contextHolder, showSuccess, showError } = useNotification();
+    const [ isUpdated, setIsUpdated ] = useState(false);
 
 
     useEffect(() => {
@@ -30,13 +35,14 @@ function ServerMemberInfo({ type }: ServerMemberInfoProps) {
             );
 
             setServerMembers(res.data.data);
+            setIsUpdated(false); // Reset the update flag after fetching members
         } catch (error: any) {
             console.error("Error fetching server members:", error);
         }
         };
 
         fetchMembers();
-    }, [type, selectedServer]);
+    }, [type, selectedServer, isUpdated]);
 
     const getDropdownItems = (memberId: string): ContextDropdownItem[] => [
     {
@@ -46,7 +52,7 @@ function ServerMemberInfo({ type }: ServerMemberInfoProps) {
     },
     {
         label: "Ban Member",
-        onClick: () => console.log("Ban member"),
+        onClick: () => handleBanMember(memberId),
         type: "danger",
     },
     {
@@ -75,6 +81,19 @@ function ServerMemberInfo({ type }: ServerMemberInfoProps) {
             await api.delete(`/servers/${selectedServer.id}/kick`, { data: { memberId } });
             setServerMembers(prev => prev.filter(member => member.userId !== memberId));
             showSuccess("Member kicked successfully");
+            setIsUpdated(prev => !prev); // Trigger a re-fetch of members after kicking
+        } catch (error: any) {
+        showError(error.response?.data?.message || error.message);
+        }
+    };
+
+    const handleBanMember = async (memberId: string) => {
+        if (!selectedServer) return;
+        try {
+            await api.post(`/servers/${selectedServer.id}/bans/${memberId}`);
+            setServerMembers(prev => prev.filter(member => member.userId !== memberId));
+            showSuccess("Member banned successfully");
+            setIsUpdated(prev => !prev); // Trigger a re-fetch of members after banning
         } catch (error: any) {
         showError(error.response?.data?.message || error.message);
         }

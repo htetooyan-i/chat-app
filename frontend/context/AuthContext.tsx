@@ -18,6 +18,7 @@ type AuthContextType = {
   refreshUser: () => Promise<void>;
 };
 
+
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -26,6 +27,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
 
   const fetchUser = useCallback(async () => {
+    setLoading(true);
     try {
       const res = await api.get('/auth/me');
       setUser(res.data.data);
@@ -38,6 +40,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useEffect(() => {
+    console.log("Fetching user data...");
     fetchUser();
   }, [fetchUser]);
 

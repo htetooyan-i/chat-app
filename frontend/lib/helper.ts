@@ -22,3 +22,15 @@ export const formatDate = (dateInput: Date | string, dayIncluded: boolean = fals
         day: dayIncluded ? 'numeric' : undefined,
     });
 };
+
+export const calculateDays = (startDate: Date | string, endDate: Date | string) => {
+    const start = startDate instanceof Date 
+        ? startDate 
+        : new Date(startDate);
+    const end = endDate instanceof Date 
+        ? endDate 
+        : new Date(endDate);
+
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+};

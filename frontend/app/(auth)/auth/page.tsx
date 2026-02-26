@@ -34,8 +34,8 @@ function AuthPage() {
 
             // Add a short delay to allow users to read the success message before redirecting, OPTIONAL: can be removed if immediate redirect is preferred
             setTimeout(() => {
-                router.push("/");
-            }, 1500);
+                router.push("/servers");
+            }, 1000);
 
         } catch (error) {
             if (isCancel(error)) {

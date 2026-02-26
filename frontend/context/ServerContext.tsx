@@ -1,8 +1,7 @@
 "use client";
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-
-import { useAuth } from '@/hooks/useAuth';
-import api from '@/lib/api';
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import api from "@/lib/api";
 
 export type Server = {
   id: string;
@@ -14,52 +13,60 @@ export type Server = {
 
 type ServerContextType = {
   servers: Server[];
-  selectedServer: Server | null;
-  setServers: React.Dispatch<React.SetStateAction<Server[]>>;
-  setSelectedServer: React.Dispatch<React.SetStateAction<Server | null>>;
+  loading: boolean;
+  refreshServers: () => Promise<Server[]>;
   addServer: (server: Server) => void;
-  refreshServers: () => void;
+  updateServer: (id: string, data: Partial<Server>) => void;
+  removeServer: (id: string) => void;
 };
 
 export const ServerContext = createContext<ServerContextType | undefined>(undefined);
 
-export const ServerProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
-
+export const ServerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [servers, setServers] = useState<Server[]>([]);
-  const [selectedServer, setSelectedServer] = useState<Server | null>(null);
-  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const { user, loading: authLoading } = useAuth();
 
-  const fetchServers = useCallback(async () => {
+  const fetchServers = useCallback(async (): Promise<Server[]> => {
     try {
-      const res = await api.get('/servers/my-servers'); 
-      const data = res.data;
-      setServers(data.data);
-      if (!selectedServer && data.data.length > 0) { // Set the first server as selected if none is selected
-        setSelectedServer(data.data[0]);
-      }
+      setLoading(true);
+      const res = await api.get("/servers/my-servers");
+      const data = res.data.data;
+      setServers(data);
+      return data;
     } catch (error) {
-      console.error('Error fetching servers:', error);
+      console.error("Error fetching servers:", error);
+      return [];
+    } finally {
+      setLoading(false);
     }
-  }, [selectedServer]);
+  }, []);
 
   useEffect(() => {
+    if (authLoading) return; // Wait for auth to finish loading
+
     if (user) {
       fetchServers();
+    } else {
+      setServers([]);
     }
-  }, [fetchServers, user]);
+  }, [user, authLoading, fetchServers]);
 
   const addServer = (server: Server) => {
     setServers(prev => [...prev, server]);
   };
 
-  const refreshServers = useCallback(() => {
-    fetchServers();
-  }, [fetchServers]);
+  const removeServer = (id: string) => {
+    setServers(prev => prev.filter(s => s.id !== id));
+  };
+
+  const updateServer = (id: string, data: Partial<Server>) => {
+    setServers(prev => prev.map(s => s.id === id ? { ...s, ...data } : s));
+  };
 
   return (
-    <ServerContext.Provider value={{ servers, setServers, addServer, refreshServers, selectedServer, setSelectedServer }}>
+    <ServerContext.Provider value={{ servers, loading, refreshServers: fetchServers, addServer, updateServer, removeServer }}>
       {children}
     </ServerContext.Provider>
   );
 };
-

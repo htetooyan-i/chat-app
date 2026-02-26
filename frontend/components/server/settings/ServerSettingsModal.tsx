@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { Layout, Modal, ModalProps } from 'antd';
 import { CircleX } from 'lucide-react';
 
@@ -11,6 +12,7 @@ import { useServer } from '@/hooks/useServer';
 import { useNotification } from '@/hooks/useNotification';
 import type { Server } from '@/context/ServerContext';
 import BanServerTab from './BanServerTab';
+import { useChannel } from '@/hooks/useChannel';
 
 const { Content, Sider } = Layout;
 
@@ -51,7 +53,12 @@ const tabTitles: Record<SettingsTab, string> = {
 
 function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
 
-    const { selectedServer, setSelectedServer, setServers, refreshServers } = useServer();
+    const { serverId } = useParams();
+    const router = useRouter();
+    const { servers, refreshServers, updateServer, removeServer } = useServer();
+    const { channelsByServer, clearServerCache } = useChannel();
+    const selectedServer = servers.find(s => String(s.id) === String(serverId));
+
     const { contextHolder, showSuccess, showError } = useNotification();
     const [ activeTab, setActiveTab ] = useState<SettingsTab>("profile");
     const [ hasUnsavedChanges, setHasUnsavedChanges ] = useState(false);
@@ -80,23 +87,40 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
     const handleDeleteServer = async () => {
         try {
             await api.delete(`/servers/${selectedServer?.id}`);
+            
+            clearServerCache(selectedServer?.id || "");
+            removeServer(selectedServer?.id || "");
+            
+            // remove from state instantly
+            const updatedServers = servers.filter(s => s.id !== selectedServer?.id);
+            
+            // navigate first before refreshing
+            if (updatedServers.length > 0) {
+            const cached = channelsByServer[updatedServers[0].id];
+            if (cached?.[0]) {
+                router.push(`/servers/${updatedServers[0].id}/channels/${cached[0].id}`);
+            } else {
+                router.push(`/servers/${updatedServers[0].id}/channels`);
+            }
+            } else {
+                router.push("/servers");
+            }
+
             showSuccess("Server deleted successfully");
-            setServers(prev => prev.filter(server => server.id !== selectedServer?.id));
-            setSelectedServer(null);
-            refreshServers();
+            refreshServers(); // sync with backend in background
             onClose();
         } catch (error: any) {
             console.error("Error deleting server:", error.message);
             showError(error.error || "Failed to delete server.");
-        }   
-    }
+        }
+    };
 
     const handleSaveProfileChanges = async () => {
         try {
             await api.patch(`/servers/${selectedServer?.id}`, {name: profileForm.name});
             showSuccess("Server profile updated successfully");
             refreshServers();
-            setSelectedServer(profileForm);
+            updateServer(selectedServer?.id || "", profileForm);
             setHasUnsavedChanges(false);
         } catch (error: any) {
             console.error("Error saving server profile:", error.message);
@@ -111,7 +135,7 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
             title={null}
             open={show}
             onCancel={onClose}
-            width={"60%"}
+            width={activeTab === "bans" ? "80%" : "60%"}
             styles={modalStyles}
             footer={
                 <div className={`absolute bottom-5 right-20 flex justify-between items-center gap-2 px-4 py-2 bg-chat-panel rounded-md w-[75%] shadow-lg shadow-accent/10 transition-all duration-500 ease-in-out ${hasUnsavedChanges ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}>

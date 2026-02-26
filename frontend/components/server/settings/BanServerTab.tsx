@@ -1,8 +1,68 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { Avatar } from 'antd';
 import { Ellipsis } from 'lucide-react';
 
+import api from '@/lib/api';
+import ButtonDropDown, { ButtonDropDownItem } from '@/components/ui/ButtonDropDown';
+import { useServer } from '@/hooks/useServer';
+import { formatDate, calculateDays } from '@/lib/helper';
+
+type Ban = {
+    id: string;
+    userId: string;
+    serverId: string;
+    bannedByRole: string;
+    reason?: string;
+    expiresAt?: Date;
+    createdAt: Date;
+    revokedAt?: Date;
+    appealStatus: "PENDING" | "ACCEPTED" | "REJECTED" | "REVOKED";
+    user: {
+        username: string;
+        avatar?: string;
+    }
+}
+
 function BanServerTab() {
+
+    const { serverId } = useParams();
+    const { servers } = useServer();
+    const selectedServer = servers.find(s => String(s.id) === String(serverId));
+    
+    const [ bans, setBans ] = React.useState<Ban[]>([]);
+
+    const items:(userId: string, serverId: string) => ButtonDropDownItem[] = (userId, serverId) => [
+        {
+            label: "Revoke Ban",
+            onClick: () => handleRevokeBan(userId, serverId),
+            type: "normal",
+        },
+    ];
+
+    const handleRevokeBan = async (userId: string, serverId: string) => {
+        try {
+            await api.patch(`/servers/${serverId}/bans/${userId}/revoke`);
+            setBans(prev => prev.map(ban => ban.userId === userId ? { ...ban, appealStatus: "REVOKED", revokedAt: new Date() } : ban));
+        } catch (error) {
+            console.error("Error revoking ban:", error);
+        }
+    };
+
+    useEffect(() => {
+        if (!selectedServer) return;
+        const fetchBans = async () => {
+            try {
+                const res = await api.get(`/servers/${selectedServer.id}/bans`);
+                setBans(res.data);
+            } catch (error) {
+                console.error("Error fetching bans:", error);
+            }
+        };
+
+        fetchBans();
+    }, [selectedServer]);
+
     return (
         <div>
             <p className="text-xl font-bold capitalize mb-4">Server Ban List</p>
@@ -28,66 +88,48 @@ function BanServerTab() {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr className="hover:bg-chat-panel/50 cursor-pointer border-b-1 border-muted-border text-[12px]">
-                            <td className="px-4 py-2 flex items-center gap-2 font-semibold">
-                                <Avatar
-                                size={40}
-                                src="/profile-img.jpg"
-                                className="border-background"
-                                />
-                                <span>Ashley</span>
-                            </td>
-                            <td className="px-4 py-2 font-semibold">Admin</td>
-                            <td className="px-4 py-2 font-semibold">2024-01-01</td>
-                            <td className="px-4 py-2 font-semibold">Spamming</td>
-                            <td className="px-4 py-2 font-semibold">Permanent</td>
-                            <td className="px-4 py-2 font-semibold">
-                                <span className="text-warning bg-warning/20 px-2 py-1 rounded text-xs">Pending</span>
-                            </td>
-                            <td className='px-4 py-2'>
-                                <Ellipsis />
-                            </td>
-                        </tr>
-                        <tr className="hover:bg-chat-panel/50 cursor-pointer border-b-1 border-muted-border text-[12px]">
-                            <td className="px-4 py-2 flex items-center gap-2 font-semibold">
-                                <Avatar
-                                size={40}
-                                src="/profile-img.jpg"
-                                className="border-background"
-                                />
-                                <span>Ashley</span>
-                            </td>
-                            <td className="px-4 py-2 font-semibold">Admin</td>
-                            <td className="px-4 py-2 font-semibold">2024-01-01</td>
-                            <td className="px-4 py-2 font-semibold">Spamming</td>
-                            <td className="px-4 py-2 font-semibold">Permanent</td>
-                            <td className="px-4 py-2 font-semibold">
-                                <span className="text-error bg-error/20 px-2 py-1 rounded text-xs">Accepted</span>
-                            </td>
-                            <td className='px-4 py-2'>
-                                <Ellipsis />
-                            </td>
-                        </tr>
-                        <tr className="hover:bg-chat-panel/50 cursor-pointer border-b-1 border-muted-border text-[12px]">
-                            <td className="px-4 py-2 flex items-center gap-2 font-semibold">
-                                <Avatar
-                                size={40}
-                                src="/profile-img.jpg"
-                                className="border-background"
-                                />
-                                <span>Ashley</span>
-                            </td>
-                            <td className="px-4 py-2 font-semibold">Admin</td>
-                            <td className="px-4 py-2 font-semibold">2024-01-01</td>
-                            <td className="px-4 py-2 font-semibold">Spamming</td>
-                            <td className="px-4 py-2 font-semibold">Permanent</td>
-                            <td className="px-4 py-2 font-semibold">
-                                <span className="text-success bg-success/20 px-2 py-1 rounded text-xs">Rejected</span>
-                            </td>
-                            <td className='px-4 py-2'>
-                                <Ellipsis />
-                            </td>
-                        </tr>
+                        {
+                            bans.length === 0 ? (
+                                <tr>
+                                    <td colSpan={7} className="text-center text-muted-text py-10">No bans found for this server.</td>
+                                </tr>
+                            ) : (
+                                bans.map(ban => (
+                                    <tr key={ban.id} className="hover:bg-chat-panel/50 cursor-pointer border-b-1 border-muted-border text-[12px]">
+                                        <td className="px-4 py-2 flex items-center gap-2 font-semibold">
+                                            <Avatar
+                                            size={40}
+                                            src={ban.user.avatar || "/profile-img.jpg"}
+                                            className="border-background"
+                                            />
+                                            <span>{ban.user.username}</span>
+                                        </td>
+                                        <td className="px-4 py-2 font-semibold">{ban.bannedByRole}</td>
+                                        <td className="px-4 py-2 font-semibold">{formatDate(ban.createdAt, true)}</td>
+                                        <td className="px-4 py-2 font-semibold">{ban.reason || "No reason provided"}</td>
+                                        <td className="px-4 py-2 font-semibold">{ban.expiresAt ? `${calculateDays(ban.createdAt, ban.expiresAt)} days` : "Permanent"}</td>
+                                        <td className="px-4 py-2 font-semibold">
+
+                                            {
+                                                ban.appealStatus === "REVOKED" ? (
+                                                    <span className="text-success bg-success/20 px-2 py-1 rounded text-xs">Revoked</span>
+                                                ) : ban.appealStatus === "PENDING" ? (
+                                                    <span className="text-warning bg-warning/20 px-2 py-1 rounded text-xs">Pending</span>
+                                                ) : ban.appealStatus === "ACCEPTED" ? (
+                                                    <span className="text-error bg-error/20 px-2 py-1 rounded text-xs">Accepted</span>
+                                                ) : (
+                                                    <span className="text-success bg-success/20 px-2 py-1 rounded text-xs">Rejected</span>
+                                                )
+
+                                            }
+                                        </td>
+                                        <td className='px-4 py-2'>
+                                            <ButtonDropDown items={items(ban.userId, ban.serverId)} removeStyles><Ellipsis /></ButtonDropDown>
+                                        </td>
+                                    </tr>
+                                ))
+                            )
+                        }
                     </tbody>    
                 </table>
             </div>

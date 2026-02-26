@@ -26,21 +26,14 @@ export function middleware(req: NextRequest) {
 
   if (token && isAuthRoute) {
     return NextResponse.redirect(
-      new URL("/servers/1/channels/1", req.url)
+      new URL("/servers", req.url)
     );
   }
 
   if (!token && isAuthRoute) {
     return NextResponse.redirect(new URL("/auth", req.url));
   }
-
-
-  if (token && isAuthRoute) {
-    return NextResponse.redirect(
-      new URL("/servers/1/channels/1", req.url)
-    );
-  }
-
+  
   return NextResponse.next();
 }
 

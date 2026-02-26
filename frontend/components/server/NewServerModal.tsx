@@ -1,6 +1,6 @@
-import React, { useState    } from 'react';
+import React, { useState } from 'react';
+import { useParams } from 'next/navigation';
 import { Modal, ModalProps } from 'antd';
-import { CameraOutlined } from '@ant-design/icons';
 
 import api from '@/lib/api';
 import { useNotification } from '@/hooks/useNotification';
@@ -38,18 +38,22 @@ type NewServerModalProps = {
 
 function NewServerModal({ showServerCreationModal, setShowServerCreationModal }: NewServerModalProps) {
 
+    const { serverId } = useParams();
+    const { servers, refreshServers, addServer } = useServer();
+    const selectedServer = servers.find(s => String(s.id) === String(serverId));
+
     const [ isCreating, setIsCreating ] = useState(true);
     const [ isSuccessed, setIsSuccessed ] = useState(false);
     const [serverName, setServerName] = useState(""); 
     const [inviteCode, setInviteCode] = useState("");
     const { contextHolder, showSuccess, showError } = useNotification();
-    const { refreshServers, setSelectedServer } = useServer();
+
 
     const handleCreateNewServer = async () => {
         try {
             const res = await api.post('/servers', { name: serverName });
             const inviteRes = await api.post(`/servers/${res.data.server.id}/invites`);
-            setSelectedServer(res.data.server);
+            addServer(res.data.server);
             setInviteCode(inviteRes.data.code);
             showSuccess("Server created successfully!");
             refreshServers();
@@ -78,9 +82,8 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
             setShowServerCreationModal(false);
         } catch (error: any) {
             console.error("Error joining server:", error);
-
             const message =
-                error.response?.data?.error || 
+                error.response?.data?.message || 
                 error.message || 
                 "Failed to join server.";
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { ConfigProvider, Modal, ModalProps, Select, SelectProps } from 'antd';
 
 import { useNotification } from '@/hooks/useNotification';
@@ -77,7 +78,10 @@ type InviteServerModalProps = {
 
 function InviteServerModal({ show, onClose, fromSettings, refreshInvites }: InviteServerModalProps) {
 
-    const { selectedServer } = useServer();
+    const { serverId } = useParams();
+    const { servers } = useServer();
+    const selectedServer = servers.find(s => String(s.id) === String(serverId));
+
     const { contextHolder, showSuccess, showError } = useNotification();
     
     const [ copied, setCopied ] = useState(false);

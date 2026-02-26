@@ -1,11 +1,10 @@
 import React from 'react';
 import { Modal, ModalProps } from 'antd';
-import { on } from 'events';
 
 type EditChannelModalProps = {
     show: boolean;
     onClose: () => void;
-    changeChannelName: (newName: string, password: string) => Promise<void>;
+    changeChannelName: (newName: string) => Promise<void>;
 };
 
 
@@ -35,7 +34,6 @@ const styles: ModalProps['styles'] = {
 function EditChannelModal({ show, onClose, changeChannelName }: EditChannelModalProps) {
 
     const [ newChannelName, setNewChannelName ] = React.useState("");
-    const [ password, setPassword ] = React.useState("");
 
     return (
         <div>
@@ -50,7 +48,7 @@ function EditChannelModal({ show, onClose, changeChannelName }: EditChannelModal
             closable={false}
             >
                 <div>
-                    <p className='text-[11px] text-muted-text font-medium mt-0 mb-4'>Enter a new channel name and your existing password.</p>
+                    <p className='text-[11px] text-muted-text font-medium mt-0 mb-4'>Enter a new channel name.</p>
 
                     <div className='flex flex-col gap-4 mb-6'>
                         <div className='flex flex-col gap-1'>
@@ -63,29 +61,22 @@ function EditChannelModal({ show, onClose, changeChannelName }: EditChannelModal
                                 onChange={(e) => setNewChannelName(e.target.value)}
                             />
                         </div>
-                        <div className='flex flex-col gap-1'>
-                            <label htmlFor="password" className="text-[14px] font-bold">Current Password</label>
-                            <input 
-                                type="password" 
-                                id="password" 
-                                className="bg-chat-panel border border-muted-border rounded-lg p-2 text-[12px] outline-none focus:ring-0 focus:border-accent"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
-                        </div>
                     </div>
 
                     <div className='flex justify-end gap-2'>
                         <button 
                             type='button'
-                            onClick={onClose}
+                            onClick={() => {
+                                onClose();
+                                setNewChannelName("");
+                            }}
                             className='flex-1 px-4 py-2 rounded-lg border bg-chat-panel font-semibold border-muted-border cursor-pointer'
                         >
                             Cancel
                         </button>
                         <button 
                             type='button'
-                            onClick={() => changeChannelName(newChannelName, password)}
+                            onClick={() => changeChannelName(newChannelName)}
                             className='flex-1 px-4 py-2 rounded-lg bg-accent text-white font-semibold cursor-pointer hover:bg-accent-hover transition-colors duration-200'
                         >
                             Save

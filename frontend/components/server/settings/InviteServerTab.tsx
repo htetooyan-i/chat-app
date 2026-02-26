@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-
+import { useParams } from 'next/navigation';
 import api from '@/lib/api';
 import InviteServerModal from '../InviteServerModal';
 import ButtonDropDown, { ButtonDropDownItem } from '@/components/ui/ButtonDropDown';
@@ -10,7 +10,10 @@ import { formatDate } from '@/lib/helper';
 
 function InviteServerTab() {
 
-    const { selectedServer } = useServer();
+    const { serverId } = useParams();
+    const { servers } = useServer();
+    const selectedServer = servers.find(s => String(s.id) === String(serverId));
+    
     const [ inviteCodes, setInviteCodes ] = useState<any[]>([]);
     const [ showInviteModal, setShowInviteModal ] = useState(false);
 

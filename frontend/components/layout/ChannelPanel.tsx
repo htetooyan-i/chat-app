@@ -1,4 +1,6 @@
+"use client";
 import React, { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { Layout } from 'antd';
 
 import api from '@/lib/api';
@@ -6,7 +8,7 @@ import CreateNewChannelModal from "@/components/channel/CreateNewChannelModal";
 import ContextDropdownComponent, { ContextDropdownItem } from '../ui/ContextDropdown';
 import DeleteChannelModal from '../channel/settings/DeleteChannelModal';
 import EditChannelModal from '../channel/EditChannelModal';
-import { useChannel } from '@/hooks/userChannel';
+import { useChannel } from '@/hooks/useChannel';
 import { useNotification } from '@/hooks/useNotification';
 import { useServerLayout } from '@/hooks/useServerLayout';
 import { useServer } from '@/hooks/useServer';
@@ -20,10 +22,11 @@ type ChannelPanelProps = {
 
 function ChannelPanel({ siderStyle }: ChannelPanelProps) {
 
+    const { serverId, channelId } = useParams();
+    const router = useRouter();
     const { contextHolder, showError, showSuccess } = useNotification();
-    const { selectedServer } = useServer();
-    const { channels, setChannels, selectedChannel, setSelectedChannel, refreshChannels } = useChannel();
-    const serverId = selectedServer?.id || "";
+    const { channels, channelsByServer, refreshChannels } = useChannel();
+    const selectedChannel = channels.find(c => String(c.id) === String(channelId));
     const { collapsed, setCollapsed } = useServerLayout();
     const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
     const [showDeleteChannelModal, setShowDeleteChannelModal] = useState(false);
@@ -33,7 +36,7 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
         {
             label: "Edit Channel",
             onClick: () => {
-                setSelectedChannel(channel);
+                router.push(`/servers/${serverId}/channels/${channel.id}`);
                 setShowEditChannelModal(true);
             },
             type: "normal"
@@ -41,12 +44,16 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
         {
             label: "Delete Channel",
             onClick: () => {
-                setSelectedChannel(channel);
+                router.push(`/servers/${serverId}/channels/${channel.id}`);
                 setShowDeleteChannelModal(true);
             },
             type: "danger"
         }
     ];
+
+    const handleChangeChannel = (selectedChannelId: string) => {
+        router.push(`/servers/${serverId}/channels/${selectedChannelId}`);
+    };
     
     const handleCreateChannel = async (channelName: string) => {
         if (channelName.trim() === "") {
@@ -64,13 +71,13 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
         } 
     };
 
-    const handleChangeChannelName = async (newName: string, password: string) => {
+    const handleChangeChannelName = async (newName: string) => {
         if (newName.trim() === "") {
             showError("Channel name cannot be empty.");
             return;
         }
         try {
-            await api.patch(`/channels/${selectedChannel?.id}`, { newName, password });
+            await api.patch(`/servers/${serverId}/channels/${channelId}`, { newName });
             showSuccess("Channel name updated successfully!");
             refreshChannels();
             setShowEditChannelModal(false);
@@ -82,9 +89,9 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
 
     const handleDeleteChannel = async () => {
         try {
-            await api.delete(`/channels/${selectedChannel?.id}`);
+            await api.delete(`/servers/${serverId}/channels/${channelId}`);
             showSuccess("Channel deleted successfully!");
-            setChannels(prevChannels => prevChannels.filter(channel => channel.id !== selectedChannel?.id));
+            channelsByServer[serverId as string] = channelsByServer[serverId as string].filter(channel => channel.id !== channelId);
             refreshChannels();
             setShowDeleteChannelModal(false);
         }
@@ -143,7 +150,7 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
                         {
                             channels.map(channel => (
                                 <ContextDropdownComponent items={dropdownItems(channel)} key={channel.id}>
-                                    <div onClick={() => setSelectedChannel(channel)} className={`text-[15px] h-[45px] w-full p-2 border-s-4 rounded-r-sm cursor-pointer flex items-center ${channel.id === selectedChannel?.id ? 'border-accent  bg-chat-panel' : 'border-muted-border'}`}>
+                                    <div onClick={() => handleChangeChannel(channel.id)} className={`text-[15px] h-[45px] w-full p-2 border-s-4 rounded-r-sm cursor-pointer flex items-center ${channel.id === selectedChannel?.id ? 'border-accent  bg-chat-panel' : 'border-muted-border'}`}>
                                         <p className='capitalize truncate'><span>#</span> {channel.name}</p>
                                     </div>
                                 </ContextDropdownComponent>

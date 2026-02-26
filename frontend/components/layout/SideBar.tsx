@@ -2,26 +2,26 @@
 import React, { useState } from 'react';
 import { LogOut, Plus, Settings } from 'lucide-react';
 import { Avatar, Badge, Layout } from 'antd';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 
 import api from '@/lib/api';
+import ContextDropdownComponent, { ContextDropdownItem } from '@/components/ui/ContextDropdown';
+import ServerSettingsModal from '../server/settings/ServerSettingsModal';
+import NewServerModal from '../server/NewServerModal';
 import { useAuth } from '@/hooks/useAuth';
 import { useServerLayout } from '@/hooks/useServerLayout';
 import { useServer } from '@/hooks/useServer';
 import { useNotification } from '@/hooks/useNotification';
-import ContextDropdownComponent, { ContextDropdownItem } from '@/components/ui/ContextDropdown';
-import ServerSettingsModal from '../server/settings/ServerSettingsModal';
+import { useChannel } from '@/hooks/useChannel';
 
 const { Sider } = Layout;
 
 type SideBarProps = {
     siderStyle: React.CSSProperties;
-    showServerCreationModal: boolean;
-    setShowServerCreationModal: (show: boolean) => void;
 }
 
-function SideBar({ siderStyle, showServerCreationModal, setShowServerCreationModal }: SideBarProps) {
+function SideBar({ siderStyle }: SideBarProps) {
 
     const dropDownItems: ContextDropdownItem[] = [
         {
@@ -38,17 +38,28 @@ function SideBar({ siderStyle, showServerCreationModal, setShowServerCreationMod
     ];
 
     const router = useRouter();
-    const { logout } = useAuth();
     const { contextHolder, showSuccess, showError } = useNotification();
-    const { servers, selectedServer, setSelectedServer } = useServer();
+    const { serverId } = useParams();
+    
+    const { servers, refreshServers, loading } = useServer();
+    const { channelsByServer } = useChannel();
+    const selectedServer = servers.find(
+    s => String(s.id) === String(serverId)
+    );
+    const { logout } = useAuth();
     const { collapsed, setCollapsed } = useServerLayout();
 
     const [ showServerSettingsModal, setShowServerSettingsModal ] = useState(false);
+    const [showServerCreationModal, setShowServerCreationModal] = useState(false);
 
 
     const hndleSelectServer = (serverId: string) => {
-        const server = servers.find(s => s.id === serverId) || null;
-        setSelectedServer(server);
+        const cached = channelsByServer[serverId];
+        if (cached?.[0]) {
+            router.push(`/servers/${serverId}/channels/${cached[0].id}`);
+        } else {
+            router.push(`/servers/${serverId}/channels`);
+        }
     };
 
     const handleLogout = async () => {
@@ -63,7 +74,14 @@ function SideBar({ siderStyle, showServerCreationModal, setShowServerCreationMod
         try {
             await api.delete(`/servers/${selectedServer?.id}/leave`);
             showSuccess("You have left the server.");
-            setSelectedServer(null);
+
+            refreshServers();
+
+            if (servers.length > 0) {
+                router.push(`/servers/${servers[0].id}/channels`);
+            } else { 
+                router.push("/");
+            }
         } catch (error: any) {
             console.error("Failed to leave server:", error);
             showError(error.response?.data?.message || "Failed to leave server.");
@@ -78,6 +96,7 @@ function SideBar({ siderStyle, showServerCreationModal, setShowServerCreationMod
         <div>
             {contextHolder}
             <ServerSettingsModal show={showServerSettingsModal} onClose={() => setShowServerSettingsModal(false)} />
+            <NewServerModal showServerCreationModal={showServerCreationModal} setShowServerCreationModal={setShowServerCreationModal} />
             <Sider 
             width={80} 
             collapsible

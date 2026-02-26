@@ -1,14 +1,12 @@
 import { AuthProvider } from "@/context/AuthContext";
 import { ServerProvider } from "@/context/ServerContext";
-import { ChannelProvider } from "@/context/ChannelContext";
+import { ChannelProviderWrapper } from "./ChannelProviderWrapper";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
       <ServerProvider>  
-        <ChannelProvider>
-          {children}
-        </ChannelProvider>
+        <ChannelProviderWrapper>{children}</ChannelProviderWrapper>
       </ServerProvider>
     </AuthProvider>
   );

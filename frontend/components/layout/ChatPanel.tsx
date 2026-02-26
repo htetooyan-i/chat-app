@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import { useParams } from 'next/navigation';
 import { Layout } from 'antd';
 import { SettingFilled } from '@ant-design/icons';
 import { ChevronRight, FileText, Paperclip, Send, Sticker, UsersRound } from 'lucide-react';
@@ -8,7 +9,7 @@ import InfoPanel from '@/components/layout/InfoPanel';
 import { useServerLayout } from '@/hooks/useServerLayout';
 import { handleMaintenanceRoute } from '@/lib/helper';
 import { useServer } from '@/hooks/useServer';
-import { useChannel } from '@/hooks/userChannel';
+import { useChannel } from '@/hooks/useChannel';
 
 const { Header, Content, Footer } = Layout;
 
@@ -16,8 +17,12 @@ type Tabs = "settings" | "files" | "users" | "none";
 
 function ChatPanel() {
 
-    const { selectedServer } = useServer();
-    const { selectedChannel } = useChannel();
+    const { serverId, channelId } = useParams();
+    const { servers } = useServer();
+    const { channels } = useChannel();
+    const selectedServer = servers.find(s => String(s.id) === String(serverId));
+    const selectedChannel = channels.find(c => String(c.id) === String(channelId));
+    
     const { collapsed, setCollapsed } = useServerLayout();
     const [activeTab, setActiveTab] = useState<Tabs>("none");
 

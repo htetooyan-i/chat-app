@@ -2,7 +2,7 @@ import React from 'react';
 import { Modal, ModalProps } from 'antd';
 import { X } from 'lucide-react';
 
-import { useChannel } from '@/hooks/userChannel';
+import { useChannel } from '@/hooks/useChannel';
 
 const modalStyles: ModalProps['styles'] = {
     mask: {
