@@ -126,6 +126,23 @@ class ServerInvitesService {
             throw new Error("Failed to delete invites by user", { cause: error });
         }
     }
+
+    static async getInviteByCode(code: string) {
+        try {
+            const invite = await prisma.serverInvite.findUnique({
+                where: { code },
+            });
+
+            if (!invite) {
+                throw new Error("Invite not found");
+            }
+
+            return invite;
+        } catch (error: any) {
+            console.error("Error fetching invite by code:", error.message);
+            throw new Error("Failed to fetch invite by code", { cause: error });
+        }
+    }
 }
 
 export default ServerInvitesService;

@@ -16,6 +16,7 @@ class ServerMemberService {
                 },
                 },
             },
+            orderBy: { server: { createdAt: 'asc' }}
             });
 
             return servers.map((member) => ({
@@ -65,7 +66,7 @@ class ServerMemberService {
 
     }
 
-    static async removeMember(serverId: number, requesterId: number, memberId: number) {
+    static async removeMember(serverId: number, memberId: number, requesterId: number) {
         try {
             const server = await prisma.server.findUnique({
                 where: { id: serverId },
@@ -73,22 +74,6 @@ class ServerMemberService {
 
             if (!server) {
                 throw new Error("Server not found");
-            }
-
-            // Get requester role
-            const requesterMembership = await prisma.serverMember.findUnique({
-                where: { userId_serverId: { userId: requesterId, serverId } },
-            });
-
-            if (
-                !requesterMembership ||
-                (
-                    requesterMembership.role !== MemberRole.ADMIN &&
-                    requesterMembership.role !== MemberRole.MODERATOR &&
-                    server.ownerId !== requesterId
-                )
-            ) {
-                throw new Error("You do not have permission to remove members from this server");
             }
 
             // Get the member being removed
@@ -110,7 +95,11 @@ class ServerMemberService {
             if (member.userId === server.ownerId) {
                 throw new Error("Cannot remove server owner");
             }
-
+            
+            if (member.userId === requesterId) {
+                throw new Error("Members cannot remove themselves. Use the leave server option instead.");
+            }
+            
             await prisma.serverMember.delete({
                 where: {
                     userId_serverId: {
@@ -167,7 +156,7 @@ class ServerMemberService {
         }
     }
 
-    static async changeMemberRole(serverId: number, requesterId: number, memberId: number, newRole: MemberRole) {
+    static async changeMemberRole(serverId: number, memberId: number, newRole: MemberRole) {
         try {
             const server = await prisma.server.findUnique({
                 where: { id: serverId },
@@ -175,21 +164,6 @@ class ServerMemberService {
 
             if (!server) {
                 throw new Error("Server not found");
-            }
-
-            // Get requester role
-            const requesterMembership = await prisma.serverMember.findUnique({
-                where: { userId_serverId: { userId: requesterId, serverId } },
-            });
-
-            if (
-                !requesterMembership ||
-                (
-                    requesterMembership.role !== MemberRole.ADMIN &&
-                    server.ownerId !== requesterId
-                )
-            ) {
-                throw new Error("You do not have permission to change member roles in this server");
             }
 
             // Get the member being updated
@@ -223,6 +197,23 @@ class ServerMemberService {
             });
         } catch (error: any) {
             console.error('Error changing member role:', error.message);
+            throw error;
+        }
+    }
+
+    static async getServerMember(serverId: number, userId: number) {
+        try {
+            const member = await prisma.serverMember.findUnique({
+                where: {
+                    userId_serverId: {
+                        userId,
+                        serverId,
+                    },
+                },
+            });
+            return member;
+        } catch (error: any) {
+            console.error('Error retrieving server member:', error.message);
             throw error;
         }
     }

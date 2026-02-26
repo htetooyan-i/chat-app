@@ -33,9 +33,6 @@ class ServerService {
             if (!server) {
                 throw new Error('Server not found');
             }
-            if (server.ownerId !== userId) {
-                throw new Error('Unauthorized');
-            }
             const updatedServer = await prisma.server.update({
                 where: { id: serverId },
                 data: { name },
@@ -52,9 +49,6 @@ class ServerService {
             const server = await prisma.server.findUnique({ where: { id: serverId } });
             if (!server) {
                 throw new Error('Server not found');
-            }
-            if (server.ownerId !== userId) {
-                throw new Error('Unauthorized');
             }
             await prisma.server.delete({ where: { id: serverId } });
         } catch (error: any) {

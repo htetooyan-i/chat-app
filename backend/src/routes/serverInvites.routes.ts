@@ -1,10 +1,12 @@
 import express from 'express';
 
 import { authMiddleware } from '../middleware/auth';
+import { requireServerRole } from '../middleware/requireServerRole';
+import { verifyNotBanned } from '../middleware/verifyNotBanned';
+import { MemberRole } from '../../generated/prisma/enums';
 import {
     CreateInvite,
     DeleteInvite,
-    DeleteInvitesByUser,
     GetInvitesForServer,
     JoinServerViaCode
 } from '../controllers/serverInvites.controller';
@@ -12,9 +14,9 @@ import {
 const router = express.Router({ mergeParams: true });
 
 router.get('/', authMiddleware, GetInvitesForServer);
-router.post('/', authMiddleware, CreateInvite);
-router.delete('/:inviteId', authMiddleware, DeleteInvite);
+router.post('/', authMiddleware, requireServerRole([MemberRole.ADMIN, MemberRole.OWNER, MemberRole.MODERATOR]), CreateInvite);
+router.delete('/:inviteId', authMiddleware, requireServerRole([MemberRole.ADMIN, MemberRole.OWNER, MemberRole.MODERATOR]), DeleteInvite);
 
-router.post('/:code', authMiddleware, JoinServerViaCode);
+router.post('/:code', authMiddleware, verifyNotBanned, JoinServerViaCode);
 
 export default router;

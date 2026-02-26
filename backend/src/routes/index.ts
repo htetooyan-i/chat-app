@@ -7,6 +7,7 @@ import serverRoutes from './server.routes';
 import serverMemberRoutes from './serverMember.routes';
 import channelRoutes from './channels.routes';
 import serverInvitesRoutes from './serverInvites.routes';
+import banRoutes from './ban.routes';
 
 const router = express.Router();
 
@@ -18,6 +19,7 @@ router.use('/servers/:serverId/channels', channelRoutes);
 router.use('/channels', channelRoutes);
 router.use('/servers/:serverId/invites', serverInvitesRoutes);
 router.use('/invites', serverInvitesRoutes);
+router.use('/servers/:serverId/bans', banRoutes);
 
 export default router;
 

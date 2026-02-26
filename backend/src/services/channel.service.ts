@@ -80,11 +80,6 @@ class ChannelService {
                 throw new Error('Channel not found');
             }
 
-            // check if the user is the owner of the server before allowing deletion of the channel
-            if (channel.server.ownerId !== userId) {
-                throw new Error('Only the server owner can delete channels');
-            }
-
             // delete the channel
             await prisma.channel.delete({
                 where: { id: channelId },

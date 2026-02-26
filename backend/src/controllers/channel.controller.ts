@@ -44,15 +44,13 @@ export async function getChannelById(req: Request, res: Response) {
 export async function updateChannelName(req: Request, res: Response) {
     const { channelId } = req.params;
     const userId = req.user?.userId;
-    const { newName, password } = req.body;
+    const { newName } = req.body;
 
     if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
     try {
-        const user = await AuthService.getUserById(userId);
-        await AuthService.verifyPassword(user, password);
         const updatedChannel = await ChannelService.updateChannelName(Number(channelId), newName);
         res.status(200).json(updatedChannel);
     } catch (error: any) {

@@ -23,6 +23,13 @@ enum ChannelType {
   BUSINESS
 }
 
+enum BanAppealStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  REJECTED
+}
+
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -46,7 +53,8 @@ model User {
   tokens          UserToken[] 
   memberships     ServerMember[]
   ownedServers    Server[] @relation("ServerOwner")
-  createdInvites  ServerInvite[]
+  createdInvites  ServerInvite[] 
+  bans            Ban[]
 }
 
 model UserToken {
@@ -70,6 +78,24 @@ model Server {
   members     ServerMember[]
   channels    Channel[]
   invites     ServerInvite[]
+  bans        Ban[]
+}
+
+model Ban {
+  id            Int      @id @default(autoincrement())
+  serverId      Int
+  userId        Int
+  bannedByRole  MemberRole // FUTURE: Want to use id but if, id is used need to fetch servermember to get role
+  reason        String?
+  expiresAt     DateTime?
+  createdAt     DateTime @default(now())
+  revokedAt     DateTime?
+  appealStatus  BanAppealStatus
+
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  server      Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  
+  @@unique([serverId, userId])
 }
 
 model ServerMember {
