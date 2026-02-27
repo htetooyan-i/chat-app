@@ -9,19 +9,14 @@ class ChannelService {
             throw new Error('Channel name is required');
         }
 
-        try {
-            const channel = await prisma.channel.create({
-                data: {
-                    name,
-                    serverId,
-                    type: ChannelType.TEXT,
-                },
-            });
-            return channel;
-        } catch (error: any) {
-            console.error('Error creating channel:', error.message);
-            throw new Error(error.message);
-        }
+        const channel = await prisma.channel.create({
+            data: {
+            name,
+            serverId,
+            type: ChannelType.TEXT,
+            },
+        });
+        return channel;
     }
 
     static async getChannelsForServer(serverId: number) {

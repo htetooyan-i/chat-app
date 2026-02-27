@@ -7,12 +7,17 @@ import AuthService from '../services/auth.service';
 export async function createNewChannelForServer(req: Request, res: Response) {
     const { serverId } = req.params;
     const { name } = req.body;
-
     try {
         const channel = await ChannelService.createChannel(Number(serverId), name);
         res.status(201).json(channel);
     } catch (error: any) {
-        res.status(400).json({ error: error.message });
+        if (error.code === 'P2002') {
+            return res.status(409).json({ message: "A channel with this name already exists in this server." });
+        }
+        if (error.message === 'Channel name is required') {
+            return res.status(400).json({ message: error.message });
+        }
+        res.status(500).json({ message: "Internal server error." });
     }
 }
 

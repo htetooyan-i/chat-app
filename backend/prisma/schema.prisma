@@ -119,6 +119,8 @@ model Channel {
   createdAt DateTime @default(now())
 
   server    Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  @@unique([serverId, name])
 }
 
 model ServerInvite {
