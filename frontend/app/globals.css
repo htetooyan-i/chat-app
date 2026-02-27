@@ -8,6 +8,7 @@
   --accent: #8B5CF6;
   --success: #22C55E;
   --error: #EF4444;
+  --error-background: rgba(239, 68, 68, 0.3);
   --warning: #F59E0B;
   --text: #E5E7EB;
   --muted-text: #94A3B8;
@@ -29,6 +30,7 @@
   --color-accent: var(--accent);
   --color-success: var(--success);
   --color-error: var(--error);
+  --color-error-background: var(--error-background);
   --color-warning: var(--warning);
   --color-primary-text: var(--text);
   --color-muted-text: var(--muted-text);
@@ -133,7 +135,28 @@ div.thin-scrollbar::-webkit-scrollbar-thumb:hover {
   border-radius: 8px !important;
 }
 
+.ban-reason-select .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background-color: rgba(239, 68, 68, 0.1) !important;
+  color: var(--foreground) !important;
+}
 
+.ban-reason-select .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  background-color: rgba(239, 68, 68, 0.2) !important;
+  color: var(--error) !important;
+}
+
+.ban-reason-select .ant-select-dropdown .ant-select-item-option-selected .ant-select-item-option-state {
+  color: var(--error) !important;
+}
+
+/* Ant Spinner background color */
+.ant-spin-container::after {
+  background: transparent !important;
+}
+
+.ant-spin-blur {
+  opacity: 0.3 !important;
+}
 /* Hide scrollbars in Ant Design Sider */
 /* .ant-layout-sider {
   overflow-y: auto !important;

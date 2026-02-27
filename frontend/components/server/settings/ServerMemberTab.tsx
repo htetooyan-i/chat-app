@@ -5,23 +5,32 @@ import { Avatar } from 'antd';
 
 import api from '@/lib/api';
 import ButtonDropDown, { ButtonDropDownItem } from '@/components/ui/ButtonDropDown';
+import BanMemberModal from './BanMemberModal';
 import ChangeMemberRoleModal from './ChangeMemberRoleModal';
+import Spinner from '@/components/ui/Spinner';
 import { useServer } from '@/hooks/useServer';
 import { formatDate } from '@/lib/helper';
 import { useNotification } from '@/hooks/useNotification';
+
 
 function ServerMemberTab() {
 
     const { serverId } = useParams();
     const { servers } = useServer();
     const selectedServer = servers.find(s => String(s.id) === String(serverId));
-    const { contextHolder, showSuccess, showError } = useNotification();
+
     const [serverMembers, setServerMembers] = useState<any[]>([]);
-    const [ memberfilter, setMemberFilter ] = useState("");
-    const [ isUpdated, setIsUpdated ] = useState(false);
-    const [ sortOption, setSortOption ] = useState<"asc" | "desc">("asc");
-    const [ showChangeRoleModal, setShowChangeRoleModal ] = useState(false);
+    const [ loading, setLoading ] = useState(false);
     const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+    const [ memberfilter, setMemberFilter ] = useState("");
+    const [ sortOption, setSortOption ] = useState<"asc" | "desc">("asc");
+
+    const [ isUpdated, setIsUpdated ] = useState(false);
+    const [ showChangeRoleModal, setShowChangeRoleModal ] = useState(false);
+    const [ showBanMemberModal, setShowBanMemberModal ] = useState(false);
+    
+    const { contextHolder, showSuccess, showError } = useNotification();
+
     const processedMembers = serverMembers
                                 .filter(member =>
                                     member.user.username
@@ -71,7 +80,10 @@ function ServerMemberTab() {
         },
         {
             label: "Ban Member",
-            onClick: () => handleBanMember(memberId),
+            onClick: () => {
+                setSelectedMemberId(memberId);
+                setShowBanMemberModal(true);
+            },
             type: "danger",
         }
     ];
@@ -81,6 +93,7 @@ function ServerMemberTab() {
         if (!selectedServer ) return;
         const fetchMembers = async () => {
         try {
+            setLoading(true);
             const res = await api.get(
             `/servers/${selectedServer.id}/members`
             );
@@ -89,6 +102,8 @@ function ServerMemberTab() {
             setIsUpdated(false); // Reset the update flag after fetching members
         } catch (error: any) {
             console.error("Error fetching server members:", error);
+        } finally {
+            setLoading(false);
         }
         };
 
@@ -109,11 +124,11 @@ function ServerMemberTab() {
         }
     };
 
-    const handleBanMember = async (memberId: string) => {
-        if (!selectedServer) return;
+    const handleBanMember = async (reason: string) => {
+        if (!selectedServer || !selectedMemberId) return;
         try {
-            await api.post(`/servers/${selectedServer.id}/bans/${memberId}`);
-            setServerMembers(prev => prev.filter(member => member.userId !== memberId));
+            await api.post(`/servers/${selectedServer.id}/bans/${selectedMemberId}`, { reason });
+            setServerMembers(prev => prev.filter(member => member.userId !== selectedMemberId));
             setIsUpdated(prev => !prev);
             showSuccess("Member banned successfully");
         } catch (error: any) {
@@ -143,11 +158,11 @@ function ServerMemberTab() {
             showError(error.response?.data?.message || "Failed to change member role.");
         }
     };
-
     return (
         <div>
             {contextHolder}
             <ChangeMemberRoleModal show={showChangeRoleModal} onClose={() => setShowChangeRoleModal(false)} changeMemberRole={handleChangeMemberRole}/>
+            <BanMemberModal show={showBanMemberModal} onClose={() => setShowBanMemberModal(false)} banMember={handleBanMember} />
             <p className="text-xl font-bold capitalize mb-4">Server Members</p>
             <p className="text-md font-bold text-foreground capitalize">Show members in channel list.</p>
             <p className='text-[11px] text-muted-text mt-2'>Enabling this will show the members page in channel list, allowing you to quickly see who’s recently joined your server, and find any users flagged for unusual activity.</p>
@@ -188,39 +203,47 @@ function ServerMemberTab() {
                     </tfoot>
                     <tbody>
                         {
-                            processedMembers.map(member => {
-                                if (member.user.username.toLowerCase().includes(memberfilter.toLowerCase())) {
-                                    return (
-                                        <tr key={member.id} className="hover:bg-chat-panel/50 cursor-pointer border-b-1 border-muted-border text-[12px]">
-                                            <td className="px-4 py-2 flex items-center gap-2 font-semibold">
-                                                <Avatar
-                                                size={40}
-                                                src="/profile-img.jpg"
-                                                className="border-background"
-                                                />
-                                                <span>{member.user.username}</span>
-                                            </td>
-                                            <td className="px-4 py-2 font-semibold">{formatDate(member.joinedAt, true)}</td>
-                                            <td className="px-4 py-2 font-semibold">{formatDate(member.user.createdAt, true)}</td>
-                                            <td className="px-4 py-2 font-semibold">J2as8Hb</td>
-                                            <td className="px-4 py-2 text-muted-text font-semibold">
-                                                {member.role}
-                                                {/* Want to use select in future */}
-                                                {/* <Select
-                                                    mode="multiple"
-                                                    tagRender={tagRender}
-                                                    defaultValue={['gold', 'cyan']}
-                                                    style={{ width: '100%' }}
-                                                    options={options}
-                                                /> */}
-                                            </td>
-                                            <td className='px-4 py-2'>
-                                                <ButtonDropDown items={moreOptionItems(member.userId)} removeStyles><Ellipsis /></ButtonDropDown>
-                                            </td>
-                                        </tr>
-                                    )
-                                }   
-                            })
+                            loading ? (
+                                <tr>
+                                    <td colSpan={5} className="text-center py-10">
+                                        <Spinner size='large' />
+                                    </td>      
+                                </tr>
+                            ) : (
+                                processedMembers.map(member => {
+                                    if (member.user.username.toLowerCase().includes(memberfilter.toLowerCase())) {
+                                        return (
+                                            <tr key={member.id} className="hover:bg-chat-panel/50 cursor-pointer border-b-1 border-muted-border text-[12px]">
+                                                <td className="px-4 py-2 flex items-center gap-2 font-semibold">
+                                                    <Avatar
+                                                    size={40}
+                                                    src="/profile-img.jpg"
+                                                    className="border-background"
+                                                    />
+                                                    <span>{member.user.username}</span>
+                                                </td>
+                                                <td className="px-4 py-2 font-semibold">{formatDate(member.joinedAt, true)}</td>
+                                                <td className="px-4 py-2 font-semibold">{formatDate(member.user.createdAt, true)}</td>
+                                                <td className="px-4 py-2 font-semibold">J2as8Hb</td>
+                                                <td className="px-4 py-2 text-muted-text font-semibold">
+                                                    {member.role}
+                                                    {/* Want to use select in future */}
+                                                    {/* <Select
+                                                        mode="multiple"
+                                                        tagRender={tagRender}
+                                                        defaultValue={['gold', 'cyan']}
+                                                        style={{ width: '100%' }}
+                                                        options={options}
+                                                    /> */}
+                                                </td>
+                                                <td className='px-4 py-2'>
+                                                    <ButtonDropDown items={moreOptionItems(member.userId)} removeStyles><Ellipsis /></ButtonDropDown>
+                                                </td>
+                                            </tr>
+                                        )
+                                    }   
+                                })
+                            )
                         }
 
 

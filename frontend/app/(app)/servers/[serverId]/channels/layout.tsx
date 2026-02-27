@@ -1,9 +1,4 @@
-import { Layout } from "antd";
-
-import { ServerLayoutProvider } from "@/context/ServerLayoutContext";
-import SideBar from "@/components/layout/SideBar";
 import ChannelPanel from "@/components/layout/ChannelPanel";
-
 
 const siderStyle: React.CSSProperties = {
   overflow: 'hidden',
@@ -16,8 +11,8 @@ const siderStyle: React.CSSProperties = {
 export default function ChannelLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-        <ChannelPanel siderStyle={siderStyle} />
-        {children}
+      <ChannelPanel siderStyle={siderStyle} />
+      {children}
     </>
   );
 }

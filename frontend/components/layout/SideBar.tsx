@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { LogOut, Plus, Settings } from 'lucide-react';
 import { Avatar, Badge, Layout } from 'antd';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, usePathname } from 'next/navigation';
 import Image from 'next/image';
 
 import api from '@/lib/api';
@@ -38,11 +38,12 @@ function SideBar({ siderStyle }: SideBarProps) {
     ];
 
     const router = useRouter();
+    const pathname = usePathname();
     const { contextHolder, showSuccess, showError } = useNotification();
     const { serverId } = useParams();
     
-    const { servers, refreshServers, loading } = useServer();
-    const { channelsByServer } = useChannel();
+    const { servers, refreshServers, removeServer } = useServer();
+    const { channelsByServer, clearServerCache } = useChannel();
     const selectedServer = servers.find(
     s => String(s.id) === String(serverId)
     );
@@ -75,13 +76,24 @@ function SideBar({ siderStyle }: SideBarProps) {
             await api.delete(`/servers/${selectedServer?.id}/leave`);
             showSuccess("You have left the server.");
 
+            clearServerCache(selectedServer?.id || "");
+            removeServer(selectedServer?.id || "");
+            const updatedServers = servers.filter(s => s.id !== selectedServer?.id);
+            
+            // navigate first before refreshing
+            if (updatedServers.length > 0) {
+                const cached = channelsByServer[updatedServers[0].id];
+                if (cached?.[0]) {
+                    router.push(`/servers/${updatedServers[0].id}/channels/${cached[0].id}`);
+                } else {
+                    router.push(`/servers/${updatedServers[0].id}/channels`);
+                }
+            } else {
+                router.push("/servers");
+            }
+
             refreshServers();
 
-            if (servers.length > 0) {
-                router.push(`/servers/${servers[0].id}/channels`);
-            } else { 
-                router.push("/");
-            }
         } catch (error: any) {
             console.error("Failed to leave server:", error);
             showError(error.response?.data?.message || "Failed to leave server.");
@@ -89,7 +101,7 @@ function SideBar({ siderStyle }: SideBarProps) {
     };
 
     const handleShowUserSettings = () => {
-        router.push("/settings?from=/");
+        router.push(`/settings?from=${pathname}`);
     };
 
     return (

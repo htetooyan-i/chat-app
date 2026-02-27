@@ -23,7 +23,7 @@ export default function ChannelIndexPage() {
   if (!channelLoading && channels.length === 0) {
     // Show empty state directly instead of redirecting
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen w-full bg-chat-panel">
         <h2 className="text-gray-500 text-xl">
           You have no channels in this server. Create one!
         </h2>

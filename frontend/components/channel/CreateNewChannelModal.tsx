@@ -40,7 +40,6 @@ function CreateNewChannelModal({ showCreateChannelModal, setShowCreateChannelMod
 
     const handleSubmit = () => {
         handleCreateChannel(channelName);
-        setShowCreateChannelModal(false);
     };
 
     return (

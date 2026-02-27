@@ -5,18 +5,16 @@ export function middleware(req: NextRequest) {
   const token = req.cookies.get("refreshToken")?.value;
   const { pathname } = req.nextUrl;
 
-  const isAuthRoute = pathname === "/"; // only login page
   const isMaintenanceRoute = pathname.startsWith("/maintenance");
-  const isProtectedRoute = pathname.startsWith("/servers");
-  const isSettingsRoute = pathname.startsWith("/settings");
+  const isAuthRoute = pathname === "/auth";
+  const isRootRoute = pathname === "/";
+  const isProtectedRoute = pathname.startsWith("/servers") || pathname.startsWith("/settings");
 
-  // Allow access to maintenance page without authentication
-  if (isMaintenanceRoute) {
-    return NextResponse.next();
-  }
+  if (isMaintenanceRoute) return NextResponse.next();
 
-  // Allow access to settings page only if authenticated
-  if (isSettingsRoute && !token) {
+  if (isRootRoute && token) return NextResponse.next();
+
+  if (isRootRoute && !token) {
     return NextResponse.redirect(new URL("/auth", req.url));
   }
 
@@ -25,15 +23,13 @@ export function middleware(req: NextRequest) {
   }
 
   if (token && isAuthRoute) {
-    return NextResponse.redirect(
-      new URL("/servers", req.url)
-    );
+    return NextResponse.redirect(new URL("/servers", req.url));
   }
 
   if (!token && isAuthRoute) {
-    return NextResponse.redirect(new URL("/auth", req.url));
+    return NextResponse.next();
   }
-  
+
   return NextResponse.next();
 }
 

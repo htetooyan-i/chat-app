@@ -7,6 +7,7 @@ import api from '@/lib/api';
 import ButtonDropDown, { ButtonDropDownItem } from '@/components/ui/ButtonDropDown';
 import { useServer } from '@/hooks/useServer';
 import { formatDate, calculateDays } from '@/lib/helper';
+import Spinner from '@/components/ui/Spinner';
 
 type Ban = {
     id: string;
@@ -31,6 +32,7 @@ function BanServerTab() {
     const selectedServer = servers.find(s => String(s.id) === String(serverId));
     
     const [ bans, setBans ] = React.useState<Ban[]>([]);
+    const [ loading, setLoading ] = React.useState(false);
 
     const items:(userId: string, serverId: string) => ButtonDropDownItem[] = (userId, serverId) => [
         {
@@ -53,10 +55,13 @@ function BanServerTab() {
         if (!selectedServer) return;
         const fetchBans = async () => {
             try {
+                setLoading(true);
                 const res = await api.get(`/servers/${selectedServer.id}/bans`);
                 setBans(res.data);
             } catch (error) {
                 console.error("Error fetching bans:", error);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -89,7 +94,13 @@ function BanServerTab() {
                     </thead>
                     <tbody>
                         {
-                            bans.length === 0 ? (
+                            loading ? (
+                                <tr>
+                                    <td colSpan={7} className="text-center py-10">
+                                        <Spinner size='large' />
+                                    </td>
+                                </tr>
+                            ) : bans.length === 0 ? (
                                 <tr>
                                     <td colSpan={7} className="text-center text-muted-text py-10">No bans found for this server.</td>
                                 </tr>

@@ -9,6 +9,7 @@ import InviteServerModal from './InviteServerModal';
 import ContextDropdownComponent, { ContextDropdownItem } from "@/components/ui/ContextDropdown";
 import { useServer } from '@/hooks/useServer';
 import { useNotification } from '@/hooks/useNotification';
+import BanMemberModal from './settings/BanMemberModal';
 
 type ServerMemberInfoProps = {
     type: "settings" | "files" | "users" | "none";
@@ -16,13 +17,17 @@ type ServerMemberInfoProps = {
 
 function ServerMemberInfo({ type }: ServerMemberInfoProps) {
 
+    const { contextHolder, showSuccess, showError } = useNotification();
+
     const { serverId } = useParams();
     const { servers } = useServer();
     const selectedServer = servers.find(s => String(s.id) === String(serverId));
     
     const [serverMembers, setServerMembers] = useState<any[]>([]);
+    const [ selectedMemberId, setSelectedMemberId ] = useState<String>("");
+
     const [ showInviteServerModal, setShowInviteServerModal ] = useState(false);
-    const { contextHolder, showSuccess, showError } = useNotification();
+    const [ showBanMemberModal, setShowBanMemberModal ] = useState(false);
     const [ isUpdated, setIsUpdated ] = useState(false);
 
 
@@ -52,7 +57,10 @@ function ServerMemberInfo({ type }: ServerMemberInfoProps) {
     },
     {
         label: "Ban Member",
-        onClick: () => handleBanMember(memberId),
+        onClick: () => {
+            setSelectedMemberId(memberId);
+            setShowBanMemberModal(true);
+        },
         type: "danger",
     },
     {
@@ -87,15 +95,15 @@ function ServerMemberInfo({ type }: ServerMemberInfoProps) {
         }
     };
 
-    const handleBanMember = async (memberId: string) => {
-        if (!selectedServer) return;
+    const handleBanMember = async (reason: string) => {
+        if (!selectedServer || !selectedMemberId) return;
         try {
-            await api.post(`/servers/${selectedServer.id}/bans/${memberId}`);
-            setServerMembers(prev => prev.filter(member => member.userId !== memberId));
+            await api.post(`/servers/${selectedServer.id}/bans/${selectedMemberId}`, { reason });
+            setServerMembers(prev => prev.filter(member => member.userId !== selectedMemberId));
             showSuccess("Member banned successfully");
             setIsUpdated(prev => !prev); // Trigger a re-fetch of members after banning
         } catch (error: any) {
-        showError(error.response?.data?.message || error.message);
+            showError(error.response?.data?.message || error.message);
         }
     };
 
@@ -103,6 +111,7 @@ function ServerMemberInfo({ type }: ServerMemberInfoProps) {
         <div>
             {contextHolder}
             <InviteServerModal show={showInviteServerModal} onClose={() => setShowInviteServerModal(false)} />
+            <BanMemberModal show={showBanMemberModal} onClose={() => setShowBanMemberModal(false)} banMember={handleBanMember} />
             <header className="p-4 flex justify-between items-center">
                 <h2 className="text-[21px] font-bold py-2">Members</h2> 
                 <div className="p-2 rounded-full cursor-pointer bg-accent " title="Invite People" onClick={() => setShowInviteServerModal(true)}>

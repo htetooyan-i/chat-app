@@ -11,7 +11,6 @@ import EditChannelModal from '../channel/EditChannelModal';
 import { useChannel } from '@/hooks/useChannel';
 import { useNotification } from '@/hooks/useNotification';
 import { useServerLayout } from '@/hooks/useServerLayout';
-import { useServer } from '@/hooks/useServer';
 import type { Channel } from '@/context/ChannelContext';
 
 const { Sider } = Layout;

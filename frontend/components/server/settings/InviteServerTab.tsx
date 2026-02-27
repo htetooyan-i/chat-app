@@ -7,6 +7,7 @@ import { useServer } from '@/hooks/useServer';
 import { Avatar } from 'antd';
 import { Ellipsis } from 'lucide-react';
 import { formatDate } from '@/lib/helper';
+import Spinner from '@/components/ui/Spinner';
 
 function InviteServerTab() {
 
@@ -15,6 +16,7 @@ function InviteServerTab() {
     const selectedServer = servers.find(s => String(s.id) === String(serverId));
     
     const [ inviteCodes, setInviteCodes ] = useState<any[]>([]);
+    const [ loading, setLoading ] = useState(false);
     const [ showInviteModal, setShowInviteModal ] = useState(false);
 
     const moreOptionItems:(serverId: string, inviteId: string) => ButtonDropDownItem[] = (serverId, inviteId) => [
@@ -27,11 +29,14 @@ function InviteServerTab() {
 
     const fetchInvites = async (serverId: string) => {
         try {
+            setLoading(true);
             const res = await api.get(`/servers/${serverId}/invites/`);
             setInviteCodes(res.data || []);
         } catch (error: any) {
             console.error("Error fetching invite codes:", error);
-        }   
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleRevokeInvite = async (serverId: string, inviteId: string) => {
@@ -87,25 +92,37 @@ function InviteServerTab() {
                     <tbody>
 
                         {
-                            inviteCodes.map(invite => (
-                                <tr key={invite.id} className="hover:bg-chat-panel/50 cursor-pointer border-b-1 border-muted-border text-[12px]">
-                                    <td className="px-4 py-2 flex items-center gap-2 font-semibold">
-                                        <Avatar
-                                        size={40}
-                                        src="/profile-img.jpg"
-                                        className="border-background"
-                                        />
-                                        <span>{invite.createdBy?.username || 'Unknown User'}</span>
-                                    </td>
-                                    <td className="px-4 py-2 font-semibold">{invite.code}</td>
-                                    <td className="px-4 py-2 font-semibold">{invite.currentUses}</td>
-                                    <td className="px-4 py-2 font-semibold">{invite.maxUses ?? 'Unlimited'}</td>
-                                    <td className="px-4 py-2 font-semibold">{invite.expiresAt === null ? 'Never' : formatDate(invite.expiresAt)}</td>
-                                    <td className='px-4 py-2'>
-                                        <ButtonDropDown items={moreOptionItems(invite.serverId, invite.id)} removeStyles><Ellipsis /></ButtonDropDown>
+                            loading ? (
+                                <tr>
+                                    <td colSpan={5} className="text-center py-10">
+                                        <Spinner size='large' />
                                     </td>
                                 </tr>
-                            ))
+                            ) : inviteCodes.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="text-center text-muted-text py-10">No invites found for this server.</td>
+                                </tr>
+                            ) :  (
+                                inviteCodes.map(invite => (
+                                    <tr key={invite.id} className="hover:bg-chat-panel/50 cursor-pointer border-b-1 border-muted-border text-[12px]">
+                                        <td className="px-4 py-2 flex items-center gap-2 font-semibold">
+                                            <Avatar
+                                            size={40}
+                                            src="/profile-img.jpg"
+                                            className="border-background"
+                                            />
+                                            <span>{invite.createdBy?.username || 'Unknown User'}</span>
+                                        </td>
+                                        <td className="px-4 py-2 font-semibold">{invite.code}</td>
+                                        <td className="px-4 py-2 font-semibold">{invite.currentUses}</td>
+                                        <td className="px-4 py-2 font-semibold">{invite.maxUses ?? 'Unlimited'}</td>
+                                        <td className="px-4 py-2 font-semibold">{invite.expiresAt === null ? 'Never' : formatDate(invite.expiresAt)}</td>
+                                        <td className='px-4 py-2'>
+                                            <ButtonDropDown items={moreOptionItems(invite.serverId, invite.id)} removeStyles><Ellipsis /></ButtonDropDown>
+                                        </td>
+                                    </tr>
+                                ))
+                            )
                         }
                     </tbody>    
                 </table>

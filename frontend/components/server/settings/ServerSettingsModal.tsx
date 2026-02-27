@@ -96,12 +96,12 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
             
             // navigate first before refreshing
             if (updatedServers.length > 0) {
-            const cached = channelsByServer[updatedServers[0].id];
-            if (cached?.[0]) {
-                router.push(`/servers/${updatedServers[0].id}/channels/${cached[0].id}`);
-            } else {
-                router.push(`/servers/${updatedServers[0].id}/channels`);
-            }
+                const cached = channelsByServer[updatedServers[0].id];
+                if (cached?.[0]) {
+                    router.push(`/servers/${updatedServers[0].id}/channels/${cached[0].id}`);
+                } else {
+                    router.push(`/servers/${updatedServers[0].id}/channels`);
+                }
             } else {
                 router.push("/servers");
             }

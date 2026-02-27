@@ -38,9 +38,7 @@ type NewServerModalProps = {
 
 function NewServerModal({ showServerCreationModal, setShowServerCreationModal }: NewServerModalProps) {
 
-    const { serverId } = useParams();
-    const { servers, refreshServers, addServer } = useServer();
-    const selectedServer = servers.find(s => String(s.id) === String(serverId));
+    const { refreshServers, addServer } = useServer();
 
     const [ isCreating, setIsCreating ] = useState(true);
     const [ isSuccessed, setIsSuccessed ] = useState(false);
@@ -83,7 +81,7 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
         } catch (error: any) {
             console.error("Error joining server:", error);
             const message =
-                error.response?.data?.message || 
+                error.response?.data?.error || 
                 error.message || 
                 "Failed to join server.";
 
@@ -138,7 +136,7 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
                                 setShowServerCreationModal(false);
                                 setIsCreating(true);
                                 setIsSuccessed(false);
-                                setServerName("");
+                                setInviteCode("");
                             }}
                         >
                             Cancel
