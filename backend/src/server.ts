@@ -1,7 +1,9 @@
-import app from './app';
 import { Server } from "socket.io";
 import { createServer } from 'http';
 import 'dotenv/config';
+
+import app from './app';
+import setupSocket from './socket';
 
 const server = createServer(app);
 
@@ -11,6 +13,8 @@ export const io = new Server(server, {
         methods: ["GET", "POST", "PUT", "DELETE"]
     }
 });
+
+setupSocket(io);
 
 const PORT = process.env.PORT || 4000;
 

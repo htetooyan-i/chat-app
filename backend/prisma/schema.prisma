@@ -28,6 +28,13 @@ enum BanAppealStatus {
   ACCEPTED
   REVOKED
   REJECTED
+  SUPERSEDED
+}
+
+enum AttachmentType {
+  Image
+  Video
+  GIF
 }
 
 generator client {
@@ -55,6 +62,7 @@ model User {
   ownedServers    Server[] @relation("ServerOwner")
   createdInvites  ServerInvite[] 
   bans            Ban[]
+  messages        Message[]
 }
 
 model UserToken {
@@ -94,8 +102,7 @@ model Ban {
 
   user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   server      Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
-  
-  @@unique([serverId, userId])
+
 }
 
 model ServerMember {
@@ -119,6 +126,7 @@ model Channel {
   createdAt DateTime @default(now())
 
   server    Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  messages   Message[]
 
   @@unique([serverId, name])
 }
@@ -138,5 +146,29 @@ model ServerInvite {
   createdBy    User      @relation(fields: [createdById], references: [id])
 }
 
+model Message {
+  id                Int @id @default(autoincrement())
+  channelId         Int
+  authorId          Int
+  replyToMessageId  Int?
+  content           String?
+  createdAt         DateTime @default(now())
+  editedAt          DateTime?
+  clientMsgId       String? @unique 
+
+  channel           Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  author            User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  replyTo          Message?  @relation("MessageReplies", fields: [replyToMessageId], references: [id], onDelete: NoAction)
+  replies          Message[] @relation("MessageReplies")
+  attachments      Attachment[]
+}
+
+model Attachment {
+  id         Int            @id @default(autoincrement())
+  messageId  Int
+  type       AttachmentType
+  url        String
+  message    Message        @relation(fields: [messageId], references: [id], onDelete: Cascade)
+}
 
 

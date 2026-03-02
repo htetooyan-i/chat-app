@@ -75,7 +75,7 @@ class ServerInvitesService {
 
         } catch (error: any) {
             console.error("Error verifying invite:", error.message);
-            throw new Error("Failed to verify invite", { cause: error });
+            throw new Error(error.message || "Failed to verify invite", { cause: error });
         }
     }
 

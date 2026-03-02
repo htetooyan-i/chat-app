@@ -6,6 +6,7 @@ import { MemberRole } from '../../generated/prisma/enums';
 import { 
     addMemberToServer,
     getServerMembers,
+    getServerMember,
     removeMemberFromServer,
     leaveServer,
     changeMemberRole
@@ -14,6 +15,8 @@ import {
 const router = express.Router({ mergeParams: true });
 
 router.get('/members', authMiddleware, getServerMembers);
+
+router.get('/members/@me', authMiddleware, getServerMember);
 router.post('/join', authMiddleware, addMemberToServer);
 router.delete('/kick', authMiddleware, requireServerRole([MemberRole.ADMIN, MemberRole.OWNER]), removeMemberFromServer);
 router.delete('/leave', authMiddleware, leaveServer);

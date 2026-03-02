@@ -18,6 +18,25 @@ export async function addMemberToServer(req: Request, res: Response) {
 
 }
 
+export async function getServerMember(req: Request, res: Response) {
+    const { serverId } = req.params;
+    const userId = req.user?.userId;
+    if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    try {
+        const member = await ServerMemberService.getServerMember(Number(serverId), userId);
+        if (!member) {
+            return res.status(404).json({ message: 'Member not found' });
+        }
+        res.status(200).json({ message: 'Server member retrieved successfully', member: member });
+    } catch (error: any) {
+        console.error('Error retrieving server member:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+}
+
 export async function removeMemberFromServer(req: Request, res: Response) {
     const { serverId } = req.params;
     const { memberId } = req.body;

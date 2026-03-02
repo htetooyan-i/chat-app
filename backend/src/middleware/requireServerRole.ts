@@ -21,7 +21,7 @@ export function requireServerRole(requiredRoles: MemberRole[]) {
             if (!member || !requiredRoles.includes(member.role)) {
                 return res.status(403).json({ message: member ? 'Forbidden: Insufficient permissions' : 'Forbidden: Not a member of the server' });
             }
-
+            req.member = member; // Attach member info to request for downstream use
             next();
         } catch (error: any) {
             console.error('Error checking server role:', error.message);

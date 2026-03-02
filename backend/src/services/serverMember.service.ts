@@ -218,6 +218,22 @@ class ServerMemberService {
         }
     }
 
+    static async getMemberByUserId(serverId: number, userId: number) {
+        try {
+            const member = await prisma.serverMember.findUnique({
+                where: {
+                    userId_serverId: {
+                        userId,
+                        serverId,
+                    },
+                },
+            });
+            return member;
+        } catch (error: any) {
+            console.error('Error retrieving server member by user ID:', error.message);
+            throw error;
+        }
+    }
 }
 
 export default ServerMemberService;

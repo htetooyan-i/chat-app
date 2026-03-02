@@ -57,6 +57,18 @@ class ServerService {
         }
     }
 
+    static async getServerById(serverId: number) {
+        try {
+            const server = await prisma.server.findUnique({
+                where: { id: serverId },
+            });
+            return server;
+        } catch (error: any) {
+            console.error('Error fetching server by ID:', error.message);
+            throw new Error(error.message);
+        }
+    }
+
 }
 
 export default ServerService;
