@@ -3,7 +3,7 @@ import { createServer } from 'http';
 import 'dotenv/config';
 
 import app from './app';
-import setupSocket from './socket';
+import setupSocket from "./sockets";
 
 const server = createServer(app);
 

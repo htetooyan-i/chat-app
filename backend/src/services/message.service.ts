@@ -63,7 +63,8 @@ class MessageService {
         channelId: number,
         authorId: number,
         content: string,
-        replyToMessageId?: number
+        replyToMessageId?: number,
+        clientMsgId?: string
     ) {
         try {
 
@@ -90,7 +91,17 @@ class MessageService {
                     authorId,
                     content,
                     replyToMessageId: replyToMessageId || null,
+                    clientMsgId: clientMsgId || null,
                 },
+                include: {
+                    author: {
+                        select: {
+                            id: true,
+                            username: true,
+                            avatarUrl: true
+                        }
+                    }
+                }
             });
 
             return message;
