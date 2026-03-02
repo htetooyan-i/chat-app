@@ -192,7 +192,7 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
                                 <div className={`text-[15px] h-[30px] w-full p-2 border-s-3 rounded-r-sm cursor-pointer flex items-center border-error ${activeTab === "delete" ? 'bg-error/20' : 'bg-transparent'}`} onClick={() => setActiveTab("delete")}>
                                     <p className='capitalize truncate text-error font-semibold'>Delete Server</p>
                                 </div>
-
+                                                                
                             </main>
                         </div>
                     </Sider>

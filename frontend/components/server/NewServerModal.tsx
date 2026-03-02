@@ -81,7 +81,7 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
         } catch (error: any) {
             console.error("Error joining server:", error);
             const message =
-                error.response?.data?.error || 
+                error.response?.data?.message || 
                 error.message || 
                 "Failed to join server.";
 

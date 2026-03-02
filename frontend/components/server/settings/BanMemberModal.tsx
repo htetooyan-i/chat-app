@@ -4,10 +4,11 @@ import { Input } from 'antd';
 
 const { TextArea } = Input;
 
-type BanMemberRoleProps = {
+type BanMemberProps = {
     show: boolean;
     onClose: () => void;
-    banMember: (reason: string) => Promise<void>;
+    byAuthority?: boolean;
+    banMember: (reason: string, duration?: string) => Promise<void>;
 };
 
 const styles: ModalProps['styles'] = {
@@ -40,10 +41,10 @@ const selectStyles: SelectProps['styles'] = {
         borderRadius: '5px',
         border: '1px solid var(--muted-border)',
     },
-    input: {
-        backgroundColor: 'var(--chat-panel)',
+    content: {
         color: 'var(--foreground)',
     },
+
     suffix: {
         color: 'var(--muted-text)',
     },
@@ -77,8 +78,9 @@ const selectStyles: SelectProps['styles'] = {
     }
 };
 
-function BanMemberModal({ show, onClose, banMember }: BanMemberRoleProps) {
+function BanMemberModal({ show, onClose, banMember, byAuthority }: BanMemberProps) {
     const [reason, setReason] = React.useState<string[]>([]);
+    const [duration, setDuration] = React.useState<string>("7");
     const [customReason, setCustomReason] = React.useState("");
     const showTextArea = reason.includes("other");
 
@@ -100,9 +102,8 @@ function BanMemberModal({ show, onClose, banMember }: BanMemberRoleProps) {
             >
                 <div>
                     <p className='text-[11px] text-muted-text font-medium mt-0 mb-4'>Enter a reason for banning the member.</p>
-
-                    <div className='flex flex-col gap-4 mb-6'>
-                        <div className='flex flex-col gap-3'>
+                    <div className='flex flex-col mb-6'>
+                        <div className='flex flex-col gap-6'>
                             <ConfigProvider 
                             theme={{ 
                                 components: { 
@@ -147,7 +148,27 @@ function BanMemberModal({ show, onClose, banMember }: BanMemberRoleProps) {
                                     onChange={(e) => setCustomReason(e.target.value)}
                                     />
                                 )}
+
+                                
                             </ConfigProvider>
+                            {
+                                byAuthority && (
+                                    <Select
+                                    value={duration}
+                                    defaultValue="7"
+                                    styles={selectStyles}
+                                    onChange={(value) => {
+                                        setDuration(value);
+                                    }}
+                                    options={[
+                                        { value: '7', label: '7 days' },
+                                        { value: '30', label: '30 days' },
+                                        { value: '90', label: '90 days' },
+                                        { value: 'permanent', label: 'Permanent' },
+                                    ]}
+                                    />
+                                )
+                            }
                         </div>
                     </div>
 
@@ -169,7 +190,7 @@ function BanMemberModal({ show, onClose, banMember }: BanMemberRoleProps) {
                                 const finalReason = showTextArea && customReason
                                     ? [...reason.filter(r => r !== "other"), customReason].join(", ")
                                     : reason.join(", ");
-                                banMember(finalReason);
+                                banMember(finalReason, duration);
                                 setReason([]);
                                 setCustomReason("");
                                 onClose();

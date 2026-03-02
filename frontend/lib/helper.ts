@@ -1,3 +1,5 @@
+import { Message } from "@/components/layout/ChatPanel";
+
 export const handleMaintenanceRoute = () => {
     // Navigate to the maintenance page
     window.location.href = "/maintenance?from=/";
@@ -23,14 +25,37 @@ export const formatDate = (dateInput: Date | string, dayIncluded: boolean = fals
     });
 };
 
-export const calculateDays = (startDate: Date | string, endDate: Date | string) => {
-    const start = startDate instanceof Date 
-        ? startDate 
-        : new Date(startDate);
-    const end = endDate instanceof Date 
-        ? endDate 
-        : new Date(endDate);
 
+export const calculateDays = (startDate: Date | string, endDate: Date | string) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    
     const diffTime = Math.abs(end.getTime() - start.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.round(diffTime / (1000 * 60 * 60 * 24));
+};
+
+export const formatDateTime = (dateInput: Date | string) => {
+    const date = dateInput instanceof Date 
+        ? dateInput 
+        : new Date(dateInput);
+
+    return date.toLocaleString(undefined, {
+        year: undefined,
+        month: undefined,
+        day: undefined,
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+};
+
+export const groupMessagesByDate = (messages: Message[]) => {
+  return messages.reduce((groups, message) => {
+    const date = new Date(message.createdAt).toDateString();
+    if (!groups[date]) groups[date] = [];
+    groups[date].push(message);
+    return groups;
+  }, {} as Record<string, Message[]>);
 };

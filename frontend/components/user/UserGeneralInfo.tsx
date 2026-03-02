@@ -29,7 +29,7 @@ function UserGeneralInfo() {
                 <div className="relative group cursor-pointer">
                     <Avatar shape="circle" size={86}>
                         <Image
-                        src="/profile-img.jpg"
+                        src="/profile-img-sec.jpg"
                         alt="avatar"
                         width={86}
                         height={86}

@@ -57,7 +57,7 @@ function InviteServerTab() {
         }
     }, [selectedServer?.id]);
     return (
-        <div>
+        <div className="flex flex-col h-full">
             <InviteServerModal 
             show={showInviteModal} 
             onClose={() => setShowInviteModal(false)} 
@@ -76,10 +76,10 @@ function InviteServerTab() {
                 </div>
             </div>
             {/* Members List Table */}
-            <div className='mt-10 py-2 w-full rounded-lg bg-muted-background'>
+            <div className='mt-10 py-2 w-full rounded-lg bg-muted-background overflow-y-auto flex-1 min-h-0'>
                 {/* Members Table */}
                 <table className="w-full text-left">
-                    <thead>
+                    <thead className='sticky top-0 bg-muted-background z-10 w-full'>
                         <tr>
                             <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Inviter</th>
                             <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Invite Code</th>
@@ -108,7 +108,7 @@ function InviteServerTab() {
                                         <td className="px-4 py-2 flex items-center gap-2 font-semibold">
                                             <Avatar
                                             size={40}
-                                            src="/profile-img.jpg"
+                                            src="/profile-img-sec.jpg"
                                             className="border-background"
                                             />
                                             <span>{invite.createdBy?.username || 'Unknown User'}</span>

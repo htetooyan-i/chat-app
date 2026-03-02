@@ -6,7 +6,7 @@ import MenuItem from '@mui/material/MenuItem';
 import { IdCard } from 'lucide-react';
 
 export type ContextDropdownItem = {
-  label: string;
+  label: string | React.ReactNode;
   onClick: () => void;
   type: 'normal' | 'danger' | 'divider';
   icon?: React.ReactNode;
@@ -16,9 +16,10 @@ export type ContextDropdownItem = {
 type ContextDropdownComponentProps = {
   items: ContextDropdownItem[];
   children: React.ReactNode;
+  horizontal?: boolean;
 }
 
-function ContextDropdownComponent({ children, items}: ContextDropdownComponentProps) {
+function ContextDropdownComponent({ children, items, horizontal = false }: ContextDropdownComponentProps) {
 
   const [contextMenu, setContextMenu] = React.useState<{
     mouseX: number;
@@ -78,20 +79,26 @@ function ContextDropdownComponent({ children, items}: ContextDropdownComponentPr
                   color: "var(--foreground)",
                   border: "1px solid var(--muted-border)",
                   borderRadius: "5px",
-                  minWidth: "150px",
+                  minWidth: horizontal ? "unset" : "150px",
                   padding: "0",
-                },
-                "& .MuiMenu-list": {
-                  paddingInline: "5px",
-                  paddingBlock: "0",
-                  borderRadius: "5px",
                 },
               }}
             >
-              <MenuList>
+              <MenuList
+                sx={{
+                  paddingInline: "5px",
+                  paddingBlock: "0",
+                  borderRadius: "5px",
+                  display: horizontal ? "flex" : "block",
+                  flexDirection: horizontal ? "row" : "column",
+                  alignItems: horizontal ? "center" : "unset",
+                }}
+              >
                 {items.map((item, index) => {
                   if (item.type === "divider") {
-                    return <Divider key={index} sx={{ borderColor: "var(--muted-border)" }} />;
+                    return horizontal 
+                      ? <Divider key={index} orientation="vertical" flexItem sx={{ borderColor: "var(--muted-border)" }} />
+                      : <Divider key={index} sx={{ borderColor: "var(--muted-border)" }} />;
                   }
 
                   return (
@@ -113,7 +120,13 @@ function ContextDropdownComponent({ children, items}: ContextDropdownComponentPr
                       }}
                     >
                       <div className='flex gap-2 justify-between items-center w-full'>
-                        {item.label}
+                        {
+                          typeof item.label === "string" ? (
+                            <span>{item.label}</span>
+                          ) : (
+                            item.label
+                          )
+                        }
                         {item.icon && <span className='mr-2'>{item.icon}</span>}
                       </div>
                     </MenuItem>

@@ -124,10 +124,10 @@ function ServerMemberTab() {
         }
     };
 
-    const handleBanMember = async (reason: string) => {
+    const handleBanMember = async (reason: string, duration?: string) => {
         if (!selectedServer || !selectedMemberId) return;
         try {
-            await api.post(`/servers/${selectedServer.id}/bans/${selectedMemberId}`, { reason });
+            await api.post(`/servers/${selectedServer.id}/bans/${selectedMemberId}`, { reason, duration: duration === "permanent" ? null : Number(duration) });
             setServerMembers(prev => prev.filter(member => member.userId !== selectedMemberId));
             setIsUpdated(prev => !prev);
             showSuccess("Member banned successfully");
@@ -159,16 +159,16 @@ function ServerMemberTab() {
         }
     };
     return (
-        <div>
+        <div className="flex flex-col h-full">
             {contextHolder}
             <ChangeMemberRoleModal show={showChangeRoleModal} onClose={() => setShowChangeRoleModal(false)} changeMemberRole={handleChangeMemberRole}/>
-            <BanMemberModal show={showBanMemberModal} onClose={() => setShowBanMemberModal(false)} banMember={handleBanMember} />
+            <BanMemberModal show={showBanMemberModal} onClose={() => setShowBanMemberModal(false)} byAuthority banMember={handleBanMember} />
             <p className="text-xl font-bold capitalize mb-4">Server Members</p>
             <p className="text-md font-bold text-foreground capitalize">Show members in channel list.</p>
             <p className='text-[11px] text-muted-text mt-2'>Enabling this will show the members page in channel list, allowing you to quickly see who’s recently joined your server, and find any users flagged for unusual activity.</p>
             {/* Members List Table */}
-            <div className='mt-10 w-full rounded-lg bg-muted-background'>
-                <header className='pt-2 px-4 flex items-center justify-between'>
+            <div className='mt-10 w-full rounded-lg bg-muted-background flex flex-col flex-1 min-h-0'>
+                <header className='pt-2 px-4 flex items-center justify-between flex-shrink-0'>
                     <p className="text-[15px] font-bold text-foreground">Recent Members</p>
                     {/* Filter and Sort Options */}
                     <div className="flex items-center gap-2">
@@ -183,72 +183,75 @@ function ServerMemberTab() {
                     </div>
                 </header>
                 {/* Divider */}
-                <div className="w-full h-px bg-muted-border my-2" />
-                {/* Members Table */}
-                <table className="w-full text-left my-2">
-                    <thead>
-                        <tr>
-                            <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Name</th>
-                            <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Member Since</th>
-                            <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Joined Discord</th>
-                            <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Joined Method</th>
-                            <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Roles</th>
-
-                        </tr>
-                    </thead>
-                    <tfoot>
-                        <tr>
-                            <td className="text-left text-sm font-semibold text-muted-text px-4 py-2">Showing {serverMembers.length} members</td>
-                        </tr>
-                    </tfoot>
-                    <tbody>
-                        {
-                            loading ? (
-                                <tr>
-                                    <td colSpan={5} className="text-center py-10">
-                                        <Spinner size='large' />
-                                    </td>      
-                                </tr>
-                            ) : (
-                                processedMembers.map(member => {
-                                    if (member.user.username.toLowerCase().includes(memberfilter.toLowerCase())) {
-                                        return (
-                                            <tr key={member.id} className="hover:bg-chat-panel/50 cursor-pointer border-b-1 border-muted-border text-[12px]">
-                                                <td className="px-4 py-2 flex items-center gap-2 font-semibold">
-                                                    <Avatar
-                                                    size={40}
-                                                    src="/profile-img.jpg"
-                                                    className="border-background"
-                                                    />
-                                                    <span>{member.user.username}</span>
-                                                </td>
-                                                <td className="px-4 py-2 font-semibold">{formatDate(member.joinedAt, true)}</td>
-                                                <td className="px-4 py-2 font-semibold">{formatDate(member.user.createdAt, true)}</td>
-                                                <td className="px-4 py-2 font-semibold">J2as8Hb</td>
-                                                <td className="px-4 py-2 text-muted-text font-semibold">
-                                                    {member.role}
-                                                    {/* Want to use select in future */}
-                                                    {/* <Select
-                                                        mode="multiple"
-                                                        tagRender={tagRender}
-                                                        defaultValue={['gold', 'cyan']}
-                                                        style={{ width: '100%' }}
-                                                        options={options}
-                                                    /> */}
-                                                </td>
-                                                <td className='px-4 py-2'>
-                                                    <ButtonDropDown items={moreOptionItems(member.userId)} removeStyles><Ellipsis /></ButtonDropDown>
-                                                </td>
-                                            </tr>
-                                        )
-                                    }   
-                                })
-                            )
-                        }
+                <div className="w-full h-px bg-muted-border my-2 flex-shrink-0" />
+                {/* Members List */}
+                <div className='overflow-y-auto flex-1 min-h-0'>
+                    <table className="w-full text-left">
+                        <thead className="sticky top-0 z-10">
+                            <tr>
+                                <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Name</th>
+                                <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Member Since</th>
+                                <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Joined Discord</th>
+                                <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Joined Method</th>
+                                <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Roles</th>
+                                <th className="px-4 py-2" />
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {
+                                loading ? (
+                                    <tr>
+                                        <td colSpan={5} className="text-center py-10">
+                                            <Spinner size='large' />
+                                        </td>      
+                                    </tr>
+                                ) : (
+                                    processedMembers.map(member => {
+                                        if (member.user.username.toLowerCase().includes(memberfilter.toLowerCase())) {
+                                            return (
+                                                <tr key={member.id} className="hover:bg-chat-panel/50 cursor-pointer border-b-1 border-muted-border text-[12px]">
+                                                    <td className="px-4 py-2 flex items-center gap-2 font-semibold">
+                                                        <Avatar
+                                                        size={40}
+                                                        src="/profile-img-sec.jpg"
+                                                        className="border-background"
+                                                        />
+                                                        <span>{member.user.username}</span>
+                                                    </td>
+                                                    <td className="px-4 py-2 font-semibold">{formatDate(member.joinedAt, true)}</td>
+                                                    <td className="px-4 py-2 font-semibold">{formatDate(member.user.createdAt, true)}</td>
+                                                    <td className="px-4 py-2 font-semibold">J2as8Hb</td>
+                                                    <td className="px-4 py-2 text-muted-text font-semibold">
+                                                        {member.role}
+                                                        {/* Want to use select in future */}
+                                                        {/* <Select
+                                                            mode="multiple"
+                                                            tagRender={tagRender}
+                                                            defaultValue={['gold', 'cyan']}
+                                                            style={{ width: '100%' }}
+                                                            options={options}
+                                                        /> */}
+                                                    </td>
+                                                    <td className='px-4 py-2'>
+                                                        <ButtonDropDown items={moreOptionItems(member.userId)} removeStyles><Ellipsis /></ButtonDropDown>
+                                                    </td>
+                                                </tr>
+                                            )
+                                        }   
+                                    })
+                                )
+                            }
 
 
-                    </tbody>    
-                </table>
+                        </tbody> 
+                    </table>
+                </div>
+                {/* Footer showing total members count */}
+                <div className="px-4 py-2 flex-shrink-0 sticky bottom-0 z-10">
+                    <p className="text-left text-sm font-semibold text-muted-text">
+                        Showing {serverMembers.length} members
+                    </p>
+                </div>
             </div>
         </div>
     );

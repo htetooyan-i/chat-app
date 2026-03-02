@@ -1,11 +1,14 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { Layout } from 'antd';
+import { Layout, Avatar, Divider, Badge } from 'antd';
 import { SettingFilled } from '@ant-design/icons';
-import { ChevronRight, FileText, Paperclip, Send, Sticker, UsersRound } from 'lucide-react';
+import { ChevronRight, FileText, Paperclip, Send, Sticker, UsersRound, Reply, Ellipsis } from 'lucide-react';
 
+import api from '@/lib/api';
+import ButtonDropDown, { ButtonDropDownItem } from '../ui/ButtonDropDown';
 import InfoPanel from '@/components/layout/InfoPanel';
+import { formatDateTime, groupMessagesByDate, formatDate } from '@/lib/helper';
 import { useServerLayout } from '@/hooks/useServerLayout';
 import { handleMaintenanceRoute } from '@/lib/helper';
 import { useServer } from '@/hooks/useServer';
@@ -15,6 +18,22 @@ const { Header, Content, Footer } = Layout;
 
 type Tabs = "settings" | "files" | "users" | "none";
 
+export type Message = {
+    id: string;
+    channelId: string;
+    authorId: string;
+    replyToMessageId?: string;
+    content: string;
+    createdAt: Date | string;
+    editedAt?: Date | string;
+    clientId?: string;
+    author: {
+        id: string;
+        username: string;
+        avatarUrl: string;
+    };
+}
+
 function ChatPanel() {
 
     const { serverId, channelId } = useParams();
@@ -23,8 +42,59 @@ function ChatPanel() {
     const selectedServer = servers.find(s => String(s.id) === String(serverId));
     const selectedChannel = channels.find(c => String(c.id) === String(channelId));
     
+    const [ groupedMessages, setGroupedMessages ] = useState<Record<string, Message[]>>({});
+    const [skip, setSkip] = useState(0);
+    const [hasMore, setHasMore] = useState(true)
+
     const { collapsed, setCollapsed } = useServerLayout();
     const [activeTab, setActiveTab] = useState<Tabs>("none");
+
+    const items: ButtonDropDownItem[] = [
+        {
+            label: "Reply",
+            onClick: () => {},
+            type: "normal",
+        },
+        {
+            label: "Copy Text",
+            onClick: () => {},
+            type: "normal",
+        },
+        {
+            label: "Divide",
+            onClick: () => {},
+            type: "divider",
+        },
+        {
+            label: "Delete Message",
+            onClick: () => {},
+            type: "danger",
+        },
+    ];
+
+    useEffect(() => {
+        const fetchMessages = async () => {
+            try {
+                const response = await api.get(`/channels/${channelId}/messages?limit=50`);
+                const grouped = groupMessagesByDate(response.data.reverse()); // reverse to show newest at the bottom
+                setGroupedMessages(grouped);
+            } catch (error) {
+                console.error("Failed to fetch messages:", error);
+            }
+        }
+        fetchMessages();
+    }, [channelId]);
+
+    // const loadMore = async () => {
+    //     const res = await fetch(`/channels/${channelId}/messages?skip=${skip}&take=50`);
+    //     const data = await res.json();
+
+    //     if (data.length < 50) setHasMore(false); // no more messages
+
+    //     setMessages(prev => [...data.reverse(), ...prev]); // prepend older messages
+    //     setSkip(prev => prev + 50);
+    // };
+
 
     return (
         <div className="flex w-full h-screen bg-chat-panel">
@@ -103,7 +173,6 @@ function ChatPanel() {
                     style={{ 
                         flex: 1,
                         background: "var(--chat-panel)",
-                        paddingInline: "20px",
                         overflowY: "auto",
                         scrollbarWidth: "thin",
                         color: "var(--foreground)",
@@ -111,12 +180,72 @@ function ChatPanel() {
                 >
                     <div
                         style={{
-                            padding: 24,
-                            textAlign: 'center',
+                            paddingBlock: 24,
                         }}
-                        className='w-full'
+                        className='min-h-full w-full flex-1 flex flex-col items-start justify-end gap-1'
                     >
-                        <p>long content</p>
+                            {
+                            Object.entries(groupedMessages).map(([date, messages]) => (
+                                <div key={date} className='w-full flex flex-col items-start justify-start'>
+                                    <div className='mx-auto'>
+                                        <p className='text-sm text-muted-text bg-background p-2 rounded-lg text-[11px]'>{formatDate(date)}</p>
+                                    </div>
+                                    {
+                                        messages.map((message, index) => (
+                                            <div key={index} className={`relative flex items-start justify-start items-start gap-4 w-full hover:bg-muted-background/50 transition-colors cursor-pointer group ${(index > 0 && message.author.id === messages[index - 1].author.id) ? "pe-5 ps-21" : "px-5 mt-3"}`}>
+                                                {
+                                                    (index > 0 && message.author.id === messages[index - 1].author.id) ? (
+                                                        <>
+                                                            <div className='flex-1 flex flex-col gap-1'>
+                                                                <div className='flex items-center gap-2'>
+                                                                    {/* <div className={`flex items-center gap-1 px-1 py-0.5 bg-accent/20 border border-accent text-accent rounded text-[10px] font-medium ${index % 2 === 0 ? "hidden" : "" }`}>
+                                                                        <span>👍</span>
+                                                                        <span>1</span>
+                                                                    </div> */}
+                                                                </div>
+                                                                <p className='text-sm text-[13px] font-medium cursor-text'>{message.content}</p>
+                                                            </div>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Avatar shape="circle" size={48} src="/profile-img-sec.jpg" className='border-background' />
+                                                            <div className='flex-1 flex flex-col gap-1'>
+                                                                <div className='flex items-center gap-2'>
+                                                                    <p className='font-semibold'>{message.author.username}</p>
+                                                                    {/* <div className={`flex items-center gap-1 px-1 py-0.5 bg-accent/20 border border-accent text-accent rounded text-[10px] font-medium ${index % 2 === 0 ? "hidden" : "" }`}>
+                                                                        <span>👍</span>
+                                                                        <span>1</span>
+                                                                    </div> */}
+                                                                </div>
+                                                                <p className='text-sm text-[13px] font-medium cursor-text'>{message.content}</p>
+                                                            </div>
+                                                        </>
+                                                    )
+                                                }
+                                                
+                                                <div>
+                                                    <p className='text-[10px] text-muted-text'>
+                                                        {message.editedAt 
+                                                            ? `Edited At ${formatDateTime(message.createdAt)}` 
+                                                            : formatDateTime(message.createdAt)
+                                                        }
+
+                                                    </p>
+                                                </div>
+                                                <div className='flex justify-between items-center gap-2 absolute right-25 -top-4 px-2 py-1 bg-muted-background/80 rounded-md border border-muted-border opacity-0 group-hover:opacity-100 transition-opacity'>
+                                                    <span>👍</span>
+                                                    <span>🙂</span>
+                                                    <span>😢</span>
+                                                    <Divider orientation="vertical" style={{ borderColor: "var(--foreground)" }} />
+                                                    <Reply size={16}/>
+                                                    <ButtonDropDown items={items} removeStyles><Ellipsis size={16}/></ButtonDropDown>
+                                                </div>
+                                            </div>
+                                        ))
+                                    }
+                                </div>
+                            ))
+                        }
                     </div>
                 </Content>
                 <Footer style={{ height: "60px", background: "var(--chat-panel)", paddingTop: "0", paddingInline: "20px" }}>

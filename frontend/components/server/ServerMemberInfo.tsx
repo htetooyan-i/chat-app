@@ -50,11 +50,11 @@ function ServerMemberInfo({ type }: ServerMemberInfoProps) {
     }, [type, selectedServer, isUpdated]);
 
     const getDropdownItems = (memberId: string): ContextDropdownItem[] => [
-    {
-        label: "Open in Mod View",
-        onClick: () => console.log("View profile"),
-        type: "normal",
-    },
+    // {
+    //     label: "Open in Mod View",
+    //     onClick: () => console.log("View profile"),
+    //     type: "normal",
+    // },
     {
         label: "Ban Member",
         onClick: () => {
@@ -68,17 +68,17 @@ function ServerMemberInfo({ type }: ServerMemberInfoProps) {
         onClick: () => handleKickMember(memberId),
         type: "danger",
     },
-    {
-        label: "",
-        onClick: () => {},
-        type: "divider",
-    },
-    {
-        label: "Copy Member ID",
-        onClick: () => navigator.clipboard.writeText(memberId),
-        type: "normal",
-        icon: <IdCard width={20} height={20} />,
-    },
+    // {
+    //     label: "",
+    //     onClick: () => {},
+    //     type: "divider",
+    // },
+    // {
+    //     label: "Copy Member ID",
+    //     onClick: () => navigator.clipboard.writeText(memberId),
+    //     type: "normal",
+    //     icon: <IdCard width={20} height={20} />,
+    // },
     ];
 
 
@@ -100,7 +100,7 @@ function ServerMemberInfo({ type }: ServerMemberInfoProps) {
         try {
             await api.post(`/servers/${selectedServer.id}/bans/${selectedMemberId}`, { reason });
             setServerMembers(prev => prev.filter(member => member.userId !== selectedMemberId));
-            showSuccess("Member banned successfully");
+            showSuccess("Requested ban successfully");
             setIsUpdated(prev => !prev); // Trigger a re-fetch of members after banning
         } catch (error: any) {
             showError(error.response?.data?.message || error.message);
@@ -129,7 +129,7 @@ function ServerMemberInfo({ type }: ServerMemberInfoProps) {
                                     <Avatar
                                         shape="circle"
                                         size={32}
-                                        src="/profile-img.jpg"
+                                        src="/profile-img-sec.jpg"
                                     />
                                     </Badge>
 

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LogOut, Plus, Settings } from 'lucide-react';
 import { Avatar, Badge, Layout } from 'antd';
 import { useRouter, useParams, usePathname } from 'next/navigation';
@@ -23,20 +23,7 @@ type SideBarProps = {
 
 function SideBar({ siderStyle }: SideBarProps) {
 
-    const dropDownItems: ContextDropdownItem[] = [
-        {
-            label: "Settings",
-            onClick: () => setShowServerSettingsModal(true),
-            type: "normal",
-            icon: <Settings width={20} height={20}/>,
-        },
-        {
-            label: "Leave Server",
-            onClick: async () => await handleLeaveServer(),
-            type: "danger",
-        },
-    ];
-
+    
     const router = useRouter();
     const pathname = usePathname();
     const { contextHolder, showSuccess, showError } = useNotification();
@@ -45,14 +32,53 @@ function SideBar({ siderStyle }: SideBarProps) {
     const { servers, refreshServers, removeServer } = useServer();
     const { channelsByServer, clearServerCache } = useChannel();
     const selectedServer = servers.find(
-    s => String(s.id) === String(serverId)
+        s => String(s.id) === String(serverId)
     );
+    const [ me , setMe ] = useState<any>(null);
     const { logout } = useAuth();
     const { collapsed, setCollapsed } = useServerLayout();
-
+    
     const [ showServerSettingsModal, setShowServerSettingsModal ] = useState(false);
     const [showServerCreationModal, setShowServerCreationModal] = useState(false);
+    
+    const fetchCurrentMember = async () => {
+        try {
+            const res = await api.get(`/servers/${serverId}/members/@me`);
+            setMe(res.data.member);
+        } catch (error) {
+            console.error("Error fetching current member:", error);
+        }
+    };
+    
+    useEffect(() => {
+        if (selectedServer) {
+            fetchCurrentMember();
+        }
+    }, [selectedServer]);
+    
+    const dropDownItems = (): ContextDropdownItem[] => {
+        const items: ContextDropdownItem[] = [];
+        if (selectedServer && me && ( me.role === "OWNER" || me.role === "ADMIN" || me.role === "MODERATOR" )) {
+            items.push(
+                {
+                    label: "Settings",
+                    onClick: () => setShowServerSettingsModal(true),
+                    type: "normal",
+                    icon: <Settings width={20} height={20}/>,
+                },
+            )
+        }
 
+        items.push(
+            {
+                label: "Leave Server",
+                onClick: async () => await handleLeaveServer(),
+                type: "danger",
+            }
+        );
+        
+        return items;
+    };
 
     const hndleSelectServer = (serverId: string) => {
         const cached = channelsByServer[serverId];
@@ -127,7 +153,7 @@ function SideBar({ siderStyle }: SideBarProps) {
                             <Avatar shape="square" size={50}>
                                 <Image
                                 onClick={handleShowUserSettings}
-                                src="/profile-img.jpg"
+                                src="/profile-img-sec.jpg"
                                 alt="avatar"
                                 width={50}
                                 height={50}
@@ -146,10 +172,10 @@ function SideBar({ siderStyle }: SideBarProps) {
                                     title={server.name}
                                     onClick={() => hndleSelectServer(server.id)}
                                 >
-                                    <ContextDropdownComponent items={dropDownItems}>
+                                    <ContextDropdownComponent items={dropDownItems()}>
                                         <Badge>
                                             <Avatar
-                                                src='/server-img.jpg'
+                                                src='/server-img-sec.jpg'
                                                 size={50}
                                                 shape="circle"
                                                 style={{
