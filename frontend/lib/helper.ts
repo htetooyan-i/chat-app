@@ -59,3 +59,12 @@ export const groupMessagesByDate = (messages: Message[]) => {
     return groups;
   }, {} as Record<string, Message[]>);
 };
+
+export const addMessageToGroup = ( groups: Record<string, Message[]>, message: Message ) => {
+    const date = new Date(message.createdAt).toDateString();
+
+    return {
+        ...groups,
+        [date]: groups[date] ? [...groups[date], message] : [message],
+    };
+};

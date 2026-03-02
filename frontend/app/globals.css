@@ -157,6 +157,37 @@ div.thin-scrollbar::-webkit-scrollbar-thumb:hover {
 .ant-spin-blur {
   opacity: 0.3 !important;
 }
+
+/* Chat input styles */
+.chat-textarea textarea {
+    background-color: transparent;
+    border: none;
+    color: var(--foreground);
+}
+
+.chat-textarea textarea::placeholder {
+    color: var(--placeholder);
+    opacity: 1;
+}
+
+.chat-textarea textarea:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* Floating animation for the landing page logo */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 1s ease-in-out infinite;
+}
 /* Hide scrollbars in Ant Design Sider */
 /* .ant-layout-sider {
   overflow-y: auto !important;
