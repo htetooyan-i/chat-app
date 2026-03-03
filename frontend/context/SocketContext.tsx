@@ -14,10 +14,6 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const newSocket = io("http://localhost:4000");
 
-    newSocket.on("connect", () => {
-      console.log("GLOBAL CONNECTED:", newSocket.id);
-    });
-
     setSocket(newSocket);
 
     return () => {

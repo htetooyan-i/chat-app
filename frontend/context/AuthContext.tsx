@@ -40,7 +40,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    console.log("Fetching user data...");
     fetchUser();
   }, [fetchUser]);
 

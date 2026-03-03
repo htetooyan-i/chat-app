@@ -69,7 +69,7 @@ function ChatContent({ groupedMessages }: ChatContentProps) {
                             </div>
                             {
                                 messages.map((message, index) => (
-                                    <div key={index} className={`relative flex items-start justify-start items-start gap-4 w-full hover:bg-muted-background/50 transition-colors cursor-pointer group ${(index > 0 && message.author?.id === messages[index - 1].author?.id) ? "pe-5 ps-21" : "px-5 mt-3"}`}>
+                                    <div key={message.id} className={`relative flex items-start justify-start items-start gap-4 w-full hover:bg-muted-background/50 transition-colors cursor-pointer group ${(index > 0 && message.author?.id === messages[index - 1].author?.id) ? "pe-5 ps-21" : "px-5 mt-3"}`}>
                                         {
                                             (index > 0 && message.author?.id === messages[index - 1].author?.id) ? (
                                                 <>

@@ -6,7 +6,7 @@ export type Message = {
     content: string;
     createdAt: Date | string;
     editedAt?: Date | string;
-    clientId?: string;
+    clientMsgId?: string;
     author: {
         id: string;
         username: string;

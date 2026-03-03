@@ -39,7 +39,6 @@ export const ChannelProvider: React.FC<ChannelProviderProps> = ({ children, serv
 
         try {
         setLoading(true);
-        console.log(`Fetching channels for serverId: ${serverId}`);
         const res = await api.get(`/servers/${serverId}/channels`);
         setChannelsByServer(prev => ({ ...prev, [serverId]: res.data }));
         } catch (err) {

@@ -38,7 +38,7 @@ function ChatPanel() {
     const { collapsed, setCollapsed } = useServerLayout();
     const [ activeTab, setActiveTab ] = useState<Tabs>("none");
     
-
+    
 
     useEffect(() => {
         if (!socket ||!channelId) return;
@@ -46,20 +46,27 @@ function ChatPanel() {
         socket.emit("joinChannel", channelId);
 
         const handleReceiveMessage = (message: any) => {
-            console.log("Received message:", message);
             setGroupedMessages(prev => {
-                // If this message matches a temp one, replace it
-                if (message.clientMsgId) {
-                    const updated: Record<string, Message[]> = {};
-                    for (const [date, msgs] of Object.entries(prev)) {
-                        updated[date] = msgs.map(m => 
-                            m.id === message.clientMsgId ? message : m  // swap temp with real
-                        );
-                    }
-                    return updated;
+                const dateKeys = Object.keys(prev);
+                let found = false;
+
+                const updated = { ...prev }; // shallow copy
+                for (const date of dateKeys) {
+                    updated[date] = prev[date].map(msg => {
+                        if (msg.id === message.clientMsgId) {
+                            found = true;
+                            return message; // replace temp with server-confirmed
+                        }
+                        return msg;
+                    });
+                    if (found) break; // stop once replaced it
                 }
-                // Otherwise it's someone else's message, just add it
-                return addMessageToGroup(prev, message);
+
+                if (!found) {
+                    // If temp message not found, it’s a new message from someone else
+                    return addMessageToGroup(prev, message);
+                }
+                return updated;
             });
         };
 
