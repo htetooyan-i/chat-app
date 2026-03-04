@@ -1,14 +1,9 @@
 "use client";
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useEffect, useState } from "react";
 
 import api from "@/lib/api";
 import { useServer } from "@/hooks/useServer";
-
-export type Channel = {
-  id: string;
-  name: string;
-  type: "text" | "voice";
-};
+import { Channel } from "@/types/Channel";
 
 type ChannelContextType = {
   channels: Channel[];

@@ -1,3 +1,4 @@
+import { ChatProvider } from '@/context/ChatContext';
 
 export default function ServerLayout({
   children,
@@ -7,7 +8,9 @@ export default function ServerLayout({
 
   return (
     <div className="flex-1">
-      {children}
+      <ChatProvider>
+        {children}
+      </ChatProvider>
     </div>
   );  
 }

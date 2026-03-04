@@ -97,7 +97,7 @@ function ProfileServerTab({ hasUnsavedChanges, onDirtyChange, serverProfile, set
                     {/* Banner */}
                     <div className="relative h-24 w-full">
                         <Image
-                        src="/server-img-sec.jpg"
+                        src="/server-img.jpg"
                         alt="Server Icon"
                         fill
                         className="object-cover"
@@ -105,7 +105,7 @@ function ProfileServerTab({ hasUnsavedChanges, onDirtyChange, serverProfile, set
                         {/* Avatar */}
                         <Avatar
                         size={64}
-                        src="/profile-img-sec.jpg"
+                        src="/profile-img.jpg"
                         className="absolute -bottom-16 left-4 border-4 border-background"
                         />
                     </div>

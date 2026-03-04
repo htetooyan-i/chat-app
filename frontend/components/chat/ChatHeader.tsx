@@ -3,6 +3,8 @@ import { Layout, Input } from 'antd';
 import { SettingFilled } from '@ant-design/icons';
 import { ChevronRight, FileText, Paperclip, Send, Sticker, UsersRound, Reply, Ellipsis } from 'lucide-react';
 
+import { Channel } from '@/types/Channel';
+
 const { Header } = Layout;
 
 type ChatHeaderProps = {
@@ -10,10 +12,7 @@ type ChatHeaderProps = {
     collapsed: boolean;
     activeTab: "settings" | "files" | "users" | "none";
     setActiveTab: (tab: "settings" | "files" | "users" | "none") => void;
-    selectedChannel: {
-        id: string;
-        name: string;
-    } | null;
+    selectedChannel:  Channel | null;
     selectedServer: {
         id: string;
         name: string;

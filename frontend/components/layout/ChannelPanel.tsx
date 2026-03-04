@@ -11,7 +11,7 @@ import EditChannelModal from '../channel/EditChannelModal';
 import { useChannel } from '@/hooks/useChannel';
 import { useNotification } from '@/hooks/useNotification';
 import { useServerLayout } from '@/hooks/useServerLayout';
-import type { Channel } from '@/context/ChannelContext';
+import type { Channel } from '@/types/Channel';
 
 const { Sider } = Layout;
 
@@ -50,7 +50,7 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
         }
     ];
 
-    const handleChangeChannel = (selectedChannelId: string) => {
+    const handleChangeChannel = (selectedChannelId: number) => {
         router.push(`/servers/${serverId}/channels/${selectedChannelId}`);
     };
     
@@ -90,7 +90,7 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
         try {
             await api.delete(`/servers/${serverId}/channels/${channelId}`);
             showSuccess("Channel deleted successfully!");
-            channelsByServer[serverId as string] = channelsByServer[serverId as string].filter(channel => channel.id !== channelId);
+            channelsByServer[serverId as string] = channelsByServer[serverId as string].filter(channel => channel.id !== Number(channelId as string));
             refreshChannels();
             setShowDeleteChannelModal(false);
         }

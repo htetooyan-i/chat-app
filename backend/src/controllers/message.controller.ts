@@ -1,11 +1,12 @@
 import { Request, Response } from "express";
 import MessageService from "../services/message.service";
+import { io } from "../server";
 
 export async function GetMessagesForChannel(req: Request, res: Response) {
     const { channelId } = req.params;
-    const { skip = '0', take = '50' } = req.query;
+    const { before = '0', take = '50' } = req.query;
     try {
-        const messages = await MessageService.getMessagesForChannel(Number(channelId), { skip: Number(skip), take: Number(take) });
+        const messages = await MessageService.getMessagesForChannel(Number(channelId), { before: Number(before), take: Number(take) });
         res.status(200).json(messages);
     } catch (error: any) {
         res.status(400).json({ error: error.message });
@@ -41,6 +42,7 @@ export async function EditMessage(req: Request, res: Response) {
 
     try {
         const updatedMessage = await MessageService.editMessage(Number(messageId), userId, content);
+        io.to(`channel-${updatedMessage.channelId}`).emit("messageEdited", updatedMessage);
         res.status(200).json(updatedMessage);
     } catch (error: any) {
         console.error("Error editing message:", error.message);
@@ -49,7 +51,7 @@ export async function EditMessage(req: Request, res: Response) {
 }
 
 export async function DeleteMessage(req: Request, res: Response) {
-    const { messageId } = req.params;
+    const { channelId, messageId } = req.params;
     const userId = req.user?.userId;
 
     if (!userId) {
@@ -58,6 +60,8 @@ export async function DeleteMessage(req: Request, res: Response) {
 
     try {
         await MessageService.deleteMessage(Number(messageId), userId);
+        console.log("Emitting messageDeleted to channel:", `channel-${channelId}`);
+        io.to(`channel-${channelId}`).emit("messageDeleted", { messageId: Number(messageId) });
         res.status(204).send();
     } catch (error: any) {
         console.error("Error deleting message:", error.message);

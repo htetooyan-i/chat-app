@@ -13,7 +13,7 @@ export const registerChatEvents = (io: Server, socket: Socket) => {
         try {
             const message = await MessageService.createMessage(data.channelId, data.authorId, data.content, data.replyToMessageId, data.clientMsgId);
             console.log(`Message created with ID: ${message.id}`);
-            io.to(`channel-${data.channelId}`).emit("receivedMessage", message);
+            io.to(`channel-${data.channelId}`).emit("newMessage", message);
             console.log(`Message sent to channel ${data.channelId}`);
             console.log("Rooms:", socket.rooms);
         } catch (error: any) {

@@ -129,7 +129,7 @@ function ServerMemberInfo({ type }: ServerMemberInfoProps) {
                                     <Avatar
                                         shape="circle"
                                         size={32}
-                                        src="/profile-img-sec.jpg"
+                                        src="/profile-img.jpg"
                                     />
                                     </Badge>
 

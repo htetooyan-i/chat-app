@@ -22,6 +22,7 @@ router.use('/servers/:serverId/invites', serverInvitesRoutes);
 router.use('/invites', serverInvitesRoutes);
 router.use('/servers/:serverId/bans', banRoutes);
 router.use('/channels/:channelId/messages', messageRoutes);
+router.use('/messages', messageRoutes);
 
 export default router;
 

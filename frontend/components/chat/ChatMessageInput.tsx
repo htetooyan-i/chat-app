@@ -1,9 +1,11 @@
-import React, { useState, KeyboardEvent } from 'react';
+import React, { useState, KeyboardEvent, useEffect, useRef } from 'react';
 import { Layout, Input, GetProps } from 'antd';
+import type { TextAreaRef } from 'antd/es/input/TextArea';
 import { createStaticStyles } from 'antd-style';
-import { Paperclip, Send, Sticker } from 'lucide-react';
+import { Paperclip, Send, Sticker, X } from 'lucide-react';
 
 import { handleMaintenanceRoute } from '@/lib/helper';
+import { useChat } from '@/hooks/useChat';
 
 const { Footer } = Layout;
 const { TextArea } = Input;
@@ -30,11 +32,26 @@ const styles = createStaticStyles(({ css }) => ({
 
 type ChatMessageInputProps = {
     handleSendMessage: (text: string) => void;
+    handleEditMessage: (messageId: string, newText: string) => void;
 }
 
-function ChatMessageInput({ handleSendMessage }: ChatMessageInputProps) {
+function ChatMessageInput({ handleSendMessage, handleEditMessage }: ChatMessageInputProps) {
 
+    const { replyMessage, setReplyMessage, editMessage, setEditMessage } = useChat();
     const [ text, setText ] = useState("");
+
+    // Auto-focus when replyMessage changes
+    const inputRef = useRef<TextAreaRef>(null);
+    useEffect(() => {
+    if ((replyMessage || editMessage) && inputRef.current) {
+        inputRef.current.focus();
+    }
+
+    if (editMessage) {
+        setText(editMessage.content);
+    }
+
+    }, [replyMessage, editMessage]);
 
     const stylesFnTextArea: TextAreaProps['styles'] = {
         root: {
@@ -54,7 +71,13 @@ function ChatMessageInput({ handleSendMessage }: ChatMessageInputProps) {
         if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault(); // prevent newline
         if (text.trim()) {
-            handleSendMessage(text);
+            if (editMessage) {
+                handleEditMessage(editMessage.id, text);
+                setEditMessage(null);
+            } else {
+                handleSendMessage(text);
+                setReplyMessage(null);
+            }
             setText(''); // clear input
         }
         }
@@ -63,9 +86,24 @@ function ChatMessageInput({ handleSendMessage }: ChatMessageInputProps) {
 
     return (
         <Footer style={{ minHeight: "60px", background: "var(--chat-panel)", paddingTop: "0", paddingInline: "20px", paddingBottom: "10px", flexShrink: 0 }}>
-            <div className={`flex gap-4 border rounded-lg border-muted-border bg-background px-2 text-foreground min-h-[50px] p-2 items-center`}>
+            {
+                replyMessage && (
+                    <div className='flex items-center gap-2 px-3 py-1 bg-muted-background rounded-t-lg border border-muted-border'>
+                        <div className='flex-1 min-w-0'>
+                            <p className='text-[12px] text-muted-text'>Replying to {replyMessage.author.username}</p>
+                            <p className='text-[14px] text-foreground tunerate line-clamp-1'>{replyMessage.content}</p>
+                        </div>
+                        <button onClick={() => setReplyMessage(null)} className='text-muted-text hover:text-foreground transition-colors cursor-pointer'>
+                            <span className="sr-only">Cancel reply</span>
+                            <X size={16}/>
+                        </button>
+                    </div>
+                )
+            }
+            <div className={`flex gap-4 border ${replyMessage ? "rounded-b-lg" : "rounded-lg"} border-muted-border bg-background px-2 text-foreground min-h-[50px] p-2 items-center`}>
                 <Paperclip className="cursor-pointer" onClick={handleMaintenanceRoute}/>
                 <TextArea 
+                ref={inputRef}
                 value={text} 
                 onChange={(e) => setText(e.target.value)} 
                 onKeyDown={handleKeyPress}
@@ -74,9 +112,10 @@ function ChatMessageInput({ handleSendMessage }: ChatMessageInputProps) {
                 placeholder="Send a message..." 
                 autoSize={{ minRows: 1, maxRows: 5 }}
                 />
-                <div className='flex gap-2'>
+                <div className='flex gap-2 items-center'>
+                    <X className={`cursor-pointer ${editMessage ? "block" : "hidden"} outline outline-2 outline-offset-2 rounded-sm me-5 cursor-pointer outline-error/50 text-error`} size={16} onClick={() => {setEditMessage(null); setText("");}}/>
                     <Sticker className="cursor-pointer" onClick={handleMaintenanceRoute}/>
-                    <Send className="cursor-pointer" onClick={() => {handleSendMessage(text); setText("");}}/>
+                    {/* <Send className="cursor-pointer" onClick={() => {handleSendMessage(text); setText("");}}/> */}
                 </div>
 
             </div>
@@ -85,3 +124,4 @@ function ChatMessageInput({ handleSendMessage }: ChatMessageInputProps) {
 }
 
 export default ChatMessageInput;
+

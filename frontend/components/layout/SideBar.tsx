@@ -153,7 +153,7 @@ function SideBar({ siderStyle }: SideBarProps) {
                             <Avatar shape="square" size={50}>
                                 <Image
                                 onClick={handleShowUserSettings}
-                                src="/profile-img-sec.jpg"
+                                src="/profile-img.jpg"
                                 alt="avatar"
                                 width={50}
                                 height={50}
@@ -175,7 +175,7 @@ function SideBar({ siderStyle }: SideBarProps) {
                                     <ContextDropdownComponent items={dropDownItems()}>
                                         <Badge>
                                             <Avatar
-                                                src='/server-img-sec.jpg'
+                                                src='/server-img.jpg'
                                                 size={50}
                                                 shape="circle"
                                                 style={{

@@ -2,12 +2,16 @@ import { prisma } from "../lib/prisma";
 
 class MessageService {
 
-    static async getMessagesForChannel(channelId: number, pagination?: { skip: number; take: number }) {
+    static async getMessagesForChannel(channelId: number, pagination?: { before: number; take: number }) {
         try {
             const messages = await prisma.message.findMany({
-                where: { channelId },
+                where: { 
+                    channelId,
+                    ...(pagination?.before && {
+                        id: { lt: pagination.before }
+                    })
+                },
                 orderBy: { createdAt: 'desc' },
-                skip: pagination?.skip || 0,
                 take: pagination?.take || 50,
                 include: {
                     author: {
@@ -15,6 +19,19 @@ class MessageService {
                             id: true,
                             username: true,
                             avatarUrl: true,
+                        }
+                    },
+                    replyTo: {
+                        select: {
+                            id: true,
+                            content: true,
+                            author: {
+                                select: {
+                                    id: true,
+                                    username: true,
+                                    avatarUrl: true,
+                                }
+                            }
                         }
                     }
                 }
@@ -34,6 +51,7 @@ class MessageService {
             const message = await prisma.message.findUnique({
                 where: { id: messageId },
                 include: {
+                    replies: { select: { id: true } },
                     channel: {
                         include: {
                             server: {
@@ -100,7 +118,7 @@ class MessageService {
                             username: true,
                             avatarUrl: true
                         }
-                    }
+                    },
                 }
             });
 
@@ -147,6 +165,7 @@ class MessageService {
         try {
 
             const message = await this.getMessageById(messageId, userId);
+            if (!message) throw new Error('Message not found');
 
             // Check if the user is the author of the message or has a role of OWNER, ADMIN, or MODERATOR in the server
             const requesterRole = message.channel.server.members[0].role;
@@ -154,9 +173,13 @@ class MessageService {
                 throw new Error('Not authorized to delete this message');
             }
 
-            await prisma.message.delete({
-                where: { id: messageId },
+            await prisma.message.updateMany({
+                where: { replyToMessageId: messageId },
+                data: { replyToDeleted: true }
             });
+
+            await prisma.message.delete({ where: { id: messageId } });
+
         } catch (error: any) {
             console.error("Error deleting message:", error.message);
             throw new Error(error.message);

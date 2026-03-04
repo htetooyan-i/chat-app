@@ -213,7 +213,7 @@ function ServerMemberTab() {
                                                     <td className="px-4 py-2 flex items-center gap-2 font-semibold">
                                                         <Avatar
                                                         size={40}
-                                                        src="/profile-img-sec.jpg"
+                                                        src="/profile-img.jpg"
                                                         className="border-background"
                                                         />
                                                         <span>{member.user.username}</span>
