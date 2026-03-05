@@ -1,10 +1,12 @@
 import React from 'react';
 import { Modal, ModalProps } from 'antd';
 
+import { useNotification } from '@/hooks/useNotification';
+import { useChannel } from '@/hooks/useChannel';
+
 type EditChannelModalProps = {
     show: boolean;
     onClose: () => void;
-    changeChannelName: (newName: string) => Promise<void>;
 };
 
 
@@ -31,12 +33,31 @@ const styles: ModalProps['styles'] = {
 
 };
 
-function EditChannelModal({ show, onClose, changeChannelName }: EditChannelModalProps) {
+function EditChannelModal({ show, onClose }: EditChannelModalProps) {
 
     const [ newChannelName, setNewChannelName ] = React.useState("");
+    const { editChannelName } = useChannel();
+    const { contextHolder, showError, showSuccess } = useNotification();
+
+    const changeChannelName = async (name: string) => {
+        if (name.trim() === "") {
+            showError("Channel name cannot be empty.");
+            return;
+        }
+
+        try {
+            await editChannelName(name);
+            showSuccess("Channel name updated successfully!");
+            setNewChannelName("");
+            onClose();
+        } catch (err) {
+            showError("Failed to update channel name.");
+        }
+    }
 
     return (
         <div>
+            {contextHolder}
             <Modal
             centered
             footer={null}

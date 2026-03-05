@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, ModalProps } from 'antd';
+import { useRouter, useParams } from 'next/navigation';
+
+import { useNotification } from '@/hooks/useNotification';
+import { useChannel } from '@/hooks/useChannel';
 
 const styles: ModalProps['styles'] = {
     mask: {
@@ -27,23 +31,40 @@ const styles: ModalProps['styles'] = {
 type CreateNewChannelModalProps = {
     showCreateChannelModal: boolean;
     setShowCreateChannelModal: React.Dispatch<React.SetStateAction<boolean>>;
-    handleCreateChannel: (channelName: string) => void;
 };
 
-function CreateNewChannelModal({ showCreateChannelModal, setShowCreateChannelModal, handleCreateChannel }: CreateNewChannelModalProps) {
+function CreateNewChannelModal({ showCreateChannelModal, setShowCreateChannelModal }: CreateNewChannelModalProps) {
 
+
+    const router = useRouter();
+    const params = useParams();
+    const serverId = Array.isArray(params.serverId)
+                    ? params.serverId[0]
+                    : params.serverId;
     const [channelName, setChannelName] = useState("");
+    const { createChannel, channels } = useChannel();
+    const { contextHolder, showError, showSuccess } = useNotification();
 
     useEffect(() => {
         setChannelName("");
     }, [showCreateChannelModal]);
 
-    const handleSubmit = () => {
-        handleCreateChannel(channelName);
+    const handleSubmit = async () => {
+       try {
+            const newChannel = await createChannel(channelName);
+            if (newChannel) {
+                router.push(`/servers/${serverId}/channels/${newChannel.id}`);
+                showSuccess("Channel created successfully!");
+                setShowCreateChannelModal(false);
+            }
+        } catch (err) {
+            showError("Failed to create channel.");
+        }
     };
 
     return (
         <div>
+            {contextHolder}
             <Modal
             centered
             title={ "Customize Your New Channel" }

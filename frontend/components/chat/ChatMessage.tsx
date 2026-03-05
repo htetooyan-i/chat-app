@@ -5,18 +5,19 @@ import { Copy, Ellipsis, MessageCircleReply, Pencil, Reply, Trash } from 'lucide
 import ButtonDropDown, { ButtonDropDownItem } from '../ui/ButtonDropDown';
 import { formatDateTime } from '@/lib/helper';
 import { Message } from '@/types/Message';
-import { useChat } from '@/hooks/useChat';
+import { useMessage } from '@/hooks/useMessage';
 import { useAuth } from '@/hooks/useAuth';
+import { useChatUI } from '@/hooks/useChatUI';
 
 type ChatMessageProps = {
     messages: Message[];
     messagesMap?: Record<string, Message>;
-    deleteMessage: (messageId: string) => void;
 };
 
-function ChatMessage({ messages, messagesMap, deleteMessage }: ChatMessageProps) {
+function ChatMessage({ messages, messagesMap }: ChatMessageProps) {
 
-    const { setReplyMessage, editMessage, setEditMessage } = useChat();
+    const { deleteMessage } = useMessage();
+    const { setReplyMessage, setEditMessage, editMessage, typingUsers } = useChatUI();
     const { user } = useAuth();
 
     // Track which message has dropdown open
@@ -87,7 +88,7 @@ function ChatMessage({ messages, messagesMap, deleteMessage }: ChatMessageProps)
                         key={message.id} 
                         className={`w-full transition-colors cursor-pointer group ${marginTop} ${containerPadding} ${editMessage?.id === message.id ? "bg-accent/30 py-1" : " hover:bg-muted-background/50"} ${openDropdownId === message.id ? "bg-muted-background/50" : ""}`}>
                             {
-                                (message.replyToMessageId || message.replyTo || message.replyToDeleted) && (
+                                (message.replyToMessageId || message.replyTo || message.replyToDeleted) && ( // Show reply preview if message is a reply
                                     <div className="flex items-center gap-2 ms-16 text-muted-text text-sm">
                                         <Avatar 
                                             shape="circle" size={21} 

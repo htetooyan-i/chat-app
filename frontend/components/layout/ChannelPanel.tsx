@@ -21,11 +21,11 @@ type ChannelPanelProps = {
 
 function ChannelPanel({ siderStyle }: ChannelPanelProps) {
 
-    const { serverId, channelId } = useParams();
     const router = useRouter();
-    const { contextHolder, showError, showSuccess } = useNotification();
-    const { channels, channelsByServer, refreshChannels } = useChannel();
+    const { serverId, channelId } = useParams();
+    const { channels, deleteChannel } = useChannel();
     const selectedChannel = channels.find(c => String(c.id) === String(channelId));
+    const { contextHolder, showError, showSuccess } = useNotification();
     const { collapsed, setCollapsed } = useServerLayout();
     const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
     const [showDeleteChannelModal, setShowDeleteChannelModal] = useState(false);
@@ -53,56 +53,29 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
     const handleChangeChannel = (selectedChannelId: number) => {
         router.push(`/servers/${serverId}/channels/${selectedChannelId}`);
     };
-    
-    const handleCreateChannel = async (channelName: string) => {
-        if (channelName.trim() === "") {
-            showError("Channel name cannot be empty.");
-            return;
-        }
-        try {
-            await api.post(`/servers/${serverId}/channels`, { name: channelName });
-            showSuccess("Channel created successfully!");
-            refreshChannels();
-            setShowCreateChannelModal(false);
-        }
-        catch (error: any) {
-            showError(error.response?.data?.message || "Failed to create channel.");
-        } 
-    };
-
-    const handleChangeChannelName = async (newName: string) => {
-        if (newName.trim() === "") {
-            showError("Channel name cannot be empty.");
-            return;
-        }
-        try {
-            await api.patch(`/servers/${serverId}/channels/${channelId}`, { newName });
-            showSuccess("Channel name updated successfully!");
-            refreshChannels();
-            setShowEditChannelModal(false);
-        }
-        catch (error: any) {
-            showError(error.response?.data?.message || "Failed to update channel name.");
-        } 
-    };
 
     const handleDeleteChannel = async () => {
         try {
-            await api.delete(`/servers/${serverId}/channels/${channelId}`);
+            await deleteChannel();
+
+            // After deletion, redirect to the first available channel or back to server main page
+            if (channels.length > 0) {
+                router.push(`/servers/${serverId}/channels/${channels[0].id}`);
+            } else {
+                router.push(`/servers/${serverId}`);
+            }
+
             showSuccess("Channel deleted successfully!");
-            channelsByServer[serverId as string] = channelsByServer[serverId as string].filter(channel => channel.id !== Number(channelId as string));
-            refreshChannels();
             setShowDeleteChannelModal(false);
+        } catch (err) {
+            showError("Failed to delete channel.");
         }
-        catch (error: any) {
-            showError(error.response?.data?.message || "Failed to delete channel.");
-        } 
     };
 
     return (
         <div>
             {contextHolder}
-            <CreateNewChannelModal showCreateChannelModal={showCreateChannelModal} setShowCreateChannelModal={setShowCreateChannelModal} handleCreateChannel={handleCreateChannel}  />
+            <CreateNewChannelModal showCreateChannelModal={showCreateChannelModal} setShowCreateChannelModal={setShowCreateChannelModal} />
             <DeleteChannelModal 
             show={showDeleteChannelModal} 
             channelName={selectedChannel?.name || ""}
@@ -112,7 +85,7 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
             onConfirm={() => {
                 if (selectedChannel) handleDeleteChannel()
             }} />
-            <EditChannelModal show={showEditChannelModal} onClose={() => setShowEditChannelModal(false)} changeChannelName={handleChangeChannelName} />
+            <EditChannelModal show={showEditChannelModal} onClose={() => setShowEditChannelModal(false)} />
             <Sider
             trigger={null}
             width={300}

@@ -1,9 +1,12 @@
 import { registerChatEvents } from "./chat.socket";
+import { registerChannelEvents } from "./channel.socket";
+import { registerServerEvents } from "./server.socket";
 
 const setupSocket = (io: any) => {
   io.on('connection', (socket: any) => {
-    console.log('User connected:', socket.id);
     registerChatEvents(io, socket);
+    registerChannelEvents(io, socket);
+    registerServerEvents(io, socket);
   });
 };
 

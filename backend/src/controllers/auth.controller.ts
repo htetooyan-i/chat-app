@@ -78,7 +78,6 @@ export async function GetCurrentUser(req: Request, res: Response) {
 
     try {
         const user = await AuthService.me(userId);
-        console.log("Current user:", user);
         res.status(200).json({ data: user });
     } catch (error) {
         res.status(404).json({ error: AuthErrorMessage[(error as Error).message as keyof typeof AuthErrorMessage] });

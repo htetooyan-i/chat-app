@@ -5,7 +5,9 @@ import { createStaticStyles } from 'antd-style';
 import { Paperclip, Send, Sticker, X } from 'lucide-react';
 
 import { handleMaintenanceRoute } from '@/lib/helper';
-import { useChat } from '@/hooks/useChat';
+import { useMessage } from '@/hooks/useMessage';
+import { useChatUI } from '@/hooks/useChatUI';
+import { useAuth } from '@/hooks/useAuth';
 
 const { Footer } = Layout;
 const { TextArea } = Input;
@@ -31,13 +33,14 @@ const styles = createStaticStyles(({ css }) => ({
 
 
 type ChatMessageInputProps = {
-    handleSendMessage: (text: string) => void;
-    handleEditMessage: (messageId: string, newText: string) => void;
+
 }
 
-function ChatMessageInput({ handleSendMessage, handleEditMessage }: ChatMessageInputProps) {
+function ChatMessageInput({  }: ChatMessageInputProps) {
 
-    const { replyMessage, setReplyMessage, editMessage, setEditMessage } = useChat();
+    const { user } = useAuth();
+    const { sendMessage, editExistingMessage } = useMessage();
+    const { replyMessage, setReplyMessage, editMessage, setEditMessage, handleTyping, stopTyping } = useChatUI();
     const [ text, setText ] = useState("");
 
     // Auto-focus when replyMessage changes
@@ -72,10 +75,10 @@ function ChatMessageInput({ handleSendMessage, handleEditMessage }: ChatMessageI
         e.preventDefault(); // prevent newline
         if (text.trim()) {
             if (editMessage) {
-                handleEditMessage(editMessage.id, text);
+                editExistingMessage(editMessage.id, text);
                 setEditMessage(null);
             } else {
-                handleSendMessage(text);
+                sendMessage(text, replyMessage);
                 setReplyMessage(null);
             }
             setText(''); // clear input
@@ -105,7 +108,9 @@ function ChatMessageInput({ handleSendMessage, handleEditMessage }: ChatMessageI
                 <TextArea 
                 ref={inputRef}
                 value={text} 
-                onChange={(e) => setText(e.target.value)} 
+                onChange={(e) => {setText(e.target.value), handleTyping()}} 
+                onFocus={() => handleTyping()}
+                onBlur={() => stopTyping()}
                 onKeyDown={handleKeyPress}
                 className={styles.textArea} 
                 styles={stylesFnTextArea} 

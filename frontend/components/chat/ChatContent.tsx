@@ -11,24 +11,25 @@ import { Channel } from '@/types/Channel';
 import { formatDate, formatDateTime } from '@/lib/helper';
 import { useNotification } from '@/hooks/useNotification';
 import { useChannel } from '@/hooks/useChannel';
+import { useMessage } from '@/hooks/useMessage';
+import { useChatUI } from '@/hooks/useChatUI';
 
 const { Content } = Layout;
 
 type ChatContentProps = {
-    groupedMessages: Record<string, Message[]>;  
     channel: Channel | null; 
     containerRef: React.RefObject<HTMLDivElement | null>;
     sentinelRef: React.RefObject<HTMLDivElement | null>;
-    hasMore: boolean;
-    handleDeleteMessage: (messageId: string) => void;
 }
-function ChatContent({ groupedMessages, channel, containerRef, sentinelRef, hasMore, handleDeleteMessage }: ChatContentProps) {
+function ChatContent({ channel, containerRef, sentinelRef }: ChatContentProps) {
 
     const { serverId, channelId } = useParams();
     const { refreshChannels } = useChannel();
     const [ showEditChannelModal, setShowEditChannelModal ] = useState(false);
     const { contextHolder, showError, showSuccess } = useNotification();
-
+    
+    const { groupedMessages, hasMore } = useMessage();
+    const { typingUsers } = useChatUI();
 
     const handleChangeChannelName = async (newName: string) => {
         if (newName.trim() === "") {
@@ -116,15 +117,24 @@ function ChatContent({ groupedMessages, channel, containerRef, sentinelRef, hasM
                                         <div className='mx-auto'>
                                             <p className='text-sm text-muted-text bg-background p-2 rounded-lg text-[11px]'>{formatDate(date, true)}</p>
                                         </div>
-                                        <ChatMessage messages={messages} messagesMap={messagesMap} deleteMessage={handleDeleteMessage} />
+                                        <ChatMessage messages={messages} messagesMap={messagesMap} />
                                     </div>
                                 )
                             })
                         }
+
+                        <div>
+                            {
+                                typingUsers.length > 0 && (
+                                    <p className='text-sm text-muted-text italic my-1 ms-5 line-clamp-1'>
+                                        {typingUsers.map(u => u.username).join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
+                                    </p>
+                                )
+                            }
+                        </div>
                     </div>
                     <div ref={bottomRef} />
                 </div>
-                
             </Content>
         </>
     );

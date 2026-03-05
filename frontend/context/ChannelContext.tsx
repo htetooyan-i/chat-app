@@ -1,5 +1,6 @@
 "use client";
 import React, { createContext, useCallback, useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
 
 import api from "@/lib/api";
 import { useServer } from "@/hooks/useServer";
@@ -8,20 +9,35 @@ import { Channel } from "@/types/Channel";
 type ChannelContextType = {
   channels: Channel[];
   channelsByServer: Record<string, Channel[]>;
+
   addChannel: (channel: Channel) => void;
   refreshChannels: () => Promise<void>;
   clearServerCache: (serverId: string) => void;
+
+  createChannel: (channelName: string) => Promise<Channel | null>;
+  editChannelName: (newName: string) => Promise<void>;
+  deleteChannel: () => Promise<void>;
+
   loading: boolean;
 };
 
 type ChannelProviderProps = {
   children: React.ReactNode;
-  serverId?: string | null;
 };
 
 export const ChannelContext = createContext<ChannelContextType | undefined>(undefined);
 
-export const ChannelProvider: React.FC<ChannelProviderProps> = ({ children, serverId }) => {
+export const ChannelProvider: React.FC<ChannelProviderProps> = ({ children }) => {
+
+    const router = useRouter();
+    const params = useParams();
+    const serverId = Array.isArray(params.serverId)
+                    ? params.serverId[0]
+                    : params.serverId;
+    const channelId = Array.isArray(params.channelId)
+                    ? params.channelId[0]
+                    : params.channelId;
+
     const [channelsByServer, setChannelsByServer] = useState<Record<string, Channel[]>>({});
     const [loading, setLoading] = useState(false);
     const { loading: serverLoading } = useServer();
@@ -33,13 +49,13 @@ export const ChannelProvider: React.FC<ChannelProviderProps> = ({ children, serv
         if (!serverId) return;
 
         try {
-        setLoading(true);
-        const res = await api.get(`/servers/${serverId}/channels`);
-        setChannelsByServer(prev => ({ ...prev, [serverId]: res.data }));
+          setLoading(true);
+          const res = await api.get(`/servers/${serverId}/channels`);
+          setChannelsByServer(prev => ({ ...prev, [serverId]: res.data }));
         } catch (err) {
-        console.error("Error fetching channels:", err);
+          console.error("Error fetching channels:", err);
         } finally {
-        setLoading(false);
+          setLoading(false);
         }
     }, [serverId]);
 
@@ -69,9 +85,40 @@ export const ChannelProvider: React.FC<ChannelProviderProps> = ({ children, serv
 
     const refreshChannels = async () => await fetchChannels();
 
+    const createChannel = async (channelName: string): Promise<Channel | null> => {
+        if (!serverId) return null;
+
+        const res = await api.post(
+            `/servers/${serverId}/channels`,
+            { name: channelName }
+        );
+
+        const newChannel = res.data;
+
+        setChannelsByServer(prev => ({
+            ...prev,
+            [serverId]: [...(prev[serverId] ?? []), newChannel],
+        }));
+
+        return newChannel;
+    };
+
+    const editChannelName = async (newName: string) => {
+      if (!serverId || !channelId) return;
+      await api.patch(`/servers/${serverId}/channels/${channelId}`, { newName });
+      channelsByServer[serverId as string] = channelsByServer[serverId as string].map(channel => channel.id !== Number(channelId as string) ? channel : { ...channel, name: newName });
+      refreshChannels();
+    };
+
+    const deleteChannel = async () => {
+      if (!serverId || !channelId) return;
+      await api.delete(`/servers/${serverId}/channels/${channelId}`);
+      channelsByServer[serverId as string] = channelsByServer[serverId as string].filter(channel => channel.id !== Number(channelId as string));
+      refreshChannels();
+    };
 
     return (
-        <ChannelContext.Provider value={{ channels, channelsByServer, addChannel, refreshChannels, clearServerCache, loading }}>
+        <ChannelContext.Provider value={{ channels, channelsByServer, addChannel, refreshChannels, clearServerCache, loading, createChannel, editChannelName, deleteChannel }}>
         {children}
         </ChannelContext.Provider>
     );
