@@ -34,7 +34,11 @@ export async function UpdateCurrentUser(req: Request, res: Response) {
         const servers = await ServerMemberService.getCurrentUserServers(userId);
 
         servers.forEach((server) => {
-            io.to(`server-${server.id}`).emit('receivedUpdatedMember', updatedUser);
+            io.to(`server-${server.id}`).emit('receivedUpdatedMember',  {
+                userId: userId,
+                username: updatedUser.username,
+                bio: updatedUser.bio
+            });
         })
         res.status(200).json({data: updatedUser});
     } catch (error) {

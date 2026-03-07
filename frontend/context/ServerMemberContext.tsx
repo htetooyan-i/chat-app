@@ -73,10 +73,22 @@ export const ServerMemberProvider: React.FC<{ children: React.ReactNode }> = ({ 
             setMembers(prev => [...prev, member]);
         }
 
-        const handleMemberUpdated = (updatedUser: ServerMember) => {
-            console.log("Chnage found");
-            setMembers(prev => prev.map(member => member.userId === updatedUser.userId ? updatedUser : member));
-        }
+        const handleMemberUpdated = (updatedUser: {userId: number, username: string}) => {
+            setMembers(prev =>
+                prev.map(member =>
+                    member.userId === updatedUser.userId
+                        ?
+                        {
+                            ...member,
+                            user: {
+                                ...member.user,
+                                username: updatedUser.username,
+                            }
+                        }
+                        : member
+                )
+            );
+        };
 
         socket.on("receivedUpdatedMember", handleMemberUpdated);
         socket.on("banned", handleRemoveUser);
