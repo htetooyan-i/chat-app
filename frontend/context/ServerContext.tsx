@@ -1,31 +1,36 @@
 "use client";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import api from "@/lib/api";
+import { useParams } from "next/navigation";
 
-export type Server = {
-  id: string;
-  name: string;
-  icon?: string;
-  memberCount: number;
-  createdAt: string;
-};
+import api from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
+import { Server } from "@/types/Server";
+import type { ServerInvite } from "@/types/ServerInvite";
+import { useSocket } from "@/hooks/useSocket";
 
 type ServerContextType = {
   servers: Server[];
   loading: boolean;
   refreshServers: () => Promise<Server[]>;
-  addServer: (server: Server) => void;
-  updateServer: (id: string, data: Partial<Server>) => void;
-  removeServer: (id: string) => void;
+  createServer: (serverName: string) => Promise<ServerInvite>;
+  joinServer: (inviteCode: string) => Promise<void>;
+  updateServer: (data: Partial<Server>) => Promise<void>;
+  deleteServer: () => Promise<void>;
+  leaveServer: () => Promise<void>;
 };
 
 export const ServerContext = createContext<ServerContextType | undefined>(undefined);
-
+  
 export const ServerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+
+  const { user, loading: authLoading } = useAuth();
+  const { socket } = useSocket();
+
+  const params = useParams();
+  const serverId = Array.isArray(params.serverId) ? Number(params.serverId[0]) : Number(params.serverId);
   const [servers, setServers] = useState<Server[]>([]);
   const [loading, setLoading] = useState(false);
-  const { user, loading: authLoading } = useAuth();
+
 
   const fetchServers = useCallback(async (): Promise<Server[]> => {
     try {
@@ -52,20 +57,57 @@ export const ServerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [user, authLoading, fetchServers]);
 
-  const addServer = (server: Server) => {
-    setServers(prev => [...prev, server]);
+  useEffect(() => {
+    if (!socket || !serverId) return;
+
+    const handleChangedServerName = (data: {serverId: number, name: string}) => {
+      setServers(prev => prev.map(server => server.id === data.serverId ? { ...server, name: data.name } : server));
+    }
+
+    socket.on("serverNameChanged", handleChangedServerName);
+
+    return () => {
+      socket.off("serverNameChanged");
+    }
+  }, [serverId, socket]);
+
+  const refreshServers = async () => await fetchServers();
+
+  const createServer = async (serverName: string): Promise<ServerInvite> => {
+    const res = await api.post('/servers', { name: serverName });
+    const inviteRes = await api.post(`/servers/${res.data.server.id}/invites`);
+    setServers(prev => [...prev, res.data.server]);
+    await refreshServers();
+
+    return inviteRes.data.code;
+  }
+
+  const joinServer = async (inviteCode: string) => {
+
+      await api.post(`/invites/${inviteCode}`);
+      await refreshServers();
   };
 
-  const removeServer = (id: string) => {
-    setServers(prev => prev.filter(s => s.id !== id));
+  const updateServer = async (data: Partial<Server>) => {
+    await api.patch(`/servers/${serverId}`, {name: data.name});
+    setServers(prev => prev.map(s => s.id === serverId ? { ...s, ...data } : s));
+    await refreshServers();
   };
 
-  const updateServer = (id: string, data: Partial<Server>) => {
-    setServers(prev => prev.map(s => s.id === id ? { ...s, ...data } : s));
+  const deleteServer = async () => {
+    await api.delete(`/servers/${serverId}`);
+    setServers(prev => prev.filter(s => s.id !== serverId))
+    await refreshServers(); // sync with backend in background
+  };
+
+  const leaveServer = async () => {
+    await api.delete(`/servers/${serverId}/leave`);
+    setServers(prev => prev.filter(s => s.id !== serverId))
+    await refreshServers();
   };
 
   return (
-    <ServerContext.Provider value={{ servers, loading, refreshServers: fetchServers, addServer, updateServer, removeServer }}>
+    <ServerContext.Provider value={{ servers, loading, refreshServers, createServer, joinServer, updateServer, deleteServer, leaveServer }}>
       {children}
     </ServerContext.Provider>
   );

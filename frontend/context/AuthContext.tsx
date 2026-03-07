@@ -1,13 +1,9 @@
 "use client";
 import { createContext, useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import api from '../lib/api';
 
-type User = {
-  id: string;
-  username: string;
-  email: string;
-};
+import api from '../lib/api';
+import { User } from '../types/User';
 
 type AuthContextType = {
   user: User | null;

@@ -17,7 +17,9 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     if (socketRef.current) return;
 
-    const newSocket = io("http://localhost:4000");
+    const newSocket = io("http://localhost:4000", {
+      withCredentials: true
+    });
     socketRef.current = newSocket;
 
     newSocket.on("connect", () => {

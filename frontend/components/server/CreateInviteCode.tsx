@@ -36,13 +36,11 @@ const selectStyles: SelectProps['styles'] = {
 };
 
 type InviteServerModalProps = {
-    expireAfter: string;
     setExpireAfter: (value: string) => void;
-    maxUses: string;
     setMaxUses: (value: string) => void;
 };
 
-function CreateInviteCode({ expireAfter, setExpireAfter, maxUses, setMaxUses }: InviteServerModalProps) {
+function CreateInviteCode({ setExpireAfter, setMaxUses }: InviteServerModalProps) {
 
     return (
         <div>

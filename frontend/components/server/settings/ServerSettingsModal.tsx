@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, type SetStateAction } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Layout, Modal, ModalProps } from 'antd';
 import { CircleX } from 'lucide-react';
@@ -10,7 +10,7 @@ import ServerMemberTab from './ServerMemberTab';
 import ProfileServerTab from './ProfileServerTab';
 import { useServer } from '@/hooks/useServer';
 import { useNotification } from '@/hooks/useNotification';
-import type { Server } from '@/context/ServerContext';
+import type { Server } from '@/types/Server';
 import BanServerTab from './BanServerTab';
 import { useChannel } from '@/hooks/useChannel';
 
@@ -53,22 +53,20 @@ const tabTitles: Record<SettingsTab, string> = {
 
 function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
 
-    const { serverId } = useParams();
-    const router = useRouter();
-    const { servers, refreshServers, updateServer, removeServer } = useServer();
-    const { channelsByServer, clearServerCache } = useChannel();
+    const params = useParams();
+    const serverId = Array.isArray(params.serverId) ? Number(params.serverId[0]) : Number(params.serverId);
+
+    const { servers, updateServer } = useServer();
     const selectedServer = servers.find(s => String(s.id) === String(serverId));
 
     const { contextHolder, showSuccess, showError } = useNotification();
+
     const [ activeTab, setActiveTab ] = useState<SettingsTab>("profile");
     const [ hasUnsavedChanges, setHasUnsavedChanges ] = useState(false);
-    const [ profileForm, setProfileForm ] = useState<Server>(selectedServer || {
-        id: "",
-        name: "",
-        icon: "",
-        memberCount: 0,
-        createdAt: ""
-    });
+    const [ profileForm, setProfileForm ] = useState<Server | null>(null);
+    const setProfileFormSafe = (value: SetStateAction<Server>) => {
+        setProfileForm(value as SetStateAction<Server | null>);
+    };
 
     useEffect(() => {
         if (selectedServer) {
@@ -84,49 +82,17 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
         }
     }, [show]);
 
-    const handleDeleteServer = async () => {
-        try {
-            await api.delete(`/servers/${selectedServer?.id}`);
-            
-            clearServerCache(selectedServer?.id || "");
-            removeServer(selectedServer?.id || "");
-            
-            // remove from state instantly
-            const updatedServers = servers.filter(s => s.id !== selectedServer?.id);
-            
-            // navigate first before refreshing
-            if (updatedServers.length > 0) {
-                const cached = channelsByServer[updatedServers[0].id];
-                if (cached?.[0]) {
-                    router.push(`/servers/${updatedServers[0].id}/channels/${cached[0].id}`);
-                } else {
-                    router.push(`/servers/${updatedServers[0].id}/channels`);
-                }
-            } else {
-                router.push("/servers");
-            }
-
-            showSuccess("Server deleted successfully");
-            refreshServers(); // sync with backend in background
-            onClose();
-        } catch (error: any) {
-            console.error("Error deleting server:", error.message);
-            showError(error.error || "Failed to delete server.");
-        }
-    };
-
     const handleSaveProfileChanges = async () => {
         try {
-            await api.patch(`/servers/${selectedServer?.id}`, {name: profileForm.name});
+            await updateServer(profileForm!);
             showSuccess("Server profile updated successfully");
-            refreshServers();
-            updateServer(selectedServer?.id || "", profileForm);
             setHasUnsavedChanges(false);
         } catch (error: any) {
             console.error("Error saving server profile:", error.message);
             showError(error.error || "Failed to update server profile.");
         }
     }
+
     return (
         <div>
             {contextHolder}
@@ -145,13 +111,7 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
                     <div className="flex gap-2">
                         <button className="bg-muted-background text-error border border-muted-border hover:bg-muted-background/70 px-2 py-1 rounded-lg font-semibold cursor-pointer" onClick={() => { // FIX: This should be changed in future, this works but it's not ideal to reset the form like this
                             setHasUnsavedChanges(false);
-                            setProfileForm(selectedServer || {
-                                id: "",
-                                name: "",
-                                icon: "",
-                                memberCount: 0,
-                                createdAt: ""
-                            });
+                            setProfileForm(selectedServer!);
                         }}>Reset</button>
                         <button className="bg-accent text-foreground hover:bg-accent/70 px-2 py-1 rounded-lg font-semibold cursor-pointer" onClick={handleSaveProfileChanges}>Save Changes</button>
                     </div>
@@ -203,11 +163,11 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
                         paddingInline: "50px",
                         flex: 1,
                     }}>
-                        { activeTab === "profile" && <ProfileServerTab hasUnsavedChanges={hasUnsavedChanges} onDirtyChange={setHasUnsavedChanges} serverProfile={profileForm} setServerProfile={setProfileForm} /> }
+                        { activeTab === "profile" && profileForm && <ProfileServerTab hasUnsavedChanges={hasUnsavedChanges} onDirtyChange={setHasUnsavedChanges} serverProfile={profileForm} setServerProfile={setProfileFormSafe} /> }
                         { activeTab === "members" && <ServerMemberTab /> }
                         { activeTab === "invites" && <InviteServerTab /> }
                         { activeTab === "bans" && <BanServerTab /> }
-                        { activeTab === "delete" && <DeleteServerTab deleteServer={handleDeleteServer} serverName={selectedServer?.name || "Server"} onclose={() => onClose()} /> }
+                        { activeTab === "delete" && <DeleteServerTab serverName={selectedServer?.name || "Server"} onClose={() => onClose()} /> }
                     </Content>
                 </Layout>
 

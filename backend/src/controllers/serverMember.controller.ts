@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import { io } from "../server";
 
 import ServerMemberService from '../services/serverMember.service';
 
@@ -10,6 +11,8 @@ export async function addMemberToServer(req: Request, res: Response) {
     }
     try {
         const data = await ServerMemberService.addMember(Number(serverId), userId);
+        console.log("Server Id", serverId);
+        io.to(`server-${serverId}`).emit("receivedNewMember", data);
         res.status(200).json({ message: 'Member added to server successfully', data });
     } catch (error: any) {
         console.error('Error adding member to server:', error.message);
@@ -39,15 +42,16 @@ export async function getServerMember(req: Request, res: Response) {
 
 export async function removeMemberFromServer(req: Request, res: Response) {
     const { serverId } = req.params;
-    const { memberId } = req.body;
-    const userId = req.user?.userId;
+    const { userId } = req.body;
+    const requesterId = req.user?.userId;
 
-    if (!userId) {
+    if (!requesterId) {
         return res.status(401).json({ message: 'Unauthorized' });
     }
 
     try {
-        await ServerMemberService.removeMember(Number(serverId), Number(memberId), userId);
+        await ServerMemberService.removeMember(Number(serverId), Number(userId), requesterId);
+        io.to(`server-${serverId}`).emit('memberLeft', userId);
         res.status(200).json({ message: 'Member removed from server successfully' });
     } catch (error: any) {
         console.error('Error removing member from server:', error.message);
@@ -64,6 +68,7 @@ export async function leaveServer(req: Request, res: Response) {
     }
     try {
         await ServerMemberService.leaveServer(Number(serverId), userId);
+        io.to(`server-${serverId}`).emit('memberLeft', userId);
         res.status(200).json({ message: 'Left server successfully' });
     } catch (error: any) {
         console.error('Error leaving server:', error.message);
@@ -84,11 +89,17 @@ export async function getServerMembers(req: Request, res: Response) {
 }
 
 export async function changeMemberRole(req: Request, res: Response) {
-    const { serverId, userId } = req.params;
+    const { serverId } = req.params;
     const { newRole } = req.body;
+    const userId = Array.isArray(req.params.userId) ? Number(req.params.userId[0]) : Number(req.params.userId);
+
+    if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
 
     try {
-        await ServerMemberService.changeMemberRole(Number(serverId), Number(userId), newRole);
+        await ServerMemberService.changeMemberRole(Number(serverId), userId, newRole);
+        io.to(`server-${serverId}`).emit('changedMemberRole', {userId, newRole});
         res.status(200).json({ message: 'Member role updated successfully' }); 
     } catch (error: any) {
         console.error('Error changing member role:', error.message);

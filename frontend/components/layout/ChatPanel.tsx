@@ -8,12 +8,9 @@ import ChatContent from '../chat/ChatContent';
 import ChatHeader from '../chat/ChatHeader';
 import ChatMessageInput from '../chat/ChatMessageInput';
 import InfoPanel from '@/components/layout/InfoPanel';
-import { groupMessagesByDate, addMessageToGroup } from '@/lib/helper';
 import { useServerLayout } from '@/hooks/useServerLayout';
 import { useServer } from '@/hooks/useServer';
 import { useChannel } from '@/hooks/useChannel';
-import { useSocket } from '@/hooks/useSocket';
-import { useAuth } from '@/hooks/useAuth';
 import { useMessage } from '@/hooks/useMessage';
 
 import { Message } from '@/types/Message';

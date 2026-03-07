@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { Avatar } from 'antd';
 import { Ellipsis } from 'lucide-react';
@@ -9,44 +9,28 @@ import { useServer } from '@/hooks/useServer';
 import { formatDate, calculateDays } from '@/lib/helper';
 import Spinner from '@/components/ui/Spinner';
 import ReviewBanModal from './ReviewBanModal';
-
-type Ban = {
-    id: string;
-    userId: string;
-    serverId: string;
-    bannedByRole: string;
-    reason?: string;
-    expiresAt?: Date;
-    createdAt: Date;
-    revokedAt?: Date;
-    appealStatus: "PENDING" | "ACCEPTED" | "REJECTED" | "REVOKED" | "SUPERSEDED";
-    user: {
-        username: string;
-        avatar?: string;
-    }
-}
+import { ServerBan } from '@/types/ServerBan';
+import { useServerAdmin } from '@/hooks/useServerAdmin';
+import { useNotification } from '@/hooks/useNotification';
 
 function BanServerTab() {
 
-    const { serverId } = useParams();
-    const { servers } = useServer();
-    const selectedServer = servers.find(s => String(s.id) === String(serverId));
-    
-    const [ bans, setBans ] = React.useState<Ban[]>([]);
-    const [ loading, setLoading ] = React.useState(false);
-
-    const [ showReviewModal, setShowReviewModal ] = React.useState(false);
-    const [ selectedBan, setSelectedBan ] = React.useState<Ban | null>(null);
+    const { bans, banLoading, revokeBan, decidePendingBan, deleteBan } = useServerAdmin();
 
     const [ filteredUsername, setFilteredUsername ] = React.useState("");
+    const filteredBans = useMemo(() => {
+        if (!filteredUsername.trim()) return bans;
+        return bans.filter(ban => 
+            ban.user.username.toLowerCase().includes(filteredUsername.toLowerCase())
+        );
+    }, [bans, filteredUsername]);
 
-    const handleSearch = async () => {
-        setLoading(true);
-        setBans(prev => prev.filter(ban => ban.user.username.toLowerCase().includes(filteredUsername.toLowerCase())));
-        setLoading(false);
-    }
+    const [ showReviewModal, setShowReviewModal ] = React.useState(false);
+    const [ selectedBan, setSelectedBan ] = React.useState<ServerBan | null>(null);
 
-    const items = (ban: Ban): ButtonDropDownItem[] => {
+    const { contextHolder, showSuccess, showError } = useNotification();
+
+    const items = (ban: ServerBan): ButtonDropDownItem[] => {
         const actions: ButtonDropDownItem[] = [];
 
         
@@ -87,12 +71,13 @@ function BanServerTab() {
         return actions;
     };
 
-    const handleRevokeBan = async (banId: string) => {
+    const handleRevokeBan = async (banId: number) => {
         try {
-            await api.patch(`/servers/${serverId}/bans/${banId}/revoke`);
-            setBans(prev => prev.map(ban => ban.id === banId ? { ...ban, appealStatus: "REVOKED", revokedAt: new Date() } : ban));
+            await revokeBan(banId);
+            showSuccess("Ban revoked successfully!");
         } catch (error) {
             console.error("Error revoking ban:", error);
+            showError("Failed to revoke ban. Please try again.");
         }
     };
 
@@ -100,50 +85,27 @@ function BanServerTab() {
         if (!selectedBan) return;
         const banId = selectedBan.id;
         try {
-            await api.patch(`/servers/${serverId}/bans/${banId}/review`, { decision, duration: duration === "permanent" ? null : Number(duration) });
-            setBans(prev => prev.map(ban => {
-                if (ban.id !== banId) return ban;
-                return {
-                    ...ban,
-                    appealStatus: decision,
-                    expiresAt: !duration || duration === "permanent"
-                        ? undefined
-                        : new Date(Date.now() + Number(duration) * 24 * 60 * 60 * 1000),
-                };
-            }));
+            await decidePendingBan(decision, banId, duration);
+            showSuccess(`Ban appeal ${decision.toLowerCase()} successfully!`);
         } catch (error) {
             console.error("Error deciding appeal:", error);
+            showError("Failed to decide appeal. Please try again.");
         }
     };
 
-    const handleDeleteBan = async (banId: string) => {
+    const handleDeleteBan = async (banId: number) => {
         try {
-            await api.delete(`/servers/${serverId}/bans/${banId}`);
-            setBans(prev => prev.filter(ban => ban.id !== banId));
+            await deleteBan(banId);
+            showSuccess("Delete ban successfully!");
         } catch (error) {
             console.error("Error deleting ban:", error);
+            showError("Failed to delete ban. Please try again.");
         }
     }
 
-    useEffect(() => {
-        if (!selectedServer) return;
-        const fetchBans = async () => {
-            try {
-                setLoading(true);
-                const res = await api.get(`/servers/${selectedServer.id}/bans`);
-                setBans(res.data);
-            } catch (error) {
-                console.error("Error fetching bans:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchBans();
-    }, [selectedServer]);
-
     return (
         <div className="flex flex-col h-full">
+            {contextHolder}
             <ReviewBanModal 
                 show={showReviewModal}
                 onClose={() => setShowReviewModal(false)}
@@ -153,14 +115,9 @@ function BanServerTab() {
             <p className='text-[11px] text-muted-text mt-2'>Bans by default are by account and IP. A user can circumvent an IP ban by using a proxy. Ban circumvention can be made very hard by enabling phone verification in Moderation.</p>
             <div className='w-full flex items-center justify-between mt-10 gap-4'>
                 <input type="text" className="flex-1 bg-chat-panel border border-muted-border rounded-md px-2 py-1 text-sm outline-none focus:ring-0 focus:border-accent" placeholder="Search Bans by Username" value={filteredUsername} onChange={(e) => setFilteredUsername(e.target.value)} />
-                <div className='flex gap-2'>
-                    <button className='cursor-pointer text-[12px] px-4 py-1 bg-accent border border-accent text-white rounded hover:bg-accent/80 transition-colors font-semibold' onClick={() => {
-                        console.log("Searching for:", filteredUsername);
-                        if (filteredUsername.trim() != "") {
-                            handleSearch();
-                        }
-                    }}>Search</button>
-                </div>
+                {/* <div className='flex gap-2'>
+                    <button className='cursor-pointer text-[12px] px-4 py-1 bg-accent border border-accent text-white rounded hover:bg-accent/80 transition-colors font-semibold'>Search</button>
+                </div> */} {/* FUTURE: Add more filters like filtering by date, filtering by appeal status, etc. */}
             </div>
             {/* Members List Table */}
             <div className='mt-4 pb-2 w-full rounded-lg bg-muted-background overflow-y-auto flex-1 min-h-0'>
@@ -179,7 +136,7 @@ function BanServerTab() {
                     </thead>
                     <tbody>
                         {
-                            loading ? (
+                            banLoading ? (
                                 <tr>
                                     <td colSpan={7} className="text-center py-10">
                                         <Spinner size='large' />
@@ -190,12 +147,12 @@ function BanServerTab() {
                                     <td colSpan={7} className="text-center text-muted-text py-10">No bans found for this server.</td>
                                 </tr>
                             ) : (
-                                bans.map(ban => (
+                                filteredBans.map(ban => (
                                     <tr key={ban.id} className="hover:bg-chat-panel/50 cursor-pointer border-b-1 border-muted-border text-[12px]">
                                         <td className="px-4 py-2 flex items-center gap-2 font-semibold">
                                             <Avatar
                                             size={40}
-                                            src={ban.user.avatar || "/profile-img.jpg"}
+                                            src={ban.user.avatar || "/profile-img-sec.jpg"}
                                             className="border-background"
                                             />
                                             <span>{ban.user.username}</span>

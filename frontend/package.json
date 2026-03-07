@@ -17,6 +17,7 @@
     "antd": "^6.3.0",
     "antd-style": "^4.1.0",
     "axios": "^1.13.5",
+    "linkify-react": "^4.3.2",
     "lucide-react": "^0.563.0",
     "material-ui-popup-state": "^5.3.6",
     "next": "16.1.5",

@@ -1,4 +1,5 @@
 import { Message } from "./Message";
+import { Server } from "./Server";
 
 export type Channel = {
     id: number;
@@ -7,6 +8,6 @@ export type Channel = {
     type: "text" | "voice";
     createdAt: string;
 
-    server?: any;
+    server?: Server;
     messages?: Message[];
 }

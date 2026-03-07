@@ -1,4 +1,4 @@
-import { Message } from "@/components/layout/ChatPanel";
+import { Message } from '@/types/Message'
 
 export const handleMaintenanceRoute = () => {
     // Navigate to the maintenance page

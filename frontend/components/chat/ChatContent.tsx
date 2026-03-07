@@ -1,16 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useParams } from 'next/navigation';
-import { Layout, Divider, Avatar, Skeleton } from 'antd';
-import { Reply, Ellipsis, Signature, Pencil } from 'lucide-react';
+import { Layout, Avatar, Skeleton } from 'antd';
+import { Signature, Pencil } from 'lucide-react';
 
-import api from '@/lib/api';
 import ChatMessage from './ChatMessage';
 import EditChannelModal from '../channel/EditChannelModal';
-import { Message } from '@/types/Message';
 import { Channel } from '@/types/Channel';
-import { formatDate, formatDateTime } from '@/lib/helper';
-import { useNotification } from '@/hooks/useNotification';
-import { useChannel } from '@/hooks/useChannel';
+import { Message } from '@/types/Message';
+import { formatDate } from '@/lib/helper';
 import { useMessage } from '@/hooks/useMessage';
 import { useChatUI } from '@/hooks/useChatUI';
 
@@ -23,29 +19,10 @@ type ChatContentProps = {
 }
 function ChatContent({ channel, containerRef, sentinelRef }: ChatContentProps) {
 
-    const { serverId, channelId } = useParams();
-    const { refreshChannels } = useChannel();
     const [ showEditChannelModal, setShowEditChannelModal ] = useState(false);
-    const { contextHolder, showError, showSuccess } = useNotification();
     
     const { groupedMessages, hasMore } = useMessage();
     const { typingUsers } = useChatUI();
-
-    const handleChangeChannelName = async (newName: string) => {
-        if (newName.trim() === "") {
-            showError("Channel name cannot be empty.");
-            return;
-        }
-        try {
-            await api.patch(`/servers/${serverId}/channels/${channelId}`, { newName });
-            refreshChannels();
-            setShowEditChannelModal(false);
-            showSuccess("Channel name updated successfully!");
-        }
-        catch (error: any) {
-            showError(error.response?.data?.message || "Failed to update channel name.");
-        } 
-    };
     
     // Scroll to bottom when messages change
     const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -55,11 +32,9 @@ function ChatContent({ channel, containerRef, sentinelRef }: ChatContentProps) {
 
     return (
         <>
-            {contextHolder}
             <EditChannelModal 
             show={showEditChannelModal}
             onClose={() => setShowEditChannelModal(false)}
-            changeChannelName={handleChangeChannelName}
             />
             <Content 
             style={{ 

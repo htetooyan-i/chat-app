@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Modal, ModalProps } from 'antd';
 import { useRouter, useParams } from 'next/navigation';
 
 import { useNotification } from '@/hooks/useNotification';
 import { useChannel } from '@/hooks/useChannel';
+import { getErrorMessage } from "@/lib/api";
 
 const styles: ModalProps['styles'] = {
     mask: {
@@ -42,12 +43,8 @@ function CreateNewChannelModal({ showCreateChannelModal, setShowCreateChannelMod
                     ? params.serverId[0]
                     : params.serverId;
     const [channelName, setChannelName] = useState("");
-    const { createChannel, channels } = useChannel();
+    const { createChannel } = useChannel();
     const { contextHolder, showError, showSuccess } = useNotification();
-
-    useEffect(() => {
-        setChannelName("");
-    }, [showCreateChannelModal]);
 
     const handleSubmit = async () => {
        try {
@@ -55,10 +52,11 @@ function CreateNewChannelModal({ showCreateChannelModal, setShowCreateChannelMod
             if (newChannel) {
                 router.push(`/servers/${serverId}/channels/${newChannel.id}`);
                 showSuccess("Channel created successfully!");
+                setChannelName("");
                 setShowCreateChannelModal(false);
             }
         } catch (err) {
-            showError("Failed to create channel.");
+            showError(getErrorMessage(err, "Failed to create channel."));
         }
     };
 

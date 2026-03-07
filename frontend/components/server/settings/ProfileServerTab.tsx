@@ -6,7 +6,7 @@ import Textarea from '@mui/joy/Textarea';
 
 import { useServer } from '@/hooks/useServer';
 import { formatDate } from '@/lib/helper';
-import type { Server } from '@/context/ServerContext';
+import type { Server } from '@/types/Server';
 
 type ProfileServerTabProps = {
     hasUnsavedChanges: boolean;
@@ -34,7 +34,7 @@ function ProfileServerTab({ hasUnsavedChanges, onDirtyChange, serverProfile, set
                         <input
                             type="text"
                             id="server-name"
-                            value={serverProfile.name}
+                            value={serverProfile.name || ''}
                             onChange={(e) => {
                                 setServerProfile(prev => ({ ...prev, name: e.target.value }));
                                 if (!hasUnsavedChanges) {
@@ -97,7 +97,7 @@ function ProfileServerTab({ hasUnsavedChanges, onDirtyChange, serverProfile, set
                     {/* Banner */}
                     <div className="relative h-24 w-full">
                         <Image
-                        src="/server-img.jpg"
+                        src="/server-img-sec.jpg"
                         alt="Server Icon"
                         fill
                         className="object-cover"
@@ -105,7 +105,7 @@ function ProfileServerTab({ hasUnsavedChanges, onDirtyChange, serverProfile, set
                         {/* Avatar */}
                         <Avatar
                         size={64}
-                        src="/profile-img.jpg"
+                        src="/profile-img-sec.jpg"
                         className="absolute -bottom-16 left-4 border-4 border-background"
                         />
                     </div>

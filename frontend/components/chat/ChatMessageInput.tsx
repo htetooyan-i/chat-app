@@ -38,7 +38,6 @@ type ChatMessageInputProps = {
 
 function ChatMessageInput({  }: ChatMessageInputProps) {
 
-    const { user } = useAuth();
     const { sendMessage, editExistingMessage } = useMessage();
     const { replyMessage, setReplyMessage, editMessage, setEditMessage, handleTyping, stopTyping } = useChatUI();
     const [ text, setText ] = useState("");
@@ -46,14 +45,13 @@ function ChatMessageInput({  }: ChatMessageInputProps) {
     // Auto-focus when replyMessage changes
     const inputRef = useRef<TextAreaRef>(null);
     useEffect(() => {
-    if ((replyMessage || editMessage) && inputRef.current) {
-        inputRef.current.focus();
-    }
+        if ((replyMessage || editMessage) && inputRef.current) {
+            inputRef.current.focus();
+        }
 
-    if (editMessage) {
-        setText(editMessage.content);
-    }
-
+        if (editMessage) {
+            setText(editMessage.content);
+        }
     }, [replyMessage, editMessage]);
 
     const stylesFnTextArea: TextAreaProps['styles'] = {

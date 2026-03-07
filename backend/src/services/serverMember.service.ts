@@ -51,14 +51,14 @@ class ServerMemberService {
             if (existingMember) {
                 throw new Error("User is already a member");
             }
-            const serverMember = await prisma.serverMember.create({
+            return await prisma.serverMember.create({
                 data: {
                     userId,
                     serverId,
                     role: server.ownerId === userId ? MemberRole.OWNER : MemberRole.MEMBER,
                 },
+                include: { user: true},
             });
-            return serverMember;
         } catch (error: any) {
             console.error('Error adding member to server:', error.message);
             throw error;
@@ -85,7 +85,6 @@ class ServerMemberService {
                     },
                 },
             });
-
 
             if (!member || member.serverId !== serverId) {
                 throw new Error("Invalid member");

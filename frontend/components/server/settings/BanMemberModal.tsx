@@ -2,13 +2,16 @@ import React from 'react';
 import { Modal, ModalProps, Select, SelectProps, ConfigProvider } from 'antd';
 import { Input } from 'antd';
 
+import { useServerMember } from '@/hooks/useServerMember';
+import { useNotification } from '@/hooks/useNotification';
+import { getErrorMessage } from "@/lib/api";
+
 const { TextArea } = Input;
 
 type BanMemberProps = {
     show: boolean;
     onClose: () => void;
     byAuthority?: boolean;
-    banMember: (reason: string, duration?: string) => Promise<void>;
 };
 
 const styles: ModalProps['styles'] = {
@@ -78,14 +81,32 @@ const selectStyles: SelectProps['styles'] = {
     }
 };
 
-function BanMemberModal({ show, onClose, banMember, byAuthority }: BanMemberProps) {
+function BanMemberModal({ show, onClose, byAuthority }: BanMemberProps) {
+
+    const { requestBanMember } = useServerMember();
+
+    const { contextHolder, showSuccess, showError } = useNotification();
+
     const [reason, setReason] = React.useState<string[]>([]);
     const [duration, setDuration] = React.useState<string>("7");
     const [customReason, setCustomReason] = React.useState("");
     const showTextArea = reason.includes("other");
 
+
+    const handleBanMember = async (finalReason: string) => {
+
+        try {
+            const finalDuration = duration === "permanent" ? null : Number(duration)
+            await requestBanMember(finalReason, finalDuration ?? undefined);
+            showSuccess("Member banned successfully");
+        } catch (error) {
+            showError(getErrorMessage(error,"Failed to ban member."));
+        }
+    };
+
     return (
         <div>
+            {contextHolder}
             <Modal
             centered
             footer={null}
@@ -190,7 +211,7 @@ function BanMemberModal({ show, onClose, banMember, byAuthority }: BanMemberProp
                                 const finalReason = showTextArea && customReason
                                     ? [...reason.filter(r => r !== "other"), customReason].join(", ")
                                     : reason.join(", ");
-                                banMember(finalReason, duration);
+                                handleBanMember(finalReason);
                                 setReason([]);
                                 setCustomReason("");
                                 onClose();

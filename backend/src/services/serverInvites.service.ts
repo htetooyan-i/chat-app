@@ -96,6 +96,7 @@ class ServerInvitesService {
             const invites = await prisma.serverInvite.findMany({
                 where: { serverId },
                 include: { createdBy: { select: { id: true, username: true } } },
+                orderBy: { createdAt: "asc" },
             });
             return invites;
         } catch (error: any) {

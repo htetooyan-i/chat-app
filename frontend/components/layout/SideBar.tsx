@@ -14,6 +14,8 @@ import { useServerLayout } from '@/hooks/useServerLayout';
 import { useServer } from '@/hooks/useServer';
 import { useNotification } from '@/hooks/useNotification';
 import { useChannel } from '@/hooks/useChannel';
+import { ServerMember } from '@/types/ServerMember';
+import { useServerMember } from '@/hooks/useServerMember';
 
 const { Sider } = Layout;
 
@@ -26,35 +28,22 @@ function SideBar({ siderStyle }: SideBarProps) {
     
     const router = useRouter();
     const pathname = usePathname();
+    const params = useParams();
     const { contextHolder, showSuccess, showError } = useNotification();
-    const { serverId } = useParams();
     
-    const { servers, refreshServers, removeServer } = useServer();
+    const { servers, refreshServers, leaveServer } = useServer();
     const { channelsByServer, clearServerCache } = useChannel();
-    const selectedServer = servers.find(
-        s => String(s.id) === String(serverId)
-    );
-    const [ me , setMe ] = useState<any>(null);
+    const { me } = useServerMember();
     const { logout } = useAuth();
+
+    const serverId = Array.isArray(params.serverId) ? Number(params.serverId[0]) : Number(params.serverId);
+    const selectedServer = servers.find(
+        s => s.id === serverId
+    );
+
     const { collapsed, setCollapsed } = useServerLayout();
-    
     const [ showServerSettingsModal, setShowServerSettingsModal ] = useState(false);
     const [showServerCreationModal, setShowServerCreationModal] = useState(false);
-    
-    const fetchCurrentMember = async () => {
-        try {
-            const res = await api.get(`/servers/${serverId}/members/@me`);
-            setMe(res.data.member);
-        } catch (error) {
-            console.error("Error fetching current member:", error);
-        }
-    };
-    
-    useEffect(() => {
-        if (selectedServer) {
-            fetchCurrentMember();
-        }
-    }, [selectedServer]);
     
     const dropDownItems = (): ContextDropdownItem[] => {
         const items: ContextDropdownItem[] = [];
@@ -80,7 +69,7 @@ function SideBar({ siderStyle }: SideBarProps) {
         return items;
     };
 
-    const hndleSelectServer = (serverId: string) => {
+    const hndleSelectServer = (serverId: number) => {
         const cached = channelsByServer[serverId];
         if (cached?.[0]) {
             router.push(`/servers/${serverId}/channels/${cached[0].id}`);
@@ -99,20 +88,18 @@ function SideBar({ siderStyle }: SideBarProps) {
 
     const handleLeaveServer = async () => {
         try {
-            await api.delete(`/servers/${selectedServer?.id}/leave`);
+            await leaveServer();
             showSuccess("You have left the server.");
 
-            clearServerCache(selectedServer?.id || "");
-            removeServer(selectedServer?.id || "");
-            const updatedServers = servers.filter(s => s.id !== selectedServer?.id);
-            
+            clearServerCache(serverId);
+
             // navigate first before refreshing
-            if (updatedServers.length > 0) {
-                const cached = channelsByServer[updatedServers[0].id];
+            if (servers.length > 0) {
+                const cached = channelsByServer[servers[0].id];
                 if (cached?.[0]) {
-                    router.push(`/servers/${updatedServers[0].id}/channels/${cached[0].id}`);
+                    router.push(`/servers/${servers[0].id}/channels/${cached[0].id}`);
                 } else {
-                    router.push(`/servers/${updatedServers[0].id}/channels`);
+                    router.push(`/servers/${servers[0].id}/channels`);
                 }
             } else {
                 router.push("/servers");
@@ -153,7 +140,7 @@ function SideBar({ siderStyle }: SideBarProps) {
                             <Avatar shape="square" size={50}>
                                 <Image
                                 onClick={handleShowUserSettings}
-                                src="/profile-img.jpg"
+                                src="/profile-img-sec.jpg"
                                 alt="avatar"
                                 width={50}
                                 height={50}
@@ -175,7 +162,7 @@ function SideBar({ siderStyle }: SideBarProps) {
                                     <ContextDropdownComponent items={dropDownItems()}>
                                         <Badge>
                                             <Avatar
-                                                src='/server-img.jpg'
+                                                src='/server-img-sec.jpg'
                                                 size={50}
                                                 shape="circle"
                                                 style={{

@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { ConfigProvider, Modal, ModalProps, Select, SelectProps } from 'antd';
 
 import { useNotification } from '@/hooks/useNotification';
 import api from '@/lib/api';
 import { useServer } from '@/hooks/useServer';
+import { useServerAdmin } from '@/hooks/useServerAdmin'; 
 import CreateInviteCode from './CreateInviteCode';
+import type { ServerInvite } from '@/types/ServerInvite';
 
 
 const styles: ModalProps['styles'] = {
@@ -60,32 +62,20 @@ const selectStyles: SelectProps['styles'] = {
     },
 };
 
-type Invite = {
-    id: number;
-    code: string;
-    expiresAt: string;
-    uses: number;
-    maxUses: number;
-    currentUses: number;
-}
-
 type InviteServerModalProps = {
     show: boolean;
     onClose: () => void;
     fromSettings?: boolean;
-    refreshInvites?: () => void;
 }
 
-function InviteServerModal({ show, onClose, fromSettings, refreshInvites }: InviteServerModalProps) {
+function InviteServerModal({ show, onClose, fromSettings }: InviteServerModalProps) {
 
-    const { serverId } = useParams();
-    const { servers } = useServer();
-    const selectedServer = servers.find(s => String(s.id) === String(serverId));
+    const { invites, createInvite } = useServerAdmin();
 
     const { contextHolder, showSuccess, showError } = useNotification();
     
     const [ copied, setCopied ] = useState(false);
-    const [ inviteCode, setInviteCode ] = useState<Invite | null>(null);
+    const [ inviteCode, setInviteCode ] = useState<ServerInvite | null>(null);
     const [ createNewCode, setCreateNewCode ] = useState(false);
 
     const [ expireAfter, setExpireAfter ] = useState("7");
@@ -94,26 +84,10 @@ function InviteServerModal({ show, onClose, fromSettings, refreshInvites }: Invi
     useEffect(() => {
         if (show) {
             setCreateNewCode(!!fromSettings);
+            setInviteCode(invites.length > 0 ? invites[0] : null);
         }
     }, [show, fromSettings]);
 
-    
-
-    useEffect(() => { // FIX: this will fetch only when this modal is opened from member info, but not from settings, need to add a condition to check if it's from settings or not
-        if (!selectedServer?.id) return;
-
-        const fetchInvites = async () => {
-            try {
-                const res = await api.get(`/servers/${selectedServer.id}/invites`);
-                setInviteCode(res.data[0] || null);
-            } catch (error) {
-                console.error("Error fetching invite codes:", error);
-                showError("Failed to fetch invite codes. Please try again.");
-            }
-        };
-
-        fetchInvites();
-    }, [selectedServer?.id]);
     
     const handleCopyInviteLink = () => {
         const inviteLink = `https://localhost:4000/invites/${inviteCode?.code}`;
@@ -130,16 +104,12 @@ function InviteServerModal({ show, onClose, fromSettings, refreshInvites }: Invi
 
     const handleGenerateNewLink = async () => {
         try {
-            const res = await api.post(`/servers/${selectedServer?.id}/invites`, {
-                expiresInMinutes: expireAfter === "never" ? null : parseInt(expireAfter) * 24 * 60, // Convert days to minutes
-                maxUses: maxUses === "No Limit" ? null : parseInt(maxUses),
-            });
-            setInviteCode(res.data);
+            const invite = await createInvite(expireAfter, maxUses);
+            setInviteCode(invite);
             showSuccess("New invite link generated successfully!");
             setExpireAfter("7");
             setMaxUses("No Limit");
             if (fromSettings) {
-                refreshInvites?.();
                 onClose();
             }else {
                 setCreateNewCode(false);
@@ -149,6 +119,7 @@ function InviteServerModal({ show, onClose, fromSettings, refreshInvites }: Invi
             showError("Failed to generate new invite link. Please try again.");
         }
     }
+
     return (
         <div>
             {contextHolder}
@@ -210,7 +181,7 @@ function InviteServerModal({ show, onClose, fromSettings, refreshInvites }: Invi
             >
                 {
                     createNewCode ? (
-                        <CreateInviteCode expireAfter={expireAfter} setExpireAfter={setExpireAfter} maxUses={maxUses} setMaxUses={setMaxUses} />
+                        <CreateInviteCode setExpireAfter={setExpireAfter} setMaxUses={setMaxUses} />
                     ) : (
                         <main className="flex flex-col gap-10 items-start justify-center">
                             {/* Need to check the expire date */}

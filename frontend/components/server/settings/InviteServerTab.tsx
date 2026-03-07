@@ -1,72 +1,47 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import api from '@/lib/api';
-import InviteServerModal from '../InviteServerModal';
-import ButtonDropDown, { ButtonDropDownItem } from '@/components/ui/ButtonDropDown';
-import { useServer } from '@/hooks/useServer';
+import React, { useState } from 'react';
 import { Avatar } from 'antd';
 import { Ellipsis } from 'lucide-react';
-import { formatDate } from '@/lib/helper';
+
+import ButtonDropDown, { ButtonDropDownItem } from '@/components/ui/ButtonDropDown';
+import InviteServerModal from '../InviteServerModal';
 import Spinner from '@/components/ui/Spinner';
+import { formatDate } from '@/lib/helper';
+import { useServerAdmin } from '@/hooks/useServerAdmin';
+import { useNotification } from '@/hooks/useNotification';
 
 function InviteServerTab() {
 
-    const { serverId } = useParams();
-    const { servers } = useServer();
-    const selectedServer = servers.find(s => String(s.id) === String(serverId));
-    
-    const [ inviteCodes, setInviteCodes ] = useState<any[]>([]);
-    const [ loading, setLoading ] = useState(false);
+    const { invites, inviteLoading, revokeInvite } = useServerAdmin();
     const [ showInviteModal, setShowInviteModal ] = useState(false);
 
-    const moreOptionItems:(serverId: string, inviteId: string) => ButtonDropDownItem[] = (serverId, inviteId) => [
+    const { contextHolder, showSuccess, showError } = useNotification();
+
+    const moreOptionItems:(inviteId: number) => ButtonDropDownItem[] = (inviteId) => [
         {
             label: "Revoke Invite",
-            onClick: () => handleRevokeInvite(serverId, inviteId),
+            onClick: () => handleRevokeInvite(inviteId),
             type: "danger",
         }
     ];
 
-    const fetchInvites = async (serverId: string) => {
+    const handleRevokeInvite = async (inviteId: number) => {
         try {
-            setLoading(true);
-            const res = await api.get(`/servers/${serverId}/invites/`);
-            setInviteCodes(res.data || []);
-        } catch (error: any) {
-            console.error("Error fetching invite codes:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleRevokeInvite = async (serverId: string, inviteId: string) => {
-        try {
-            await api.delete(`/servers/${serverId}/invites/${inviteId}`);
-            setInviteCodes(prevInvites => prevInvites.filter(invite => invite.id !== inviteId)); // Optimistically update the UI by removing the revoked invite
-            if (selectedServer?.id) { // Refresh the invite list after revocation
-                fetchInvites(selectedServer.id);
-            }
-        } catch (error: any) {
-            console.error("Error revoking invite:", error);
+            await revokeInvite(inviteId);
+            showSuccess("Invite revoked successfully.");
+        } catch (error) {
+            console.error("Failed to revoke invite:", error);
+            showError("Failed to revoke invite.");
         }
     }
 
-    useEffect(() => {
-        if (selectedServer?.id) {
-            fetchInvites(selectedServer.id);
-        }
-    }, [selectedServer?.id]);
     return (
         <div className="flex flex-col h-full">
+            {contextHolder}
             <InviteServerModal 
             show={showInviteModal} 
             onClose={() => setShowInviteModal(false)} 
             fromSettings={true} 
-            refreshInvites={() => {
-                if (selectedServer?.id) {
-                    fetchInvites(selectedServer.id);
-                }
-            }} />
+             />
             <p className="text-xl font-bold capitalize mb-4">Server Invites</p>
             <div className='w-full flex items-center justify-between'>
                 <p className='uppercase text-[12px] font-bold'>Active invite codes</p>
@@ -92,23 +67,23 @@ function InviteServerTab() {
                     <tbody>
 
                         {
-                            loading ? (
+                            inviteLoading ? (
                                 <tr>
                                     <td colSpan={5} className="text-center py-10">
                                         <Spinner size='large' />
                                     </td>
                                 </tr>
-                            ) : inviteCodes.length === 0 ? (
+                            ) : invites.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="text-center text-muted-text py-10">No invites found for this server.</td>
                                 </tr>
                             ) :  (
-                                inviteCodes.map(invite => (
+                                invites.map(invite => (
                                     <tr key={invite.id} className="hover:bg-chat-panel/50 cursor-pointer border-b-1 border-muted-border text-[12px]">
                                         <td className="px-4 py-2 flex items-center gap-2 font-semibold">
                                             <Avatar
                                             size={40}
-                                            src="/profile-img.jpg"
+                                            src="/profile-img-sec.jpg"
                                             className="border-background"
                                             />
                                             <span>{invite.createdBy?.username || 'Unknown User'}</span>
@@ -118,7 +93,7 @@ function InviteServerTab() {
                                         <td className="px-4 py-2 font-semibold">{invite.maxUses ?? 'Unlimited'}</td>
                                         <td className="px-4 py-2 font-semibold">{invite.expiresAt === null ? 'Never' : formatDate(invite.expiresAt)}</td>
                                         <td className='px-4 py-2'>
-                                            <ButtonDropDown items={moreOptionItems(invite.serverId, invite.id)} removeStyles><Ellipsis /></ButtonDropDown>
+                                            <ButtonDropDown items={moreOptionItems(invite.id)} removeStyles><Ellipsis /></ButtonDropDown>
                                         </td>
                                     </tr>
                                 ))

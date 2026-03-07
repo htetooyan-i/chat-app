@@ -1,15 +1,55 @@
 import React from 'react';
+import { useRouter, useParams } from 'next/navigation';
+
+import { useServer } from '@/hooks/useServer';
+import { useChannel } from '@/hooks/useChannel';
+import { useNotification } from '@/hooks/useNotification';
 
 type DeleteServerTabProps = {
-    deleteServer: () => void;
     serverName: string;
-    onclose: () => void;
+    onClose: () => void;
 };
 
-function DeleteServerTab({ deleteServer, serverName, onclose }: DeleteServerTabProps) {
+function DeleteServerTab({ serverName, onClose }: DeleteServerTabProps) {
+
+    const router = useRouter();
+    const params = useParams();
+    const serverId = Array.isArray(params.serverId) ? Number(params.serverId[0]) : Number(params.serverId);
+    
+    const { servers, deleteServer } = useServer();
+    const { channelsByServer, clearServerCache } = useChannel();
+
+    const { contextHolder, showSuccess, showError } = useNotification();
+
     const [ confirmationName, setConfirmationName ] = React.useState("");
+
+    const handleDeleteServer = async () => {
+        try {   
+            await deleteServer();
+            clearServerCache(serverId);
+
+            // navigate first before refreshing
+            if (servers.length > 0) {
+                const cached = channelsByServer[servers[0].id];
+                if (cached?.[0]) {
+                    router.push(`/servers/${servers[0].id}/channels/${cached[0].id}`);
+                } else {
+                    router.push(`/servers/${servers[0].id}/channels`);
+                }
+            } else {
+                router.push("/servers");
+            }
+
+            showSuccess("Server deleted successfully");
+            onClose();
+        } catch (error: any) {
+            console.error("Error deleting server:", error.message);
+            showError(error.error || "Failed to delete server.");
+        }
+    };
     return (
         <div>
+            {contextHolder}
             <p className="text-xl font-bold capitalize">Delete Server</p>
             <div className="py-4">
                 {/* Description */}
@@ -34,7 +74,7 @@ function DeleteServerTab({ deleteServer, serverName, onclose }: DeleteServerTabP
                     <button 
                         onClick={() => {
                             setConfirmationName("");
-                            onclose();
+                            onClose();
                         }}
                         className="bg-muted-background border border-muted-border text-foreground px-4 py-2 rounded-md disabled:opacity-50 mt-4 cursor-pointer"
                     >
@@ -42,7 +82,7 @@ function DeleteServerTab({ deleteServer, serverName, onclose }: DeleteServerTabP
                     </button>
                     <button 
                         onClick={() => {
-                            deleteServer();
+                            handleDeleteServer();
                             setConfirmationName("");
                         }}
                         disabled={confirmationName.toUpperCase() !== serverName.toUpperCase()}

@@ -1,5 +1,6 @@
 "use client";
 import { Skeleton } from 'antd';
+import { useParams, useRouter } from 'next/navigation';
 
 import ChatPanel from "@/components/layout/ChatPanel";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,11 +9,18 @@ import { useServer } from "@/hooks/useServer";
 
 function page() {
 
-    const { loading: authLoading } = useAuth();
-    const { loading: serverLoading } = useServer();
-    const { loading: channelLoading } = useChannel();
-    
+    const params = useParams();
+    const router = useRouter();
+    const serverId = Array.isArray(params.serverId) ? params.serverId[0] : params.serverId;
+    const channelId = Array.isArray(params.channelId) ? params.channelId[0] : params.channelId;
 
+    const { loading: authLoading } = useAuth();
+    const { servers, loading: serverLoading } = useServer();
+    const { channels, loading: channelLoading } = useChannel();
+    
+    // if ( !(serverId && servers.find(s => s.id === serverId)) || !(channelId && channels.find(c => c.id === Number(channelId))) ) {
+    //     router.back();
+    // }
     return (
         <div className="flex w-full">
             {(authLoading || serverLoading || channelLoading) ? (

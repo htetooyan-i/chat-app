@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 
 import ServerInvitesService from "../services/serverInvites.service";
 import ServerMemberService from "../services/serverMember.service";
+import {io} from "../server";
 
 export async function GetInvitesForServer(req: Request, res: Response) {
     const { serverId } = req.params;
@@ -73,9 +74,9 @@ export async function JoinServerViaCode(req: Request, res: Response) {
         if (!invite) {
             return res.status(404).json({ error: "Invite not found or expired" });
         }
-        await ServerMemberService.addMember(invite.serverId, userId);
+        const newMember = await ServerMemberService.addMember(invite.serverId, userId);
         await ServerInvitesService.incrementInviteUsage(invite.id);
-
+        io.to(`server-${newMember.serverId}`).emit("receivedNewMember", newMember);
         res.status(200).json({ message: "Joined server successfully" });
     } catch (error: any) {
         res.status(400).json({ error: error.message });

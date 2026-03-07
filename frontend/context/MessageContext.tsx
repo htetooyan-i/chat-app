@@ -1,11 +1,11 @@
 "use client";
-import React, { createContext, useCallback, useEffect, useState, useRef, useMemo } from "react";
+import React, { createContext, useEffect, useState, useRef, useMemo } from "react";
 import { useParams } from "next/navigation";
 
 import api from "@/lib/api";
 import { Message } from "@/types/Message";
 import { useSocket } from "@/hooks/useSocket";
-import { groupMessagesByDate, addMessageToGroup } from '@/lib/helper';
+import { groupMessagesByDate } from '@/lib/helper';
 import { useAuth } from "@/hooks/useAuth";
 
 type MessageContextType = {
@@ -15,8 +15,8 @@ type MessageContextType = {
   hasMore: boolean;
 
   sendMessage: (content: string, replyMessage: Message | null) => void;
-  editExistingMessage: (messageId: string, content: string) => Promise<void>;
-  deleteMessage: (messageId: string) => Promise<void>;
+  editExistingMessage: (messageId: number, content: string) => Promise<void>;
+  deleteMessage: (messageId: number) => Promise<void>;
 
   loadMore: () => Promise<void>;
 };
@@ -28,9 +28,9 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const { socket } = useSocket();
     const { user } = useAuth();
     const params = useParams();  
-    const channelId = Array.isArray(params.channelId)
-                    ? params.channelId[0]
-                    : params.channelId;
+    const channelId: number = Array.isArray(params.channelId)
+                    ? Number(params.channelId[0])
+                    : Number(params.channelId);
     
 
     const [ messages, setMessages ] = useState<Message[]>([]);
@@ -40,11 +40,11 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
                             );
     const [hasMore, setHasMore] = useState(true);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
-    const oldestMessageId = useRef<string | null>(null);
+    const oldestMessageId = useRef<number | null>(null);
 
-    const handleNewMessage = (message: any) => {
+    const handleNewMessage = (message: Message) => {
         setMessages(prev => {
-            const tempIndex = prev.findIndex(m => m.id === message.clientMsgId);
+            const tempIndex = prev.findIndex(m => m.clientMsgId === message.clientMsgId);
 
             if (tempIndex !== -1) {
                 const updated = [...prev];
@@ -60,16 +60,15 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setMessages(prev => prev.map(msg => msg.id === message.id ? { ...msg, content: message.content, editedAt: new Date() } : msg));
     };
 
-    const handleDeletedMessage = ({messageId}: {messageId: string}) => {
+    const handleDeletedMessage = ({messageId}: {messageId: number}) => {
         setMessages(prev => {
-            const updatedMessages = prev
+            return prev
                 .filter(msg => msg.id !== messageId)
                 .map(msg =>
                     msg.replyToMessageId === messageId
                         ? { ...msg, replyToMessageId: null, replyToDeleted: true }
                         : msg
                 );
-            return updatedMessages;
         });
     };
 
@@ -92,17 +91,6 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     useEffect(() => {
         if (!socket || !channelId) return;
 
-        const join = () => {
-            socket.emit("joinChannel", channelId);
-            console.log("Joined channel:", channelId);
-        };
-
-        if (socket.connected) {
-            join();
-        } else {
-            socket.once("connect", join);
-        }
-
         socket.on("newMessage", handleNewMessage);
         socket.on("messageEdited", handleEditedMessage);
         socket.on("messageDeleted", handleDeletedMessage);
@@ -110,7 +98,6 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         fetchMessages();
 
         return () => {
-            socket.off("connect", join);
             socket.off("newMessage", handleNewMessage);
             socket.off("messageEdited", handleEditedMessage);
             socket.off("messageDeleted", handleDeletedMessage);
@@ -121,18 +108,22 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const sendMessage = (text: string, replyMessage: Message | null) => {
         if (!text.trim() || !socket || !channelId || !user) return;
 
-        const tempId = `temp-${Date.now()}`;
+        const tempId = -Date.now();
+        const clientMsgId = crypto.randomUUID();
         const newMessage: Message = {
             id: tempId,
             channelId: channelId,
             authorId: user.id,
             replyToMessageId: replyMessage?.id,
             content: text,
-            createdAt: new Date(),  
+            createdAt: new Date(),
+            clientMsgId: clientMsgId,
             author: {
                 id: user.id,
+                email: user.email,
                 username: user.username,
                 avatarUrl: "", // Current I haven't implemented avatar upload, so this will be default avatar.
+                createdAt: new Date(),
             },
             replyTo: replyMessage || null
         };
@@ -143,14 +134,13 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         socket.emit("sendMessage", {
             channelId: Number(channelId),
             content: text,
-            clientMsgId: tempId,
             authorId: user.id,
             replyToMessageId: replyMessage?.id,
+            clientMsgId: clientMsgId,
         });
-        console.log("Emitted sendMessage with tempId:", tempId);
     };
 
-    const editExistingMessage = async (messageId: string, newContent: string) => {
+    const editExistingMessage = async (messageId: number, newContent: string) => {
         if (!socket) return;
 
         await api.patch(`/messages/${messageId}`, { content: newContent });
@@ -159,7 +149,7 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setMessages(prev => prev.map(msg => msg.id === messageId ? { ...msg, content: newContent, editedAt: new Date() } : msg));
     };
 
-    const deleteMessage = async (messageId: string) => {
+    const deleteMessage = async (messageId: number) => {
         if (!socket) return;
 
         await api.delete(`channels/${channelId}/messages/${messageId}`);

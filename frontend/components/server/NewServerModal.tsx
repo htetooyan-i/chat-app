@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Modal, ModalProps } from 'antd';
 
-import api from '@/lib/api';
-import { useNotification } from '@/hooks/useNotification';
-import { useServer } from '@/hooks/useServer';
 import CreateServer from './CreateServer';
 import JoinServer from './JoinServer';
+import { useNotification } from '@/hooks/useNotification';
+import { useServer } from '@/hooks/useServer';
+import { useChannel } from '@/hooks/useChannel';
 
 const styles: ModalProps['styles'] = {
     mask: {
@@ -38,7 +38,9 @@ type NewServerModalProps = {
 
 function NewServerModal({ showServerCreationModal, setShowServerCreationModal }: NewServerModalProps) {
 
-    const { refreshServers, addServer } = useServer();
+    const router = useRouter();
+    const { channelsByServer } = useChannel();
+    const { servers, createServer, joinServer } = useServer();
 
     const [ isCreating, setIsCreating ] = useState(true);
     const [ isSuccessed, setIsSuccessed ] = useState(false);
@@ -49,12 +51,10 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
 
     const handleCreateNewServer = async () => {
         try {
-            const res = await api.post('/servers', { name: serverName });
-            const inviteRes = await api.post(`/servers/${res.data.server.id}/invites`);
-            addServer(res.data.server);
-            setInviteCode(inviteRes.data.code);
+            const invite = await createServer(serverName);
+            setInviteCode(invite.code);
+
             showSuccess("Server created successfully!");
-            refreshServers();
             setIsSuccessed(true);
         } catch (error: any) {
             console.error("Error creating server:", error.message);
@@ -72,9 +72,9 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
         }
 
         try {
-            await api.post(`/invites/${finalCode}`);
+            await joinServer(finalCode);
+            
             showSuccess("Joined server successfully!");
-            refreshServers();
             setInviteCode("");
             setIsCreating(true);
             setShowServerCreationModal(false);

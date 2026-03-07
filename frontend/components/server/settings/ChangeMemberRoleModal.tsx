@@ -4,12 +4,13 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuList from '@mui/material/MenuList';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
+import Select from '@mui/material/Select';
+import { MemberRole } from '@/types/ServerMember';
 
 type ChangeMemberRoleModalProps = {
     show: boolean;
     onClose: () => void;
-    changeMemberRole: (newRole: string) => Promise<void>;
+    changeMemberRole: (newRole: MemberRole) => Promise<void>;
 };
 
 
@@ -38,7 +39,7 @@ const styles: ModalProps['styles'] = {
 
 function ChangeMemberRoleModal({ show, onClose, changeMemberRole }: ChangeMemberRoleModalProps) {
 
-    const [ newMemberRole, setNewMemberRole ] = React.useState("MEMBER");
+    const [ newMemberRole, setNewMemberRole ] = React.useState<MemberRole>("MEMBER");
     return (
         <div>
             <Modal
@@ -82,7 +83,7 @@ function ChangeMemberRoleModal({ show, onClose, changeMemberRole }: ChangeMember
                                     id="demo-select-small"
                                     value={newMemberRole}
                                     label="New Member Role"
-                                    onChange={(e) => setNewMemberRole(e.target.value)}
+                                    onChange={(e) => setNewMemberRole(e.target.value as MemberRole)}
                                     sx={{
                                         color: "var(--foreground)",
                                         backgroundColor: "var(--chat-panel)",

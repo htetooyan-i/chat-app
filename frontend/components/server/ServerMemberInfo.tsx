@@ -1,55 +1,27 @@
 "use client";
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import { UserRoundPlus, IdCard } from "lucide-react";
+import React, { useState } from 'react';
+import { UserRoundPlus } from "lucide-react";
 import { Avatar, Badge } from 'antd';
 
-import api from "@/lib/api";
-import InviteServerModal from './InviteServerModal';
-import ContextDropdownComponent, { ContextDropdownItem } from "@/components/ui/ContextDropdown";
-import { useServer } from '@/hooks/useServer';
-import { useNotification } from '@/hooks/useNotification';
 import BanMemberModal from './settings/BanMemberModal';
+import ContextDropdownComponent, { ContextDropdownItem } from "@/components/ui/ContextDropdown";
+import InviteServerModal from './InviteServerModal';
+import { useNotification } from '@/hooks/useNotification';
+import { useServerMember } from '@/hooks/useServerMember';
+import { getErrorMessage } from "@/lib/api";
 
-type ServerMemberInfoProps = {
-    type: "settings" | "files" | "users" | "none";
-}
 
-function ServerMemberInfo({ type }: ServerMemberInfoProps) {
+
+function ServerMemberInfo() {
 
     const { contextHolder, showSuccess, showError } = useNotification();
 
-    const { serverId } = useParams();
-    const { servers } = useServer();
-    const selectedServer = servers.find(s => String(s.id) === String(serverId));
-    
-    const [serverMembers, setServerMembers] = useState<any[]>([]);
-    const [ selectedMemberId, setSelectedMemberId ] = useState<String>("");
+    const { members, kickMember, setSelectedUserId } = useServerMember();
 
     const [ showInviteServerModal, setShowInviteServerModal ] = useState(false);
     const [ showBanMemberModal, setShowBanMemberModal ] = useState(false);
-    const [ isUpdated, setIsUpdated ] = useState(false);
 
-
-    useEffect(() => {
-        if (type !== "users" || !selectedServer ) return;
-        const fetchMembers = async () => {
-        try {
-            const res = await api.get(
-            `/servers/${selectedServer.id}/members`
-            );
-
-            setServerMembers(res.data.data);
-            setIsUpdated(false); // Reset the update flag after fetching members
-        } catch (error: any) {
-            console.error("Error fetching server members:", error);
-        }
-        };
-
-        fetchMembers();
-    }, [type, selectedServer, isUpdated]);
-
-    const getDropdownItems = (memberId: string): ContextDropdownItem[] => [
+    const getDropdownItems = (userId: number): ContextDropdownItem[] => [
     // {
     //     label: "Open in Mod View",
     //     onClick: () => console.log("View profile"),
@@ -58,14 +30,14 @@ function ServerMemberInfo({ type }: ServerMemberInfoProps) {
     {
         label: "Ban Member",
         onClick: () => {
-            setSelectedMemberId(memberId);
+            setSelectedUserId(userId);
             setShowBanMemberModal(true);
         },
         type: "danger",
     },
     {
         label: "Kick Member",
-        onClick: () => handleKickMember(memberId),
+        onClick: () => handleKickMember(userId),
         type: "danger",
     },
     // {
@@ -83,27 +55,12 @@ function ServerMemberInfo({ type }: ServerMemberInfoProps) {
 
 
     // Kick user from server and close the context menu
-    const handleKickMember = async (memberId: string) => {
-        if (!selectedServer) return;
+    const handleKickMember = async (userId: number) => {
         try {
-            await api.delete(`/servers/${selectedServer.id}/kick`, { data: { memberId } });
-            setServerMembers(prev => prev.filter(member => member.userId !== memberId));
+            await kickMember(userId);
             showSuccess("Member kicked successfully");
-            setIsUpdated(prev => !prev); // Trigger a re-fetch of members after kicking
-        } catch (error: any) {
-        showError(error.response?.data?.message || error.message);
-        }
-    };
-
-    const handleBanMember = async (reason: string) => {
-        if (!selectedServer || !selectedMemberId) return;
-        try {
-            await api.post(`/servers/${selectedServer.id}/bans/${selectedMemberId}`, { reason });
-            setServerMembers(prev => prev.filter(member => member.userId !== selectedMemberId));
-            showSuccess("Requested ban successfully");
-            setIsUpdated(prev => !prev); // Trigger a re-fetch of members after banning
-        } catch (error: any) {
-            showError(error.response?.data?.message || error.message);
+        } catch (error) {
+            showError(getErrorMessage(error, "Failed to kick"));
         }
     };
 
@@ -111,7 +68,7 @@ function ServerMemberInfo({ type }: ServerMemberInfoProps) {
         <div>
             {contextHolder}
             <InviteServerModal show={showInviteServerModal} onClose={() => setShowInviteServerModal(false)} />
-            <BanMemberModal show={showBanMemberModal} onClose={() => setShowBanMemberModal(false)} banMember={handleBanMember} />
+            <BanMemberModal show={showBanMemberModal} onClose={() => setShowBanMemberModal(false)} />
             <header className="p-4 flex justify-between items-center">
                 <h2 className="text-[21px] font-bold py-2">Members</h2> 
                 <div className="p-2 rounded-full cursor-pointer bg-accent " title="Invite People" onClick={() => setShowInviteServerModal(true)}>
@@ -119,7 +76,7 @@ function ServerMemberInfo({ type }: ServerMemberInfoProps) {
                 </div>
             </header>
             { 
-                serverMembers.map(member => (
+                members.map(member => (
                 
                     <div key={member.id} className="px-2">
                         <ContextDropdownComponent items={getDropdownItems(member.userId)}>
@@ -129,7 +86,7 @@ function ServerMemberInfo({ type }: ServerMemberInfoProps) {
                                     <Avatar
                                         shape="circle"
                                         size={32}
-                                        src="/profile-img.jpg"
+                                        src="/profile-img-sec.jpg"
                                     />
                                     </Badge>
 

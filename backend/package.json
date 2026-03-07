@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@prisma/client": "^7.3.0",
+    "@types/cookie": "^1.0.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/morgan": "^1.9.10",

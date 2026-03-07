@@ -1,22 +1,24 @@
 import { Request, Response } from 'express';
 
+import AuthService from '../services/auth.service';
+import ServerMemberService from '../services/serverMember.service';
 import { UsersService } from '../services/users.service';
 import { TokenService } from '../services/token.service';
 import { EmailService } from '../services/email.service';
-import AuthService from '../services/auth.service';
+import { io } from '../server';
 
 export async function GetCurrentUser(req: Request, res: Response) {
     const userId = req.user?.userId;
 
     if (!userId) {
-        res.status(401).json({ message: 'Unauthorized' });
+        return res.status(401).json({ message: 'Unauthorized' });
     }
     try {
         const user = await UsersService.me(userId);
-        res.status(200).json({data: user});
+        return res.status(200).json({data: user});
     } catch (error) {
         console.error('Error fetching current user:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        return res.status(500).json({ message: 'Internal server error' });
     }
 }
 
@@ -24,11 +26,16 @@ export async function UpdateCurrentUser(req: Request, res: Response) {
     const userId = req.user?.userId;
     const { username, bio, password } = req.body;
     if (!userId) {
-        res.status(401).json({ message: 'Unauthorized' });
+        return res.status(401).json({ message: 'Unauthorized' });
     }   
 
     try {
         const updatedUser = await UsersService.updateProfile(userId, password, { username, bio });
+        const servers = await ServerMemberService.getCurrentUserServers(userId);
+
+        servers.forEach((server) => {
+            io.to(`server-${server.id}`).emit('receivedUpdatedMember', updatedUser);
+        })
         res.status(200).json({data: updatedUser});
     } catch (error) {
         console.error('Error updating user profile:', error);
@@ -41,7 +48,7 @@ export async function UpdateEmail(req: Request, res: Response) {
     const { newEmail, password } = req.body;
 
     if (!userId) {
-        res.status(401).json({ message: 'Unauthorized' });
+        return res.status(401).json({ message: 'Unauthorized' });
     }
 
     try {
@@ -90,7 +97,7 @@ export async function UpdateAvatar(req: Request, res: Response) {
     const { avatarUrl } = req.body;
 
     if (!userId) {
-        res.status(401).json({ message: 'Unauthorized' });
+        return res.status(401).json({ message: 'Unauthorized' });
     }
 
     try {
@@ -106,7 +113,7 @@ export async function DeleteAvatar(req: Request, res: Response) {
     const userId = req.user?.userId;
     
     if (!userId) {
-        res.status(401).json({ message: 'Unauthorized' });
+        return res.status(401).json({ message: 'Unauthorized' });
     }
 
     try {

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 
 import ChannelService from '../services/channel.service';
-import AuthService from '../services/auth.service';
+import { io } from "../server";
 
 // Controller function to create a new channel for a server (NOTE: Currently everyone can create channels, I will add permissions later)
 export async function createNewChannelForServer(req: Request, res: Response) {
@@ -9,6 +9,7 @@ export async function createNewChannelForServer(req: Request, res: Response) {
     const { name } = req.body;
     try {
         const channel = await ChannelService.createChannel(Number(serverId), name);
+        io.to(`server-${serverId}`).emit("receivedNewChannel", channel);
         res.status(201).json(channel);
     } catch (error: any) {
         if (error.code === 'P2002') {
@@ -57,6 +58,7 @@ export async function updateChannelName(req: Request, res: Response) {
 
     try {
         const updatedChannel = await ChannelService.updateChannelName(Number(channelId), newName);
+        io.to(`server-${updatedChannel.serverId}`).emit("channelUpdated", updatedChannel);
         res.status(200).json(updatedChannel);
     } catch (error: any) {
         res.status(400).json({ error: error.message });
@@ -64,7 +66,7 @@ export async function updateChannelName(req: Request, res: Response) {
 }
 
 export async function deleteChannel(req: Request, res: Response) {
-    const { channelId } = req.params;
+    const { serverId, channelId } = req.params;
     const userId = req.user?.userId;
 
     if (!userId) {
@@ -73,6 +75,7 @@ export async function deleteChannel(req: Request, res: Response) {
 
     try {
         await ChannelService.deleteChannel(Number(channelId), userId);
+        io.to(`server-${serverId}`).emit("channelDeleted", Number(channelId));
         res.status(204).send();
     } catch (error: any) {
         res.status(400).json({ error: error.message });

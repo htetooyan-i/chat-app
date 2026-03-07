@@ -4,7 +4,7 @@ import { SettingFilled } from '@ant-design/icons';
 import { ChevronRight, FileText, Paperclip, Send, Sticker, UsersRound, Reply, Ellipsis } from 'lucide-react';
 
 import { Channel } from '@/types/Channel';
-
+import { Server } from '@/types/Server';
 const { Header } = Layout;
 
 type ChatHeaderProps = {
@@ -13,10 +13,7 @@ type ChatHeaderProps = {
     activeTab: "settings" | "files" | "users" | "none";
     setActiveTab: (tab: "settings" | "files" | "users" | "none") => void;
     selectedChannel:  Channel | null;
-    selectedServer: {
-        id: string;
-        name: string;
-    } | null;
+    selectedServer: Server | null;
 }
 function ChatHeader({ setCollapsed, collapsed, selectedChannel, selectedServer, activeTab, setActiveTab }: ChatHeaderProps) {
     return (
@@ -37,22 +34,22 @@ function ChatHeader({ setCollapsed, collapsed, selectedChannel, selectedServer, 
                     </p>
                 </div>
                 <div className='flex-shrink-0 flex justify-between items-center gap-4' style={{paddingLeft: "5px"}}>
-                    <div
-                        onClick={() => {
-                            setActiveTab(activeTab === "settings" ? "none" : "settings");
-                        }}
-                        className={`flex justify-center items-center 
-                            w-[36px] h-[36px] 
-                            rounded-full 
-                            transition-all duration-200 
-                            cursor-pointer
-                            ${activeTab === "settings" ? "bg-accent rotate-180" : "bg-muted-background rotate-0"}
-                        `}
-                    >
-                        <SettingFilled
-                            style={{ fontSize: 18, color: activeTab === "settings" ? "var(--foreground)" : "var(--muted-text)" }}
-                        />
-                    </div>
+                    {/*<div*/}
+                    {/*    onClick={() => {*/}
+                    {/*        setActiveTab(activeTab === "settings" ? "none" : "settings");*/}
+                    {/*    }}*/}
+                    {/*    className={`flex justify-center items-center */}
+                    {/*        w-[36px] h-[36px] */}
+                    {/*        rounded-full */}
+                    {/*        transition-all duration-200 */}
+                    {/*        cursor-pointer*/}
+                    {/*        ${activeTab === "settings" ? "bg-accent rotate-180" : "bg-muted-background rotate-0"}*/}
+                    {/*    `}*/}
+                    {/*>*/}
+                    {/*    <SettingFilled*/}
+                    {/*        style={{ fontSize: 18, color: activeTab === "settings" ? "var(--foreground)" : "var(--muted-text)" }}*/}
+                    {/*    />*/}
+                    {/*</div>*/}
                     <div
                         onClick={() => {
                             setActiveTab(activeTab === "files" ? "none" : "files");

@@ -41,4 +41,9 @@ yarn-error.log*
 next-env.d.ts
 
 # personal images
+/public/profile-img-sec.jpg
 /public/profile-img.jpg
+/public/server-img-sec.jpg
+/public/server-img.jpg
+
+.idea

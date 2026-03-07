@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 
+import { io } from "../server";
+
 import { prisma } from '../lib/prisma';
 import ServerService from "../services/server.service";
 import ServerMemberService from '../services/serverMember.service';
@@ -39,7 +41,8 @@ export async function updateServerName(req: Request, res: Response) {
     }
     try {
         const data = await ServerService.updateServerName(Number(serverId), name, userId);
-        res.status(200).json({ message: 'Server name updated successfully', data });
+        io.to(`server-${serverId}`).emit('serverNameChanged', { serverId: Number(serverId), name: name});
+        res.status(200).json({ message: 'Server name updated successfully'});
     } catch (error: any) {
         console.error('Error updating server name:', error.message);
         res.status(500).json({ message: error.message });

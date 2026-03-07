@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useCallback, useEffect, useState, useRef, useMemo } from "react";   
+import React, { createContext, useCallback, useEffect, useState, useRef, useMemo } from "react";
 import { useParams } from "next/navigation";
 
 import { useSocket } from "@/hooks/useSocket";
@@ -49,7 +49,6 @@ export const ChatUIProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             userId: user.id,
             username: user.username,
         });
-        console.log("Emitted typingStop");
     };
 
     // Debounced auto stop after 10s
@@ -72,7 +71,6 @@ export const ChatUIProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                 userId: user.id,
                 username: user.username,
             });
-            console.log("Emitted typingStart");
         }
 
         debounceStopTyping();
@@ -85,8 +83,7 @@ export const ChatUIProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const handleUserTyping = ({ userId, username }: { userId: string; username: string }) => {
             setTypingUsers(prev => {
                 const alreadyTyping = prev.some(u => u.userId === userId);
-                const updated = alreadyTyping ? prev : [...prev, { userId, username }];
-                return updated;
+                return alreadyTyping ? prev : [...prev, { userId, username }];
             });
         };
 

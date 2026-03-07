@@ -24,7 +24,7 @@ export default function InfoPanel({ type }: { type: Tabs }) {
       {
         type === "users" as Tabs ? 
         (
-          <ServerMemberInfo type={type} />
+          <ServerMemberInfo />
         ) : (
           <div className="flex items-center justify-center h-full">
             <p className="text-muted-text">No { type === "settings" ? "Settings" : type === "files" ? "Files" : "Info" } to show</p>

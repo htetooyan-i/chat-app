@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { Avatar, Divider, Layout } from 'antd';
-import { Copy, Ellipsis, MessageCircleReply, Pencil, Reply, Trash } from 'lucide-react';
+import React, { useState } from 'react';
+import { Avatar, Divider } from 'antd';
+import { Copy, Ellipsis, MessageCircleReply, Pencil, Trash } from 'lucide-react';
+import Linkify from "linkify-react";
 
 import ButtonDropDown, { ButtonDropDownItem } from '../ui/ButtonDropDown';
 import { formatDateTime } from '@/lib/helper';
@@ -17,11 +18,11 @@ type ChatMessageProps = {
 function ChatMessage({ messages, messagesMap }: ChatMessageProps) {
 
     const { deleteMessage } = useMessage();
-    const { setReplyMessage, setEditMessage, editMessage, typingUsers } = useChatUI();
+    const { setReplyMessage, setEditMessage, editMessage } = useChatUI();
     const { user } = useAuth();
 
     // Track which message has dropdown open
-    const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+    const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
 
     // Dropdown menu items for messages
     const items = (message: Message): ButtonDropDownItem[] => {
@@ -92,7 +93,7 @@ function ChatMessage({ messages, messagesMap }: ChatMessageProps) {
                                     <div className="flex items-center gap-2 ms-16 text-muted-text text-sm">
                                         <Avatar 
                                             shape="circle" size={21} 
-                                            src={message.replyToDeleted ? undefined : "/profile-img.jpg"} 
+                                            src={message.replyToDeleted ? undefined : "/profile-img-sec.jpg"} 
                                             icon={message.replyToDeleted ? <Trash size={12} /> : undefined}
                                             style={message.replyToDeleted ? { backgroundColor: "var(--error-background)", color: "var(--error)" } : {}}
                                         />
@@ -109,12 +110,14 @@ function ChatMessage({ messages, messagesMap }: ChatMessageProps) {
                                             )}
                                             {/* Show deleted reply message */}
                                             <p className={`text-sm text-[11px] font-medium cursor-text line-clamp-1 ${message.replyToDeleted ? "text-error" : "text-muted-text"}`}>
-                                                {message.replyToDeleted
-                                                    ? "Original message was deleted"
-                                                    : message.replyTo
-                                                        ? message.replyTo.content
-                                                        : messagesMap?.[message.replyToMessageId!]?.content ?? "Message deleted"
-                                                }
+                                                <Linkify options={{ target: "_blank" }}>
+                                                    {message.replyToDeleted
+                                                        ? "Original message was deleted"
+                                                        : message.replyTo
+                                                            ? message.replyTo.content
+                                                            : messagesMap?.[message.replyToMessageId!]?.content ?? "Message deleted"
+                                                    }
+                                                </Linkify>
                                             </p>
                                         </div>
                                     </div>
@@ -131,12 +134,16 @@ function ChatMessage({ messages, messagesMap }: ChatMessageProps) {
                                                         <span>1</span>
                                                         </div> */}
                                                 </div>
-                                                <p className='text-sm text-[13px] font-medium cursor-text'>{message.content}</p>
+                                                <p className='text-sm text-[13px] font-medium cursor-text'>
+                                                    <Linkify options={{ target: "_blank" }}>
+                                                        {message.content}
+                                                    </Linkify>
+                                                </p>
                                             </div>
                                         </>
                                     ) : (
                                         <>
-                                            <Avatar shape="circle" size={48} src="/profile-img.jpg" className='border-background' />
+                                            <Avatar shape="circle" size={48} src="/profile-img-sec.jpg" className='border-background' />
                                             <div className='flex-1 flex flex-col gap-1'>
                                                 <div className='flex items-center gap-2'>
                                                     <p className='font-semibold'>{message.author?.username}</p>
@@ -145,7 +152,11 @@ function ChatMessage({ messages, messagesMap }: ChatMessageProps) {
                                                         <span>1</span>
                                                         </div> */}
                                                 </div>
-                                                <p className='text-sm text-[13px] font-medium cursor-text'>{message.content}</p>
+                                                <p className='text-sm text-[13px] font-medium cursor-text'>
+                                                    <Linkify options={{ target: "_blank" }}>
+                                                        {message.content}
+                                                    </Linkify>
+                                                </p>
                                             </div>
                                         </>
                                     )
