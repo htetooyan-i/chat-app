@@ -93,7 +93,7 @@ function ChatMessage({ messages, messagesMap }: ChatMessageProps) {
                                     <div className="flex items-center gap-2 ms-16 text-muted-text text-sm">
                                         <Avatar 
                                             shape="circle" size={21} 
-                                            src={message.replyToDeleted ? undefined : "/profile-img-sec.jpg"} 
+                                            src={message.replyToDeleted ? undefined : "/logo.png"}
                                             icon={message.replyToDeleted ? <Trash size={12} /> : undefined}
                                             style={message.replyToDeleted ? { backgroundColor: "var(--error-background)", color: "var(--error)" } : {}}
                                         />
@@ -143,7 +143,7 @@ function ChatMessage({ messages, messagesMap }: ChatMessageProps) {
                                         </>
                                     ) : (
                                         <>
-                                            <Avatar shape="circle" size={48} src="/profile-img-sec.jpg" className='border-background' />
+                                            <Avatar shape="circle" size={48} src="/logo.png" className='border-background' />
                                             <div className='flex-1 flex flex-col gap-1'>
                                                 <div className='flex items-center gap-2'>
                                                     <p className='font-semibold'>{message.author?.username}</p>

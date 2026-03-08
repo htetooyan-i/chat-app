@@ -1,6 +1,5 @@
 "use client";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { X } from 'lucide-react';
 
 import UserGeneralInfo from '@/components/user/UserGeneralInfo';
@@ -14,8 +13,10 @@ import AccountRemoval from '@/components/user/AccountRemoval';
 function page() {
 
     const { showPasswordEditingModal, setShowPasswordEditingModal, showEmailEditingModal, setShowEmailEditingModal, showUsernameEditingModal, setShowUsernameEditingModal } = useUserSettingLayout();
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const searchParams = useSearchParams();
     const from = searchParams.get("from");
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const router = useRouter();
 
     const handleGoBack = () => {

@@ -1,18 +1,18 @@
 import React, { useEffect, useState, type SetStateAction } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { Layout, Modal, ModalProps } from 'antd';
 import { CircleX } from 'lucide-react';
 
-import api from '@/lib/api';
+import BanServerTab from './BanServerTab';
 import DeleteServerTab from '@/components/server/settings/DeleteServerTab';
 import InviteServerTab from './InviteServerTab';
 import ServerMemberTab from './ServerMemberTab';
 import ProfileServerTab from './ProfileServerTab';
+import {getErrorMessage} from '@/lib/api';
 import { useServer } from '@/hooks/useServer';
 import { useNotification } from '@/hooks/useNotification';
+
 import type { Server } from '@/types/Server';
-import BanServerTab from './BanServerTab';
-import { useChannel } from '@/hooks/useChannel';
 
 const { Content, Sider } = Layout;
 
@@ -43,13 +43,13 @@ type ServerSettingsModalProps = {
 
 type SettingsTab = "profile" | "members" | "invites" | "bans" | "delete";
 
-const tabTitles: Record<SettingsTab, string> = {
-  profile: "Server Profile",
-  members: "Members",
-  invites: "Invites",
-  bans: "Member Ban List",
-  delete: "Delete Server",
-};
+// const tabTitles: Record<SettingsTab, string> = {
+//   profile: "Server Profile",
+//   members: "Members",
+//   invites: "Invites",
+//   bans: "Member Ban List",
+//   delete: "Delete Server",
+// };
 
 function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
 
@@ -62,7 +62,7 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
     const { contextHolder, showSuccess, showError } = useNotification();
 
     const [ activeTab, setActiveTab ] = useState<SettingsTab>("profile");
-    const [ hasUnsavedChanges, setHasUnsavedChanges ] = useState(false);
+    const [ hasUnsavedChanges, setHasUnsavedChanges ] = useState<boolean>(false);
     const [ profileForm, setProfileForm ] = useState<Server | null>(null);
     const setProfileFormSafe = (value: SetStateAction<Server>) => {
         setProfileForm(value as SetStateAction<Server | null>);
@@ -70,26 +70,53 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
 
     useEffect(() => {
         if (selectedServer) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setProfileForm(selectedServer);
             setHasUnsavedChanges(false);
         }
     }, [selectedServer]);
 
-    useEffect(() => {
-        if (!show) {
-            setActiveTab("profile");
-            setHasUnsavedChanges(false);
+    const renderTab = () => {
+        switch (activeTab) {
+            case "profile":
+                return profileForm ? (
+                    <ProfileServerTab
+                        hasUnsavedChanges={hasUnsavedChanges}
+                        onDirtyChange={setHasUnsavedChanges}
+                        serverProfile={profileForm}
+                        setServerProfile={setProfileFormSafe}
+                    />
+                ) : null;
+
+            case "members":
+                return <ServerMemberTab />;
+
+            case "invites":
+                return <InviteServerTab />;
+
+            case "bans":
+                return <BanServerTab />;
+
+            case "delete":
+                return (
+                    <DeleteServerTab
+                        serverName={selectedServer?.name || "Server"}
+                        onClose={() => onClose()}
+                    />
+                );
+
+            default:
+                return null;
         }
-    }, [show]);
+    };
 
     const handleSaveProfileChanges = async () => {
         try {
             await updateServer(profileForm!);
             showSuccess("Server profile updated successfully");
             setHasUnsavedChanges(false);
-        } catch (error: any) {
-            console.error("Error saving server profile:", error.message);
-            showError(error.error || "Failed to update server profile.");
+        } catch (error) {
+            showError(getErrorMessage(error, "Failed to update server profile."));
         }
     }
 
@@ -100,8 +127,12 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
             centered
             title={null}
             open={show}
-            onCancel={onClose}
-            width={activeTab === "bans" ? "80%" : "60%"}
+            onCancel={() => {
+                setActiveTab("profile");
+                setHasUnsavedChanges(false);
+                onClose();
+            }}
+            width={activeTab === "profile" ? "60%" : "80%"}
             styles={modalStyles}
             footer={
                 <div className={`absolute bottom-5 right-20 flex justify-between items-center gap-2 px-4 py-2 bg-chat-panel rounded-md w-[75%] shadow-lg shadow-accent/10 transition-all duration-500 ease-in-out ${hasUnsavedChanges ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}>
@@ -109,7 +140,7 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
                         <p className="text-md font-semibold text-foreground">Careful - you have unsaved changes!</p>
                     </div>
                     <div className="flex gap-2">
-                        <button className="bg-muted-background text-error border border-muted-border hover:bg-muted-background/70 px-2 py-1 rounded-lg font-semibold cursor-pointer" onClick={() => { // FIX: This should be changed in future, this works but it's not ideal to reset the form like this
+                        <button className="bg-muted-background text-error border border-muted-border hover:bg-muted-background/70 px-2 py-1 rounded-lg font-semibold cursor-pointer" onClick={() => { // TODO: This should be changed in future, this works but it's not ideal to reset the form like this
                             setHasUnsavedChanges(false);
                             setProfileForm(selectedServer!);
                         }}>Reset</button>
@@ -137,19 +168,19 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
                             </header>
                             {/* Settings List */}
                             <main className='flex flex-col w-full gap-4'>
-                                <div className={`text-[15px] h-[30px] w-full p-2 border-s-3 rounded-r-sm cursor-pointer flex items-center ${activeTab === "profile" ? 'border-accent  bg-chat-panel' : 'border-muted-border'}`} onClick={() => setActiveTab("profile")}>
+                                <div className={`text-[15px] h-7.5 w-full p-2 border-s-3 rounded-r-sm cursor-pointer flex items-center ${activeTab === "profile" ? 'border-accent  bg-chat-panel' : 'border-muted-border'}`} onClick={() => setActiveTab("profile")}>
                                     <p className='capitalize truncate font-semibold'>Profile</p>
                                 </div>
-                                <div className={`text-[15px] h-[30px] w-full p-2 border-s-3 rounded-r-sm cursor-pointer flex items-center ${activeTab === "members" ? 'border-accent  bg-chat-panel' : 'border-muted-border'}`} onClick={() => setActiveTab("members")}>
+                                <div className={`text-[15px] h-7.5 w-full p-2 border-s-3 rounded-r-sm cursor-pointer flex items-center ${activeTab === "members" ? 'border-accent  bg-chat-panel' : 'border-muted-border'}`} onClick={() => setActiveTab("members")}>
                                     <p className='capitalize truncate font-semibold'>Members</p>
                                 </div>
-                                <div className={`text-[15px] h-[30px] w-full p-2 border-s-3 rounded-r-sm cursor-pointer flex items-center ${activeTab === "invites" ? 'border-accent  bg-chat-panel' : 'border-muted-border'}`} onClick={() => setActiveTab("invites")}>
+                                <div className={`text-[15px] h-7.5 w-full p-2 border-s-3 rounded-r-sm cursor-pointer flex items-center ${activeTab === "invites" ? 'border-accent  bg-chat-panel' : 'border-muted-border'}`} onClick={() => setActiveTab("invites")}>
                                     <p className='capitalize truncate font-semibold'>Invites</p>
                                 </div>
-                                <div className={`text-[15px] h-[30px] w-full p-2 border-s-3 rounded-r-sm cursor-pointer flex items-center ${activeTab === "bans" ? 'border-accent  bg-chat-panel' : 'border-muted-border'}`} onClick={() => setActiveTab("bans")}>
+                                <div className={`text-[15px] h-7.5 w-full p-2 border-s-3 rounded-r-sm cursor-pointer flex items-center ${activeTab === "bans" ? 'border-accent  bg-chat-panel' : 'border-muted-border'}`} onClick={() => setActiveTab("bans")}>
                                     <p className='capitalize truncate font-semibold'>Bans</p>
                                 </div>
-                                <div className={`text-[15px] h-[30px] w-full p-2 border-s-3 rounded-r-sm cursor-pointer flex items-center border-error ${activeTab === "delete" ? 'bg-error/20' : 'bg-transparent'}`} onClick={() => setActiveTab("delete")}>
+                                <div className={`text-[15px] h-7.5 w-full p-2 border-s-3 rounded-r-sm cursor-pointer flex items-center border-error ${activeTab === "delete" ? 'bg-error/20' : 'bg-transparent'}`} onClick={() => setActiveTab("delete")}>
                                     <p className='capitalize truncate text-error font-semibold'>Delete Server</p>
                                 </div>
                                                                 
@@ -163,14 +194,9 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
                         paddingInline: "50px",
                         flex: 1,
                     }}>
-                        { activeTab === "profile" && profileForm && <ProfileServerTab hasUnsavedChanges={hasUnsavedChanges} onDirtyChange={setHasUnsavedChanges} serverProfile={profileForm} setServerProfile={setProfileFormSafe} /> }
-                        { activeTab === "members" && <ServerMemberTab /> }
-                        { activeTab === "invites" && <InviteServerTab /> }
-                        { activeTab === "bans" && <BanServerTab /> }
-                        { activeTab === "delete" && <DeleteServerTab serverName={selectedServer?.name || "Server"} onClose={() => onClose()} /> }
+                        {renderTab()}
                     </Content>
                 </Layout>
-
 
             </Modal>
         </div>

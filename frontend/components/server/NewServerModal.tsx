@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Modal, ModalProps } from 'antd';
 
 import CreateServer from './CreateServer';
 import JoinServer from './JoinServer';
 import { useNotification } from '@/hooks/useNotification';
 import { useServer } from '@/hooks/useServer';
-import { useChannel } from '@/hooks/useChannel';
+import {getErrorMessage} from "@/lib/api";
 
 const styles: ModalProps['styles'] = {
     mask: {
@@ -38,12 +37,10 @@ type NewServerModalProps = {
 
 function NewServerModal({ showServerCreationModal, setShowServerCreationModal }: NewServerModalProps) {
 
-    const router = useRouter();
-    const { channelsByServer } = useChannel();
-    const { servers, createServer, joinServer } = useServer();
+    const { createServer, joinServer } = useServer();
 
     const [ isCreating, setIsCreating ] = useState(true);
-    const [ isSuccessed, setIsSuccessed ] = useState(false);
+    const [ isSucceed, setIsSucceed ] = useState(false);
     const [serverName, setServerName] = useState(""); 
     const [inviteCode, setInviteCode] = useState("");
     const { contextHolder, showSuccess, showError } = useNotification();
@@ -52,13 +49,11 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
     const handleCreateNewServer = async () => {
         try {
             const invite = await createServer(serverName);
-            setInviteCode(invite.code);
-
+            setInviteCode(invite);
             showSuccess("Server created successfully!");
-            setIsSuccessed(true);
-        } catch (error: any) {
-            console.error("Error creating server:", error.message);
-            showError(error.response?.data?.message || "Failed to create server.");
+            setIsSucceed(true);
+        } catch (error) {
+            showError(getErrorMessage(error, "Failed to create server"));
         }
     }
 
@@ -78,14 +73,8 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
             setInviteCode("");
             setIsCreating(true);
             setShowServerCreationModal(false);
-        } catch (error: any) {
-            console.error("Error joining server:", error);
-            const message =
-                error.response?.data?.message || 
-                error.message || 
-                "Failed to join server.";
-
-            showError(message);
+        } catch (error) {
+            showError(getErrorMessage(error, "Failed to join server"));
         }
     };
 
@@ -94,12 +83,12 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
             {contextHolder}
             <Modal
             centered
-            title={ isSuccessed ? "Your server is ready!" : "Customize Your Server" }
+            title={ isSucceed ? "Your server is ready!" : "Customize Your Server" }
             open={showServerCreationModal}
             onCancel={() => {
                         setShowServerCreationModal(false);
                         setIsCreating(true);
-                        setIsSuccessed(false);
+                        setIsSucceed(false);
                         setServerName("");
                     }}
             width={"25%"}
@@ -113,13 +102,13 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
                             onClick={() => {
                                 setShowServerCreationModal(false);
                                 setIsCreating(true);
-                                setIsSuccessed(false);
+                                setIsSucceed(false);
                                 setServerName("");
                             }}
                         >
                             Cancel
                         </button>
-                        { !isSuccessed && ( 
+                        { !isSucceed && (
                             <button
                                 className="flex-1 px-4 py-2 bg-accent font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
                                 onClick={handleCreateNewServer}
@@ -135,7 +124,7 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
                             onClick={() => {
                                 setShowServerCreationModal(false);
                                 setIsCreating(true);
-                                setIsSuccessed(false);
+                                setIsSucceed(false);
                                 setInviteCode("");
                             }}
                         >
@@ -153,14 +142,14 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
             >
                 {
                     isCreating ? (
-                        <CreateServer isSuccessed={isSuccessed} serverName={serverName} setServerName={setServerName} inviteCode={inviteCode} />
+                        <CreateServer isSuccessed={isSucceed} serverName={serverName} setServerName={setServerName} inviteCode={inviteCode} />
                     ) : (
                         <JoinServer inviteCode={inviteCode} setInviteCode={setInviteCode} />
                     )   
                 }
 
                 {
-                    !isSuccessed && <button type="button" onClick={() => setIsCreating(prev => !prev)} className="underline text-accent font-[11px] my-2">{ isCreating ? "Already have an invite?" : "Want to create a new server?" }</button>    
+                    !isSucceed && <button type="button" onClick={() => setIsCreating(prev => !prev)} className="underline text-accent font-[11px] my-2">{ isCreating ? "Already have an invite?" : "Want to create a new server?" }</button>
                 }
             </Modal>
         </div>

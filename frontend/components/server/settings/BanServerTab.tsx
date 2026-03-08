@@ -84,8 +84,9 @@ function BanServerTab() {
     const handleDecideAppeal = async (decision: "ACCEPTED" | "REJECTED", duration?: string) => {
         if (!selectedBan) return;
         const banId = selectedBan.id;
+        const bannedUserId = selectedBan.userId;
         try {
-            await decidePendingBan(decision, banId, duration);
+            await decidePendingBan(decision, banId, bannedUserId, duration);
             showSuccess(`Ban appeal ${decision.toLowerCase()} successfully!`);
         } catch (error) {
             console.error("Error deciding appeal:", error);
@@ -152,7 +153,7 @@ function BanServerTab() {
                                         <td className="px-4 py-2 flex items-center gap-2 font-semibold">
                                             <Avatar
                                             size={40}
-                                            src={ban.user.avatar || "/profile-img-sec.jpg"}
+                                            src={ban.user.avatar || "/logo.png"}
                                             className="border-background"
                                             />
                                             <span>{ban.user.username}</span>

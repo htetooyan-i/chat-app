@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import ChannelService from '../services/channel.service';
 import { io } from "../server";
 
-// Controller function to create a new channel for a server (NOTE: Currently everyone can create channels, I will add permissions later)
+// Controller function to create a new channel for a server (FUTURE: Currently everyone can create channels, I will add permissions later)
 export async function createNewChannelForServer(req: Request, res: Response) {
     const { serverId } = req.params;
     const { name } = req.body;

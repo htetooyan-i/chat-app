@@ -72,7 +72,7 @@ function ChatContent({ channel, containerRef, sentinelRef }: ChatContentProps) {
                                 <Avatar shape="circle" size={48} icon={<Signature />} />
                                 <p className='text-foreground text-[28px] font-bold'>Welcome to #{channel?.name || "Channel"}</p>
                                 <p className='text-muted-text text-[14px]'>This is the beginning of the #{channel?.name || "Channel"} channel.</p>
-                                <button onClick={() => setShowEditChannelModal(true)} className="flex gap-2 items-center text-accent bg-accent/10 px-3 py-1 rounded-md text-sm my-2">
+                                <button onClick={() => setShowEditChannelModal(true)} className="flex gap-2 items-center text-accent bg-accent/10 px-3 py-1 rounded-md text-sm my-2 cursor-pointer">
                                     <Pencil size={14}/>
                                     <span>Edit Channel</span>
                                 </button>

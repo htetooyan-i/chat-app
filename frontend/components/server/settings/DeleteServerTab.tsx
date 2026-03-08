@@ -4,6 +4,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useServer } from '@/hooks/useServer';
 import { useChannel } from '@/hooks/useChannel';
 import { useNotification } from '@/hooks/useNotification';
+import {getErrorMessage} from "@/lib/api";
 
 type DeleteServerTabProps = {
     serverName: string;
@@ -42,9 +43,8 @@ function DeleteServerTab({ serverName, onClose }: DeleteServerTabProps) {
 
             showSuccess("Server deleted successfully");
             onClose();
-        } catch (error: any) {
-            console.error("Error deleting server:", error.message);
-            showError(error.error || "Failed to delete server.");
+        } catch (error) {
+            showError(getErrorMessage(error, "Failed to delete server."));
         }
     };
     return (

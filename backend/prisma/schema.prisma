@@ -47,129 +47,141 @@ datasource db {
 }
 
 model User {
-  id              Int     @id @default(autoincrement())
-  email           String  @unique
-  username        String @unique
-  passwordHash    String
-  avatarUrl       String?
-  bio             String?
-  verified        Boolean @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String
+  avatarUrl    String?
+  bio          String?
+  verified     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  tokens          UserToken[] 
-  memberships     ServerMember[]
-  ownedServers    Server[] @relation("ServerOwner")
-  createdInvites  ServerInvite[] 
-  bans            Ban[]
-  messages        Message[]
+  tokens         UserToken[]
+  memberships    ServerMember[]
+  ownedServers   Server[]       @relation("ServerOwner")
+  createdInvites ServerInvite[]
+  bans           Ban[]
+  messages       Message[]
+  reactions      Reaction[]
 }
 
 model UserToken {
-  id        Int       @id @default(autoincrement())
+  id        Int             @id @default(autoincrement())
   userId    Int
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   token     String
   type      VerifyTokenType
   expiresAt DateTime
-  used      Boolean   @default(false)
-  createdAt DateTime  @default(now())
+  used      Boolean         @default(false)
+  createdAt DateTime        @default(now())
 }
 
 model Server {
-  id          Int      @id @default(autoincrement())
-  name        String
-  ownerId     Int
-  createdAt   DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  name      String
+  ownerId   Int
+  createdAt DateTime @default(now())
 
-  owner       User @relation("ServerOwner", fields: [ownerId], references: [id])
-  members     ServerMember[]
-  channels    Channel[]
-  invites     ServerInvite[]
-  bans        Ban[]
+  owner    User           @relation("ServerOwner", fields: [ownerId], references: [id])
+  members  ServerMember[]
+  channels Channel[]
+  invites  ServerInvite[]
+  bans     Ban[]
 }
 
 model Ban {
-  id            Int      @id @default(autoincrement())
-  serverId      Int
-  userId        Int
-  bannedByRole  MemberRole // FUTURE: Want to use id but if, id is used need to fetch servermember to get role
-  reason        String?
-  expiresAt     DateTime?
-  createdAt     DateTime @default(now())
-  revokedAt     DateTime?
-  appealStatus  BanAppealStatus
+  id           Int             @id @default(autoincrement())
+  serverId     Int
+  userId       Int
+  bannedByRole MemberRole // FUTURE: Want to use id but if, id is used need to fetch servermember to get role
+  reason       String?
+  expiresAt    DateTime?
+  createdAt    DateTime        @default(now())
+  revokedAt    DateTime?
+  appealStatus BanAppealStatus
 
-  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  server      Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
-
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  server Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
 }
 
 model ServerMember {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  serverId  Int
-  role      MemberRole   @default(MEMBER) // admin | moderator | member
-  joinedAt  DateTime @default(now())
+  id       Int        @id @default(autoincrement())
+  userId   Int
+  serverId Int
+  role     MemberRole @default(MEMBER) // admin | moderator | member
+  joinedAt DateTime   @default(now())
 
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  server    Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  server Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
 
   @@unique([userId, serverId])
 }
 
 model Channel {
-  id        Int      @id @default(autoincrement())
+  id        Int         @id @default(autoincrement())
   name      String
   serverId  Int
-  type ChannelType
-  createdAt DateTime @default(now())
+  type      ChannelType
+  createdAt DateTime    @default(now())
 
-  server    Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
-  messages   Message[]
+  server   Server    @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  messages Message[]
 
   @@unique([serverId, name])
 }
 
 model ServerInvite {
-  id           Int       @id @default(autoincrement())
-  code         String    @unique
-  serverId     Int
-  maxUses      Int?
-  currentUses  Int       @default(0)
-  expiresAt    DateTime?
-  createdById  Int
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id          Int       @id @default(autoincrement())
+  code        String    @unique
+  serverId    Int
+  maxUses     Int?
+  currentUses Int       @default(0)
+  expiresAt   DateTime?
+  createdById Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  server       Server    @relation(fields: [serverId], references: [id], onDelete: Cascade)
-  createdBy    User      @relation(fields: [createdById], references: [id])
+  server    Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  createdBy User   @relation(fields: [createdById], references: [id])
 }
 
 model Message {
-  id                Int @id @default(autoincrement())
-  channelId         Int
-  authorId          Int
-  replyToMessageId  Int?
-  content           String?
-  createdAt         DateTime @default(now())
-  editedAt          DateTime?
-  replyToDeleted    Boolean  @default(false)
-  clientMsgId       String? @unique 
+  id               Int       @id @default(autoincrement())
+  channelId        Int
+  authorId         Int
+  replyToMessageId Int?
+  content          String?
+  createdAt        DateTime  @default(now())
+  editedAt         DateTime?
+  replyToDeleted   Boolean   @default(false)
+  clientMsgId      String?   @unique
 
-  channel           Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
-  author            User @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  replyTo          Message?  @relation("MessageReplies", fields: [replyToMessageId], references: [id], onDelete: SetNull)
-  replies          Message[] @relation("MessageReplies")
-  attachments      Attachment[]
+  channel     Channel      @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  author      User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  replyTo     Message?     @relation("MessageReplies", fields: [replyToMessageId], references: [id], onDelete: SetNull)
+  replies     Message[]    @relation("MessageReplies")
+  attachments Attachment[]
+  reactions   Reaction[]
 }
 
 model Attachment {
-  id         Int            @id @default(autoincrement())
-  messageId  Int
-  type       AttachmentType
-  url        String
-  message    Message        @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  id        Int            @id @default(autoincrement())
+  messageId Int
+  type      AttachmentType
+  url       String
+  message   Message        @relation(fields: [messageId], references: [id], onDelete: Cascade)
 }
 
+model Reaction {
+  id        Int      @id @default(autoincrement())
+  messageId Int
+  userId    Int
+  emoji     String   @db.VarChar(20)
+  createdAt DateTime @default(now())
 
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+}

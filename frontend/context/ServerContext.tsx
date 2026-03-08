@@ -12,11 +12,11 @@ type ServerContextType = {
   servers: Server[];
   loading: boolean;
   refreshServers: () => Promise<Server[]>;
-  createServer: (serverName: string) => Promise<ServerInvite>;
+  createServer: (serverName: string) => Promise<string>;
   joinServer: (inviteCode: string) => Promise<void>;
   updateServer: (data: Partial<Server>) => Promise<void>;
   deleteServer: () => Promise<void>;
-  leaveServer: () => Promise<void>;
+  leaveServer: (selectedServerId: number) => Promise<void>;
 };
 
 export const ServerContext = createContext<ServerContextType | undefined>(undefined);
@@ -73,12 +73,12 @@ export const ServerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const refreshServers = async () => await fetchServers();
 
-  const createServer = async (serverName: string): Promise<ServerInvite> => {
+  const createServer = async (serverName: string): Promise<string> => {
     const res = await api.post('/servers', { name: serverName });
     const inviteRes = await api.post(`/servers/${res.data.server.id}/invites`);
     setServers(prev => [...prev, res.data.server]);
     await refreshServers();
-
+    console.log("INVITE DATA: ", inviteRes.data);
     return inviteRes.data.code;
   }
 
@@ -100,9 +100,9 @@ export const ServerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     await refreshServers(); // sync with backend in background
   };
 
-  const leaveServer = async () => {
-    await api.delete(`/servers/${serverId}/leave`);
-    setServers(prev => prev.filter(s => s.id !== serverId))
+  const leaveServer = async (selectedServerId: number) => {
+    await api.delete(`/servers/${selectedServerId}/leave`);
+    setServers(prev => prev.filter(s => s.id !== selectedServerId))
     await refreshServers();
   };
 

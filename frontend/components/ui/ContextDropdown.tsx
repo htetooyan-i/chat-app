@@ -10,13 +10,14 @@ export type ContextDropdownItem = {
   onClick: () => void;
   type: 'normal' | 'danger' | 'divider';
   icon?: React.ReactNode;
-  meta?: { [key: string]: any };
+  meta?: { [key: string]: unknown };
 }
 
 type ContextDropdownComponentProps = {
   items: ContextDropdownItem[];
   children: React.ReactNode;
   horizontal?: boolean;
+
 }
 
 function ContextDropdownComponent({ children, items, horizontal = false }: ContextDropdownComponentProps) {
@@ -104,9 +105,10 @@ function ContextDropdownComponent({ children, items, horizontal = false }: Conte
                   return (
                     <MenuItem
                       key={index}
-                      onClick={() => {
-                        item.onClick();
-                        handleClose();
+                      onClick={(e) => {
+                          if (item.meta?.disallowSelect) e.stopPropagation();
+                          item.onClick();
+                          handleClose();
                       }}
                       sx={{
                         color: item.type === "danger" ? "var(--error)" : "inherit",

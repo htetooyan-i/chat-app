@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import api from "@/lib/api";
 import { useSocket } from '@/hooks/useSocket';
 import { MemberRole, ServerMember } from "@/types/ServerMember";
+import {useAuth} from "@/hooks/useAuth";
 
 type ServerMemberContextType = {
 
@@ -30,20 +31,13 @@ export const ServerMemberProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     const { socket } = useSocket();
 
-    const [ me , setMe ] = useState<ServerMember | null>(null);
     const [ members, setMembers ] = useState<ServerMember[]>([]);
+
+    const { user } = useAuth();
+    const me = members.find(m => m.userId === user?.id) ?? null;
+
     const [ selectedUserId, setSelectedUserId ] = useState<number | null>(null); // for doing actions on a specific member (kick/ban/promote/demote)
     const [ loading, setLoading ] = useState(false);
-
-    const fetchMe = useCallback(async () => {
-        if (!serverId) return;
-        try {
-            const res = await api.get(`/servers/${serverId}/members/@me`);
-            setMe(res.data.member);
-        } catch (error) {
-            console.error("Error fetching me:", error);
-        }
-    }, [serverId]);
 
     const fetchMembers = useCallback(async () => {
         if (!serverId) return;
@@ -57,55 +51,6 @@ export const ServerMemberProvider: React.FC<{ children: React.ReactNode }> = ({ 
             setLoading(false);
         }
     }, [serverId]);
-
-    useEffect(() => {
-        if (!serverId || !socket) return;
-
-        const handleRemoveUser = (userId: number)=> {
-            setMembers(prev => prev.filter(member => member.userId !== userId))
-        }
-
-        const handleChangedRole = (data: { userId: number; newRole: MemberRole }) => {
-            setMembers(prev => prev.map(member => member.userId === data.userId ? { ...member, role: data.newRole } : member));
-        }
-
-        const handleReceivedNewMember = (member: ServerMember) => {
-            setMembers(prev => [...prev, member]);
-        }
-
-        const handleMemberUpdated = (updatedUser: {userId: number, username: string}) => {
-            setMembers(prev =>
-                prev.map(member =>
-                    member.userId === updatedUser.userId
-                        ?
-                        {
-                            ...member,
-                            user: {
-                                ...member.user,
-                                username: updatedUser.username,
-                            }
-                        }
-                        : member
-                )
-            );
-        };
-
-        socket.on("receivedUpdatedMember", handleMemberUpdated);
-        socket.on("banned", handleRemoveUser);
-        socket.on("memberLeft", handleRemoveUser);
-        socket.on("changedMemberRole", handleChangedRole);
-        socket.on("receivedNewMember", handleReceivedNewMember);
-
-        Promise.all([fetchMembers(), fetchMe()]);
-
-        return () => {
-            socket.off("receivedMemberRole");
-            socket.off("banned");
-            socket.off("memberLeft");
-            socket.off("changedMemberRole");
-            socket.off("receivedNewMember");
-        }
-    }, [fetchMembers, fetchMe, socket]);
 
     const refreshMembers = useCallback(() => fetchMembers(), [fetchMembers]);
 
@@ -146,6 +91,57 @@ export const ServerMemberProvider: React.FC<{ children: React.ReactNode }> = ({ 
             throw error;
         }
     };
+
+    // ** MEMBER SOCKET LOGICS
+    useEffect(() => {
+        if (!serverId || !socket) return;
+
+        const handleRemoveUser = (userId: number)=> {
+            setMembers(prev => prev.filter(member => member.userId !== userId))
+        }
+
+        // FIXME: if user have an authorize role but if they changed to unauthorize role while they are in setting view that view should close immediately with notification.
+        const handleChangedRole = (data: { userId: number; newRole: MemberRole }) => {
+            setMembers(prev => prev.map(member => member.userId === data.userId ? { ...member, role: data.newRole } : member));
+        }
+
+        const handleReceivedNewMember = (member: ServerMember) => {
+            setMembers(prev => [...prev, member]);
+        }
+
+        const handleMemberUpdated = (updatedUser: {userId: number, username: string}) => {
+            setMembers(prev =>
+                prev.map(member =>
+                    member.userId === updatedUser.userId
+                        ?
+                        {
+                            ...member,
+                            user: {
+                                ...member.user,
+                                username: updatedUser.username,
+                            }
+                        }
+                        : member
+                )
+            );
+        };
+
+        socket.on("receivedUpdatedMember", handleMemberUpdated);
+        socket.on("memberBanned", handleRemoveUser);
+        socket.on("memberLeft", handleRemoveUser);
+        socket.on("changedMemberRole", handleChangedRole);
+        socket.on("receivedNewMember", handleReceivedNewMember);
+
+        fetchMembers();
+
+        return () => {
+            socket.off("receivedMemberRole");
+            socket.off("memberBanned");
+            socket.off("memberLeft");
+            socket.off("changedMemberRole");
+            socket.off("receivedNewMember");
+        }
+    }, [fetchMembers, socket]);
 
   return (
     <ServerMemberContext.Provider value={{ 

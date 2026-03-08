@@ -19,11 +19,13 @@ export async function handleBanRequest(req: Request, res: Response) {
             requester.role === MemberRole.MODERATOR;
             
         if (isPrivileged) {
-            await BanService.banUser(Number(serverId), Number(userId), requester.role, reason, duration);
-            io.to(`serverId-${serverId}`).emit("banned", userId);
+            const ban = await BanService.banUser(Number(serverId), Number(userId), requester.role, reason, duration);
+            io.to(`server-${serverId}`).emit("memberBanned", userId);
+            io.to(`server-${serverId}`).emit("receivedNewBan", ban);
             return res.status(200).json({ message: "User banned successfully" });
         } else {
-            await BanService.requestBanUser(Number(serverId), Number(userId), requester.role, reason, duration);
+            const ban = await BanService.requestBanUser(Number(serverId), Number(userId), requester.role, reason, duration);
+            io.to(`server-${serverId}`).emit("receivedNewBan", ban);
             return res.status(200).json({ message: "Ban request submitted for review" });
         }
     } catch (error: any) {
@@ -43,7 +45,7 @@ export async function GetBansForServer(req: Request, res: Response) {
 }
 
 export async function ReviewBanAppeal(req: Request, res: Response) {
-    const { banId } = req.params;
+    const { serverId, banId } = req.params;
     const { decision } = req.body;
     const { duration } = req.body || {}; // Optional duration for ACCEPTED decisions
     const reviewerId = req.user?.userId;
@@ -67,7 +69,8 @@ export async function ReviewBanAppeal(req: Request, res: Response) {
     }
 
     try {
-        await BanService.reviewBanRequest(parsedBanId, reviewerId, decision, duration);
+        const updatedBan = await BanService.reviewBanRequest(parsedBanId, reviewerId, decision, duration);
+        io.to(`server-${serverId}`).emit("banUpdated", {banId: parsedBanId, decision, bannedUserId: updatedBan.userId});
         return res.status(200).json({ message: "Ban appeal reviewed successfully" });
     } catch (error: any) {
         return res.status(500).json({ error: error.message || "Failed to review ban appeal" });
@@ -75,7 +78,7 @@ export async function ReviewBanAppeal(req: Request, res: Response) {
 }
 
 export async function RevokeBan(req: Request, res: Response) {
-    const { banId } = req.params;
+    const { serverId, banId } = req.params;
     const requesterId = req.user?.userId;
 
     if (!requesterId) {
@@ -90,6 +93,7 @@ export async function RevokeBan(req: Request, res: Response) {
 
     try {
         await BanService.revokeBan(parsedBanId);
+        io.to(`server-${serverId}`).emit("banUpdated", {banId: parsedBanId, decision: "REVOKED" });
         return res.status(200).json({ message: "Ban revoked successfully" });
     } catch (error: any) {
         return res.status(500).json({ error: error.message || "Failed to revoke ban" });
@@ -97,7 +101,7 @@ export async function RevokeBan(req: Request, res: Response) {
 }
 
 export async function DeleteBan(req: Request, res: Response) {
-    const { banId } = req.params;
+    const { serverId, banId } = req.params;
     const requesterId = req.user?.userId;
 
     if (!requesterId) {
@@ -112,6 +116,7 @@ export async function DeleteBan(req: Request, res: Response) {
 
     try {
         await BanService.delete(parsedBanId);
+        io.to(`server-${serverId}`).emit("banDeleted", {banId: parsedBanId});
         return res.status(200).json({ message: "Ban deleted successfully" });
     } catch (error: any) {
         return res.status(500).json({ error: error.message || "Failed to delete ban" });

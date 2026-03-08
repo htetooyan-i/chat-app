@@ -86,7 +86,7 @@ function ServerMemberInfo() {
                                     <Avatar
                                         shape="circle"
                                         size={32}
-                                        src="/profile-img-sec.jpg"
+                                        src="/logo.png"
                                     />
                                     </Badge>
 

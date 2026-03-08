@@ -49,28 +49,29 @@ function ProfileServerTab({ hasUnsavedChanges, onDirtyChange, serverProfile, set
                     {/* Divider */}
                     <div className="w-full h-px bg-muted-border my-4" />
 
+                    {/* FUTURE: Need to add more fields in server database */}
                     {/* Server Description */}
-                    <div className='flex flex-col gap-2 w-full'>
-                        <label htmlFor="server-name" className="text-[14px] font-semibold text-foreground">Description</label>
-                        <Textarea 
-                        placeholder="Write a description for your server..." 
-                        minRows={4}
-                        sx={{
-                            '--Textarea-focusedThickness': '0',
-                            backgroundColor: "var(--chat-panel)",
-                            border: "1px solid var(--muted-border)",
-                            color: "var(--foreground)",
-                            fontSize: "12px",
-                            '&:focus-within': {
-                                borderColor: 'var(--accent)',
-                            },
-                        }}
-                        
-                        />
-                    </div>
+                    {/*<div className='flex flex-col gap-2 w-full'>*/}
+                    {/*    <label htmlFor="server-name" className="text-[14px] font-semibold text-foreground">Description</label>*/}
+                    {/*    <Textarea */}
+                    {/*    placeholder="Write a description for your server..." */}
+                    {/*    minRows={4}*/}
+                    {/*    sx={{*/}
+                    {/*        '--Textarea-focusedThickness': '0',*/}
+                    {/*        backgroundColor: "var(--chat-panel)",*/}
+                    {/*        border: "1px solid var(--muted-border)",*/}
+                    {/*        color: "var(--foreground)",*/}
+                    {/*        fontSize: "12px",*/}
+                    {/*        '&:focus-within': {*/}
+                    {/*            borderColor: 'var(--accent)',*/}
+                    {/*        },*/}
+                    {/*    }}*/}
+                    {/*    */}
+                    {/*    />*/}
+                    {/*</div>*/}
 
                     {/* Divider */}
-                    <div className="w-full h-px bg-muted-border my-4" />
+                    {/*<div className="w-full h-px bg-muted-border my-4" />*/}
 
                     {/* Server Icon */}
                     <div className='flex flex-col gap-6 w-full'>
@@ -97,7 +98,7 @@ function ProfileServerTab({ hasUnsavedChanges, onDirtyChange, serverProfile, set
                     {/* Banner */}
                     <div className="relative h-24 w-full">
                         <Image
-                        src="/server-img-sec.jpg"
+                        src="/server-img-default.png"
                         alt="Server Icon"
                         fill
                         className="object-cover"
@@ -105,7 +106,7 @@ function ProfileServerTab({ hasUnsavedChanges, onDirtyChange, serverProfile, set
                         {/* Avatar */}
                         <Avatar
                         size={64}
-                        src="/profile-img-sec.jpg"
+                        src="/logo.png"
                         className="absolute -bottom-16 left-4 border-4 border-background"
                         />
                     </div>

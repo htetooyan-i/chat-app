@@ -65,7 +65,7 @@ class BanService {
                 ? new Date(Date.now() + duration * 24 * 60 * 60 * 1000)
                 : null;
 
-            await prisma.$transaction([
+            const [newBan] = await prisma.$transaction([
                 prisma.ban.create({
                     data: {
                         serverId,
@@ -75,6 +75,15 @@ class BanService {
                         reason: reason || null,
                         expiresAt,
                     },
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                username: true,
+                                avatarUrl: true,
+                            }
+                        }
+                    }
                 }),
                 
                 prisma.ban.updateMany({
@@ -90,6 +99,8 @@ class BanService {
                     where: { userId_serverId: { userId, serverId } },
                 }),
             ]);
+
+            return newBan;
         } catch (error: any) {
             throw error;
         }
@@ -131,7 +142,7 @@ class BanService {
                 : null;
 
             // Always create a new request, never update existing
-            await prisma.ban.create({
+            return await prisma.ban.create({
                 data: {
                     serverId,
                     userId,
@@ -140,6 +151,15 @@ class BanService {
                     reason: reason || null,
                     expiresAt,
                 },
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            username: true,
+                            avatarUrl: true,
+                        }
+                    }
+                }
             });
         } catch (error: any) {
             throw error;
@@ -173,7 +193,7 @@ class BanService {
                     throw new Error("User is already banned, request has been superseded");
                 }
 
-                await prisma.$transaction([
+                const [updatedBan] = await prisma.$transaction([
                     // Accept the reviewed ban
                     prisma.ban.update({
                         where: { id: banId },
@@ -200,12 +220,14 @@ class BanService {
                         },
                     }),
                 ]);
+                return updatedBan;
             } else {
                 // Just reject this one request
-                await prisma.ban.update({
+                return await prisma.ban.update({
                     where: { id: banId },
                     data: { appealStatus: "REJECTED" },
                 });
+
             }
         } catch (error: any) {
             throw error;

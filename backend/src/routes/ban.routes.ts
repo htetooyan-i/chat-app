@@ -3,8 +3,7 @@ import express from 'express';
 import { authMiddleware } from '../middleware/auth';
 import { requireServerRole } from '../middleware/requireServerRole';
 import { MemberRole } from '../../generated/prisma/enums';
-import { 
-    RequestBanUser,
+import {
     ReviewBanAppeal, 
     GetBansForServer, 
     handleBanRequest,

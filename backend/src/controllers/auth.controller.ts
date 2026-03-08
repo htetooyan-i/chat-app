@@ -230,7 +230,8 @@ export async function RequestPasswordReset(req: Request, res: Response) {
         res.status(500).json({ error: "Failed to send password reset email" });
     }
 }
-// NOTE: This endpoint is not used in the current flow because we only verify the password reset token when the submit the form to reset password, but we could use this endpoint when we want to verify the token first before showing the reset password form to the user
+
+// FUTURE: This endpoint is not used in the current flow because we only verify the password reset token when the submit the form to reset password, but we could use this endpoint when we want to verify the token first before showing the reset password form to the user
 export async function VerifyResetToken(req: Request, res: Response) {
     const token = req.query.token;
     if (typeof token !== "string") {

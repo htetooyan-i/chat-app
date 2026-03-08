@@ -1,4 +1,4 @@
-// NOTE: Currently the invite code is stored in plaintext in the database for simplicity, but in a production app it should be hashed before storing and then the raw code should only be returned once upon creation. I will implement this later.
+// FIXME: Currently the invite code is stored in plaintext in the database for simplicity, but in a production app it should be hashed before storing and then the raw code should only be returned once upon creation. I will implement this later.
 
 import crypto from 'crypto';
 
@@ -81,7 +81,7 @@ class ServerInvitesService {
 
     static async incrementInviteUsage(inviteId: number) {
         try {
-            await prisma.serverInvite.update({
+            return await prisma.serverInvite.update({
                 where: { id: inviteId },
                 data: { currentUses: { increment: 1 } },
             });

@@ -25,11 +25,13 @@ function UserGeneralInfo() {
 
     return (
         <div className="flex flex-col items-center gap-4 mx-auto bg-sidebar mt-10 p-5 rounded-lg">
+
+            {/* Profile Img */}
             <div className='flex justify-start items-center py-4 gap-4 w-full'>
                 <div className="relative group cursor-pointer">
                     <Avatar shape="circle" size={86}>
                         <Image
-                        src="/profile-img-sec.jpg"
+                        src="/logo.png"
                         alt="avatar"
                         width={86}
                         height={86}
@@ -55,17 +57,18 @@ function UserGeneralInfo() {
                 <p className="text-lg font-semibold">{user?.username}</p>
             </div>
             <div className='flex flex-col gap-4 bg-muted-background p-4 rounded-lg w-full'>
-                {/* <UserSettingsEditInput 
-                    label="Username"
-                    value={user?.username || ""}
-                    changeValue={handleChangeUsername}
-                />
-                <UserSettingsEditInput 
-                    label="Email"
-                    value={user?.email || ""}
-                    changeValue={handleChangeEmail}
-                /> */}
+                {/*<UserSettingsEditInput */}
+                {/*    label="Username"*/}
+                {/*    value={user?.username || ""}*/}
+                {/*    changeValue={handleChangeUsername}*/}
+                {/*/>*/}
+                {/*<UserSettingsEditInput */}
+                {/*    label="Email"*/}
+                {/*    value={user?.email || ""}*/}
+                {/*    changeValue={handleChangeEmail}*/}
+                {/*/> */}
 
+                {/* Username */}
                 <div className='flex justify-between items-start gap-4'>
                     <div className='relative flex-1 flex flex-col gap-1'>
                         <p className='font-bold text-[14px]'>Username</p>
@@ -81,6 +84,7 @@ function UserGeneralInfo() {
                     </div>
                 </div>
 
+                {/* Email */}
                 <div className='flex justify-between items-start gap-4'>
                     <div className='relative flex-1 flex flex-col gap-1'>
                         <p className='font-bold text-[14px]'>Email</p>
@@ -96,10 +100,10 @@ function UserGeneralInfo() {
                     </div>
                 </div>
 
-                {/* Placeholder for future phone number field */}
+                {/* FUTURE: phone number for verify account */}
                 <div className='flex justify-between items-start'>
                     <div className='flex flex-col gap-1'>
-                        <p className='font-bold text-[13px]'>Phone Number <span className='text-error'>[/* You can't add phone number for now */]</span></p>
+                        <p className='font-bold text-[13px]'>Phone Number <span className='text-error'>[/* You can&#39;t add phone number for now */]</span></p>
                         <p className='font-medium text-[12px]'>******093 </p>
                     </div>
                     <div>

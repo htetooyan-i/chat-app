@@ -51,10 +51,10 @@ function InviteServerTab() {
                 </div>
             </div>
             {/* Members List Table */}
-            <div className='mt-10 py-2 w-full rounded-lg bg-muted-background overflow-y-auto flex-1 min-h-0'>
+            <div className='mt-10 pb-2 w-full rounded-lg bg-muted-background overflow-y-auto flex-1 min-h-0'>
                 {/* Members Table */}
                 <table className="w-full text-left">
-                    <thead className='sticky top-0 bg-muted-background z-10 w-full'>
+                    <thead className='sticky top-0 bg-muted-background z-10 w-full pt-2'>
                         <tr>
                             <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Inviter</th>
                             <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Invite Code</th>
@@ -83,7 +83,7 @@ function InviteServerTab() {
                                         <td className="px-4 py-2 flex items-center gap-2 font-semibold">
                                             <Avatar
                                             size={40}
-                                            src="/profile-img-sec.jpg"
+                                            src="/logo.png"
                                             className="border-background"
                                             />
                                             <span>{invite.createdBy?.username || 'Unknown User'}</span>
@@ -91,7 +91,7 @@ function InviteServerTab() {
                                         <td className="px-4 py-2 font-semibold">{invite.code}</td>
                                         <td className="px-4 py-2 font-semibold">{invite.currentUses}</td>
                                         <td className="px-4 py-2 font-semibold">{invite.maxUses ?? 'Unlimited'}</td>
-                                        <td className="px-4 py-2 font-semibold">{invite.expiresAt === null ? 'Never' : formatDate(invite.expiresAt)}</td>
+                                        <td className="px-4 py-2 font-semibold">{invite.expiresAt === null ? 'Never' : formatDate(invite.expiresAt, true)}</td>
                                         <td className='px-4 py-2'>
                                             <ButtonDropDown items={moreOptionItems(invite.id)} removeStyles><Ellipsis /></ButtonDropDown>
                                         </td>
