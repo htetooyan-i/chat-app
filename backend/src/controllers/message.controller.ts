@@ -1,4 +1,6 @@
 import { Request, Response } from "express";
+import { v2 as cloudinary } from "cloudinary";
+
 import MessageService from "../services/message.service";
 import { io } from "../server";
 
@@ -16,18 +18,26 @@ export async function GetMessagesForChannel(req: Request, res: Response) {
 export async function CreateMessage(req: Request, res: Response) {
     const { channelId } = req.params;
     const userId = req.user?.userId;
-    const { content, replyToMessageId } = req.body;
+    const { content, replyToMessageId, clientMsgId, attachments } = req.body;
 
     if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
     try {
-        const message = await MessageService.createMessage(Number(channelId), userId, content, Number(replyToMessageId));
+        const message = await MessageService.createMessage(
+            Number(channelId),
+            userId,
+            content,
+            replyToMessageId,
+            clientMsgId,
+            attachments,
+        );
+        io.to(`channel-${channelId}`).emit("newMessage", message);
         res.status(201).json(message);
     } catch (error: any) {
         console.error("Error creating message:", error.message);
-        res.status(400).json({ error: error.message }); 
+        res.status(400).json({ error: error.message });
     }
 }
 
@@ -67,6 +77,16 @@ export async function DeleteMessage(req: Request, res: Response) {
         console.error("Error deleting message:", error.message);
         res.status(400).json({ error: error.message }); 
     }
+}
+
+export async function SignUpload(req: Request, res: Response) {
+    const timestamp = Math.round(Date.now() / 1000);
+    const signature = cloudinary.utils.api_sign_request(
+        { timestamp, folder: 'chat-media' },
+        // @ts-ignore
+        process.env.CLOUDINARY_API_SECRET
+    );
+    res.json({ timestamp, signature });
 }
 
 

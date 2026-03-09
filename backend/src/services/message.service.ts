@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma";
+import { AttachmentType } from "../../generated/prisma/enums"
 
 class MessageService {
 
@@ -33,10 +34,30 @@ class MessageService {
                                 }
                             }
                         }
-                    }
+                    },
+                    reactions: {
+                        select: {
+                            userId: true,
+                            emoji: true
+                        }
+                    },
+                    attachments: true
                 }
             });
-            return messages;
+
+            // group reactions by emoji
+            return messages.map(msg => ({
+                ...msg,
+                reactions: Object.values(
+                    msg.reactions.reduce((acc, { emoji, userId }) => {
+                        acc[emoji] ??= { emoji, count: 0, userIds: [] };
+                        acc[emoji].count++;
+                        acc[emoji].userIds.push(userId);
+                        return acc;
+                    }, {} as Record<string, { emoji: string; count: number; userIds: number[] }>)
+                )
+            }));
+
         } catch (error: any) {
             console.error("Error fetching messages:", error.message);
             throw new Error(error.message);
@@ -82,7 +103,8 @@ class MessageService {
         authorId: number,
         content: string,
         replyToMessageId?: number,
-        clientMsgId?: string
+        clientMsgId?: string,
+        attachments?: {publicId: string, url: string, type: string}[]
     ) {
         try {
 
@@ -103,26 +125,39 @@ class MessageService {
             if (!channel) throw new Error('Channel not found');
             if (!channel.server.members.length) throw new Error('Not a member of this server');
 
-            const message = await prisma.message.create({
-                data: {
-                    channelId,
-                    authorId,
-                    content,
-                    replyToMessageId: replyToMessageId || null,
-                    clientMsgId: clientMsgId || null,
-                },
-                include: {
-                    author: {
-                        select: {
-                            id: true,
-                            username: true,
-                            avatarUrl: true
-                        }
+
+            return await prisma.$transaction(async (tx) => {
+                const message = await tx.message.create({
+                    data: {
+                        channelId,
+                        authorId,
+                        content,
+                        replyToMessageId: replyToMessageId || null,
+                        clientMsgId: clientMsgId || null,
                     },
+                });
+
+                if (attachments && attachments?.length > 0) {
+                    await tx.attachment.createMany({
+                        data: attachments.map((a: any) => ({
+                            messageId: message.id,
+                            publicId: a.publicId,
+                            url: a.url,
+                            type: a.type.toUpperCase() as AttachmentType,
+                        })),
+                    });
                 }
+
+                return tx.message.findUnique({
+                    where: { id: message.id },
+                    include: {
+                        attachments: true,
+                        author: true,
+                        replyTo: true,
+                    },
+                });
             });
 
-            return message;
         } catch (error: any) {
             console.error("Error creating message:", error.message);
             throw new Error(error.message);

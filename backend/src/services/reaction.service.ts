@@ -2,24 +2,37 @@ import { prisma } from '../lib/prisma';
 
 class ReactionService {
     static async create(messageId: number, emoji: string, userId: number)  {
-        return await prisma.reaction.create({
+        return prisma.reaction.create({
             data: {
                 messageId,
                 emoji,
                 userId,
             }
-        })
+        });
     }
 
-    static async getReactionsForMessage(messageId: number) {
-        return await prisma.reaction.findMany({
+    static async getExistingReaction(emoji: string, userId: number, messageId: number)  {
+        return prisma.reaction.findUnique({
             where: {
-                messageId,
+                // @ts-ignore
+                messageId_userId_emoji: {
+                    messageId,
+                    userId,
+                    emoji,
+                }
             }
         })
     }
 
-     static async deleteReaction(reactionId: number, userId: number) {
+    static async getReactionsForMessage(messageId: number) {
+        return prisma.reaction.findMany({
+            where: {
+                messageId,
+            }
+        });
+    }
+
+    static async deleteReaction(reactionId: number, userId: number) {
         const reaction = await prisma.reaction.findUnique({
             where: {
                 id: reactionId,
@@ -34,12 +47,13 @@ class ReactionService {
             throw new Error("Unauthorized");
         }
 
-        return await prisma.reaction.delete({
+        return prisma.reaction.delete({
             where: {
                 id: reactionId,
             }
         });
     }
+
 }
 
 export default ReactionService;

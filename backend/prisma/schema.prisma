@@ -32,8 +32,8 @@ enum BanAppealStatus {
 }
 
 enum AttachmentType {
-  Image
-  Video
+  IMAGE
+  VIDEO
   GIF
 }
 
@@ -169,6 +169,7 @@ model Attachment {
   id        Int            @id @default(autoincrement())
   messageId Int
   type      AttachmentType
+  publicId  String
   url       String
   message   Message        @relation(fields: [messageId], references: [id], onDelete: Cascade)
 }

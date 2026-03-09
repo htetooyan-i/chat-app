@@ -2,14 +2,15 @@ import express from 'express';
 
 import { authMiddleware } from '../middleware/auth';
 import { 
-    createReaction,
+    toggleReaction,
     getReactionsForMessage,
+    deleteReaction
 } from '../controllers/reaction.controller';
 
 const router  = express.Router({ mergeParams: true });
 
-router.post('/', authMiddleware, createReaction);
+router.post('/', authMiddleware, toggleReaction);
 router.get('/', authMiddleware, getReactionsForMessage);
-
+router.delete('/:reactionId', authMiddleware, deleteReaction);
 export default router ;
 
