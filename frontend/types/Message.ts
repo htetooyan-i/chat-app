@@ -1,4 +1,13 @@
 import { User } from "./User";
+import {Attachment} from "./Attachment";
+
+export type Reaction = {
+    id: string;
+    userId: number;
+    messageId: number;
+    emoji: string;
+    createdAt: Date;
+}
 
 export type Message = {
     id: number;
@@ -11,5 +20,11 @@ export type Message = {
     replyToDeleted?: boolean; // Flag to indicate if the replied-to message was deleted
     clientMsgId?: string;
     replyTo?: Message | null; // Optional nested message for replies
+    attachments?: Attachment[];
     author: User;
+    reactions?: {
+        emoji: string;
+        count: number;
+        userIds: number[];
+    }[];
 }

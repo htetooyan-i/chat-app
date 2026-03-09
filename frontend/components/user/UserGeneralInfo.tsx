@@ -3,7 +3,7 @@ import { Camera, User } from 'lucide-react';
 import { Avatar, ModalProps } from 'antd';
 import Image from 'next/image';
 
-import api from '@/lib/api';
+import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserSettingLayout } from '@/hooks/useUserSettingsLayout';
 

@@ -2,11 +2,12 @@
 import React, { createContext, useEffect, useState, useRef, useMemo } from "react";
 import { useParams } from "next/navigation";
 
-import api from "@/lib/api";
-import { Message } from "@/types/Message";
+import { api } from "@/lib/api";
+import {Message, Reaction} from "@/types/Message";
 import { useSocket } from "@/hooks/useSocket";
 import { groupMessagesByDate } from '@/lib/helper';
 import { useAuth } from "@/hooks/useAuth";
+import {UploadAttachment} from "@/types/Attachment";
 
 type MessageContextType = {
 
@@ -14,11 +15,13 @@ type MessageContextType = {
   groupedMessages: Record<string, Message[]>;
   hasMore: boolean;
 
-  sendMessage: (content: string, replyMessage: Message | null) => void;
+  sendMessage: (content: string, replyMessage: Message | null, attachments: UploadAttachment[]) => void;
   editExistingMessage: (messageId: number, content: string) => Promise<void>;
   deleteMessage: (messageId: number) => Promise<void>;
 
   loadMore: () => Promise<void>;
+
+  toggleReaction: (messageId: number, emoji: string) => Promise<void>;
 };
 
 export const MessageContext = createContext<MessageContextType | null>(null);
@@ -42,36 +45,6 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const [isFetchingMore, setIsFetchingMore] = useState(false);
     const oldestMessageId = useRef<number | null>(null);
 
-    const handleNewMessage = (message: Message) => {
-        setMessages(prev => {
-            const tempIndex = prev.findIndex(m => m.clientMsgId === message.clientMsgId);
-
-            if (tempIndex !== -1) {
-                const updated = [...prev];
-                updated[tempIndex] = message;
-                return updated;
-            }
-
-            return [...prev, message];
-        });
-    };
-
-    const handleEditedMessage = (message: Message) => {
-        setMessages(prev => prev.map(msg => msg.id === message.id ? { ...msg, content: message.content, editedAt: new Date() } : msg));
-    };
-
-    const handleDeletedMessage = ({messageId}: {messageId: number}) => {
-        setMessages(prev => {
-            return prev
-                .filter(msg => msg.id !== messageId)
-                .map(msg =>
-                    msg.replyToMessageId === messageId
-                        ? { ...msg, replyToMessageId: null, replyToDeleted: true }
-                        : msg
-                );
-        });
-    };
-
     const fetchMessages = async () => {
         setMessages([]);
         oldestMessageId.current = null;
@@ -91,9 +64,79 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     useEffect(() => {
         if (!socket || !channelId) return;
 
+        const handleNewMessage = (message: Message) => {
+            setMessages(prev => {
+                const tempIndex = prev.findIndex(m => m.clientMsgId === message.clientMsgId);
+
+                if (tempIndex !== -1) {
+                    const updated = [...prev];
+                    updated[tempIndex] = message;
+                    return updated;
+                }
+
+                return [...prev, message];
+            });
+        };
+
+        const handleEditedMessage = (message: Message) => {
+            setMessages(prev => prev.map(msg => msg.id === message.id ? { ...msg, content: message.content, editedAt: new Date() } : msg));
+        };
+
+        const handleDeletedMessage = ({messageId}: {messageId: number}) => {
+            setMessages(prev => {
+                return prev
+                    .filter(msg => msg.id !== messageId)
+                    .map(msg =>
+                        msg.replyToMessageId === messageId
+                            ? { ...msg, replyToMessageId: null, replyToDeleted: true }
+                            : msg
+                    );
+            });
+        };
+
+        const handleToggleReaction = (data: {messageId: number, reaction: Reaction, action: string}) => {
+            setMessages(prev => prev.map(msg => {
+                if (msg.id !== data.messageId) return msg;
+
+                const reactions = msg.reactions ?? [];
+                const existing = reactions.find(r => r.emoji === data.reaction.emoji);
+
+                if (data.action === "added") {
+                    if (existing) {
+                        // increment count and add userId
+                        return {
+                            ...msg,
+                            reactions: reactions.map(r => r.emoji === data.reaction.emoji
+                                ? { ...r, count: r.count + 1, userIds: [...r.userIds, data.reaction.userId] }
+                                : r
+                            )
+                        };
+                    } else {
+                        // new emoji reaction
+                        return {
+                            ...msg,
+                            reactions: [...reactions, { emoji: data.reaction.emoji, count: 1, userIds: [data.reaction.userId] }]
+                        };
+                    }
+                } else {
+                    // removed
+                    return {
+                        ...msg,
+                        reactions: reactions
+                            .map(r => r.emoji === data.reaction.emoji
+                                ? { ...r, count: r.count - 1, userIds: r.userIds.filter(id => id !== data.reaction.userId) }
+                                : r
+                            )
+                            .filter(r => r.count > 0) // remove emoji entirely if count hits 0
+                    };
+                }
+            }));
+        };
+
         socket.on("newMessage", handleNewMessage);
         socket.on("messageEdited", handleEditedMessage);
         socket.on("messageDeleted", handleDeletedMessage);
+        socket.on("reactionToggled", handleToggleReaction);
 
         fetchMessages();
 
@@ -105,8 +148,8 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         };
     }, [channelId, socket]);
 
-    const sendMessage = (text: string, replyMessage: Message | null) => {
-        if (!text.trim() || !socket || !channelId || !user) return;
+    const sendMessage = async (text: string, replyMessage: Message | null, attachments: UploadAttachment[]) => {
+        if ((!text.trim() && attachments.length == 0) || !socket || !channelId || !user) return;
 
         const tempId = -Date.now();
         const clientMsgId = crypto.randomUUID();
@@ -131,13 +174,17 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         // Update UI immediately with temp message
         setMessages(prev => [...prev, newMessage]);
 
-        socket.emit("sendMessage", {
-            channelId: Number(channelId),
+        await api.post(`channels/${channelId}/messages`, {
             content: text,
-            authorId: user.id,
             replyToMessageId: replyMessage?.id,
-            clientMsgId: clientMsgId,
+            clientMsgId,
+            attachments: attachments.map(f => ({
+                publicId: f.publicId,
+                url: f.url,
+                type: f.type,
+            })),
         });
+
     };
 
     const editExistingMessage = async (messageId: number, newContent: string) => {
@@ -194,8 +241,15 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
     };
 
+    // ** REACTION **
+
+    const toggleReaction = async (messageId: number, emoji: string) => {
+        await api.post(`/messages/${messageId}/reactions/`, {emoji});
+    }
+
+
     return (
-        <MessageContext.Provider value={{ messages, groupedMessages, hasMore, sendMessage, editExistingMessage, deleteMessage, loadMore }}>
+        <MessageContext.Provider value={{ messages, groupedMessages, hasMore, sendMessage, editExistingMessage, deleteMessage, loadMore, toggleReaction }}>
             {children}
         </MessageContext.Provider>
     );

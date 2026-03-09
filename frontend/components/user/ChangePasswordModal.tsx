@@ -3,7 +3,7 @@ import { CloseOutlined } from '@ant-design/icons';
 import { Modal, ModalProps } from 'antd';
 import { Eye, EyeOff } from 'lucide-react';
 
-import api from '@/lib/api';
+import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { parsePasswordValidation } from '@/lib/helper';
 import { useNotification } from '@/hooks/useNotification';

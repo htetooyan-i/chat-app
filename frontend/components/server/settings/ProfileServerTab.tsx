@@ -25,6 +25,7 @@ function ProfileServerTab({ hasUnsavedChanges, onDirtyChange, serverProfile, set
         <div>
             <p className="text-xl font-bold capitalize mb-4">Server Profile</p>
             <div className='flex items-start gap-8 w-full'>
+                {/* Server Profile Data*/}
                 <div className='flex flex-col gap-4 w-2/3'>
                     <p className="text-[11px] font-semibold text-muted-text">Let customize your server appears!</p>
 
@@ -120,11 +121,12 @@ function ProfileServerTab({ hasUnsavedChanges, onDirtyChange, serverProfile, set
                             {selectedServer?.name || "Server Name"}
                             </p>
                             <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-1">
-                                    {/* Badge for online status */}
-                                    <div className="w-2 h-2 bg-success rounded-full"></div>
-                                    <span className="text-[11px] font-semibold text-muted-text">5 Online</span>
-                                </div>
+                                {/* FUTURE: Need online fields or something to show the number of onlines */}
+                                {/*<div className="flex items-center gap-1">*/}
+                                {/*    /!* Badge for online status *!/*/}
+                                {/*    <div className="w-2 h-2 bg-success rounded-full"></div>*/}
+                                {/*    <span className="text-[11px] font-semibold text-muted-text">5 Online</span>*/}
+                                {/*</div>*/}
                                 <div className="flex items-center gap-1">
                                     {/* Badge for online status */}
                                     <div className="w-2 h-2 bg-muted-background rounded-full"></div>

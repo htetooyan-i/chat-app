@@ -6,7 +6,7 @@ import { CloseOutlined } from '@ant-design/icons';
 import axios, { AxiosError } from 'axios';
 
 import { useNotification } from '@/hooks/useNotification';
-import api from '@/lib/api';
+import { api } from '@/lib/api';
 
 
 interface ForgetPasswordModalProps {

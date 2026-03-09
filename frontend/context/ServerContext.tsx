@@ -2,7 +2,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
-import api from "@/lib/api";
+import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { Server } from "@/types/Server";
 import type { ServerInvite } from "@/types/ServerInvite";

@@ -3,7 +3,7 @@ import { useParams } from 'next/navigation';
 import { Avatar } from 'antd';
 import { Ellipsis } from 'lucide-react';
 
-import api from '@/lib/api';
+import { api } from '@/lib/api';
 import ButtonDropDown, { ButtonDropDownItem } from '@/components/ui/ButtonDropDown';
 import { useServer } from '@/hooks/useServer';
 import { formatDate, calculateDays } from '@/lib/helper';

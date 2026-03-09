@@ -2,7 +2,7 @@
 import React, { createContext, useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
-import api from "@/lib/api";
+import { api } from "@/lib/api";
 import { useServer } from "@/hooks/useServer";
 import { Channel } from "@/types/Channel";
 import { useSocket } from "@/hooks/useSocket";

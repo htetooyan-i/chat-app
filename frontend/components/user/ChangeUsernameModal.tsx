@@ -3,7 +3,7 @@ import { CloseOutlined } from '@ant-design/icons';
 import { Modal, ModalProps } from 'antd';
 
 
-import api from '@/lib/api';
+import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useNotification } from '@/hooks/useNotification';
 

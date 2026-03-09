@@ -3,7 +3,7 @@ import { useParams } from 'next/navigation';
 import { ConfigProvider, Modal, ModalProps, Select, SelectProps } from 'antd';
 
 import { useNotification } from '@/hooks/useNotification';
-import api from '@/lib/api';
+import { api } from '@/lib/api';
 import { useServer } from '@/hooks/useServer';
 import { useServerAdmin } from '@/hooks/useServerAdmin'; 
 import CreateInviteCode from './CreateInviteCode';

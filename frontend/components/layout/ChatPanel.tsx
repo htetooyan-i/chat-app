@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { Layout, message } from 'antd';
 
-import api from '@/lib/api';
+import { api } from '@/lib/api';
 import ChatContent from '../chat/ChatContent';
 import ChatHeader from '../chat/ChatHeader';
 import ChatMessageInput from '../chat/ChatMessageInput';

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, ModalProps } from 'antd';
 
-import api from '@/lib/api';
+import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 
 const styles: ModalProps['styles'] = {

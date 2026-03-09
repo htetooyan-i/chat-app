@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Layout } from 'antd';
 
-import api from '@/lib/api';
+import { api } from '@/lib/api';
 import CreateNewChannelModal from "@/components/channel/CreateNewChannelModal";
 import ContextDropdownComponent, { ContextDropdownItem } from '../ui/ContextDropdown';
 import DeleteChannelModal from '../channel/settings/DeleteChannelModal';

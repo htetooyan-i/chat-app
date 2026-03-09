@@ -2,7 +2,7 @@
 import { createContext, useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import api from '../lib/api';
+import { api } from '../lib/api';
 import { User } from '../types/User';
 
 type AuthContextType = {

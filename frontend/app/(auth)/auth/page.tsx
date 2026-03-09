@@ -8,7 +8,7 @@ import { useNotification } from '@/hooks/useNotification';
 import LoginForm from "@/components/auth/LoginForm";
 import RegisterForm from '@/components/auth/RegisterForm';
 import ForgetPasswordModal from '@/components/auth/ForgetPasswordModal';
-import api from '@/lib/api';
+import { api } from '@/lib/api';
 
 function AuthPage() {
     const [isLogin, setIsLogin] = React.useState(true);

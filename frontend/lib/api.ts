@@ -4,9 +4,14 @@ type ApiError = {
   message?: string;
 };
 
-const api = axios.create({
+export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api',
   withCredentials: true,
+});
+
+export const cloudinaryApi = axios.create({
+  baseURL: `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!}`,
+  withCredentials: false
 });
 
 export const getErrorMessage = (
@@ -21,4 +26,3 @@ export const getErrorMessage = (
   return defaultErrorMessage;
 };
 
-export default api;
