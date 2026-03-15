@@ -109,7 +109,7 @@ export const ServerMemberProvider: React.FC<{ children: React.ReactNode }> = ({ 
             setMembers(prev => [...prev, member]);
         }
 
-        const handleMemberUpdated = (updatedUser: {userId: number, username: string}) => {
+        const handleMemberUpdated = (updatedUser: {userId: number, username?: string, avatarUrl?: string}) => {
             setMembers(prev =>
                 prev.map(member =>
                     member.userId === updatedUser.userId
@@ -118,7 +118,8 @@ export const ServerMemberProvider: React.FC<{ children: React.ReactNode }> = ({ 
                             ...member,
                             user: {
                                 ...member.user,
-                                username: updatedUser.username,
+                                username: updatedUser.username ?? member.user.username,
+                                avatarUrl: updatedUser.avatarUrl ?? member.user.avatarUrl
                             }
                         }
                         : member

@@ -1,6 +1,9 @@
 import { prisma } from "../lib/prisma";
 import { AttachmentType } from "../../generated/prisma/enums"
 
+import cloudinary from '../lib/cloudinary';
+import { Result } from "pg";
+
 class MessageService {
 
     static async getMessagesForChannel(channelId: number, pagination?: { before: number; take: number }) {
@@ -81,9 +84,10 @@ class MessageService {
                                         where: { userId },
                                     }
                                 }
-                            }
+                            },
                         }
                     },
+                    attachments: true,
                 }
             });
 
@@ -104,7 +108,7 @@ class MessageService {
         content: string,
         replyToMessageId?: number,
         clientMsgId?: string,
-        attachments?: {publicId: string, url: string, type: string}[]
+        attachments?: {publicId: string, url: string, type: string, originalName: string}[]
     ) {
         try {
 
@@ -144,6 +148,7 @@ class MessageService {
                             publicId: a.publicId,
                             url: a.url,
                             type: a.type.toUpperCase() as AttachmentType,
+                            originalName: a.originalName,
                         })),
                     });
                 }
@@ -167,26 +172,63 @@ class MessageService {
     static async editMessage(
         messageId: number, 
         userId: number, 
-        newContent: string
+        newContent: string,
+        attachments?: {publicId: string, url: string, type: string, originalName: string}[]
     ) {
 
-        if (newContent === undefined || newContent.trim() === '') {
-            throw new Error('Message content is required');
-        }
 
         try {
-            const message = await this.getMessageById(messageId, userId);
-            
-            // Check if the user is the author of the message
-            if (message.authorId !== userId) {
-                throw new Error('Not authorized to edit this message');
+            const currentMessage = await this.getMessageById(messageId, userId);
+            const hasContent = newContent && newContent.trim() !== '';
+            const hasAttachments = attachments && attachments.length > 0;
+
+            if (!currentMessage) {
+                throw new Error('Message not found');
             }
 
-            const updatedMessage = await prisma.message.update({
-                where: { id: messageId },
-                data: { content: newContent, editedAt: new Date() },
+            if (!hasContent && !hasAttachments) {
+                throw new Error('Message must have content or attachments');
+            }
+
+            const removedFiles = currentMessage.attachments.filter(a => !attachments?.some((att: any) => att.publicId === a.publicId));
+            const addedFiles = attachments?.filter((att: any) => !currentMessage.attachments.some(a => a.publicId === att.publicId)) || [];
+
+            const result = await prisma.$transaction(async (tx) => {
+                if (removedFiles.length > 0) {
+                    await tx.attachment.deleteMany({
+                        where: { publicId: { in: removedFiles.map(a => a.publicId) } }
+                    });
+                }
+
+                if (addedFiles.length > 0) {
+                    await tx.attachment.createMany({
+                        data: addedFiles.map((a: any) => ({
+                            messageId,
+                            publicId: a.publicId,
+                            url: a.url,
+                            type: a.type.toUpperCase() as AttachmentType,
+                            originalName: a.originalName,
+                        })),
+                    });
+                }
+
+                return await tx.message.update({
+                    where: { id: messageId },
+                    data: { content: newContent, editedAt: new Date() },
+                    include: { attachments: true, author: true, replyTo: true }
+                });
             });
-            return updatedMessage;
+
+            // Delete removed files from Cloudinary
+            await Promise.all(removedFiles.map(a =>
+                cloudinary.uploader.destroy(a.publicId, {
+                    resource_type: a.type.toLowerCase() as 'image' | 'video' | 'raw',
+                    invalidate: true
+                })
+            ));
+
+            return result;
+
         } catch (error: any) {
             console.error("Error updating message:", error.message);
             throw new Error(error.message);

@@ -8,7 +8,7 @@ export class UsersService {
         if (!user) {
             throw new Error('User not found');
         }
-        return { username: user.username, avatarUrl: user.avatarUrl, bio: user.bio };
+        return user;
     }
 
     // Verify password to update profile information

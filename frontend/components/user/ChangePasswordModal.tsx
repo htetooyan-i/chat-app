@@ -38,7 +38,7 @@ const styles: ModalProps['styles'] = {
 
 function ChangePasswordModal({ showPasswordEditingModal, setShowPasswordEditingModal }: ChangePasswordModalProps) {
 
-    const { refreshUser } = useAuth();
+    const { updatePassword } = useAuth();
     const [ currentPassword, setCurrentPassword ] = React.useState("");
     const [ newPassword, setNewPassword ] = React.useState("");
     const [ confirmPassword, setConfirmPassword ] = React.useState("");
@@ -51,9 +51,8 @@ function ChangePasswordModal({ showPasswordEditingModal, setShowPasswordEditingM
 
     const handleChangePassword = async () => {
         try {
-            await api.patch('/auth/change-password', { newPassword, currentPassword });
+            await updatePassword(newPassword, currentPassword);
             showSuccess("Password changed successfully!");
-            await refreshUser();
         } catch (error) {
             console.error('Error updating password:', error);
             showError("Failed to change password.");

@@ -75,7 +75,7 @@ class AuthService {
         if (!user) {
             throw new Error(AuthErrorCode.USER_NOT_FOUND);
         }
-        return { id: user.id, username: user.username, email: user.email };
+        return user;
     }
 
     static async getUserByEmail(email: string) {

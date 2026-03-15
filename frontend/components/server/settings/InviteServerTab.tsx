@@ -83,7 +83,7 @@ function InviteServerTab() {
                                         <td className="px-4 py-2 flex items-center gap-2 font-semibold">
                                             <Avatar
                                             size={40}
-                                            src="/logo.png"
+                                            src={invite.createdBy?.avatarUrl || "/logo.png"}
                                             className="border-background"
                                             />
                                             <span>{invite.createdBy?.username || 'Unknown User'}</span>

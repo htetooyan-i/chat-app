@@ -5,11 +5,12 @@ import authRoutes from './auth.routes';
 import usersRoutes from './users.routes';
 import serverRoutes from './server.routes';
 import serverMemberRoutes from './serverMember.routes';
-import channelRoutes from './channels.routes';
-import serverInvitesRoutes from './serverInvites.routes';
+import channelRoutes from './channel.routes';
+import serverInvitesRoutes from './serverInvite.routes';
 import banRoutes from './ban.routes';
 import messageRoutes from './message.routes';
 import reactionRoutes from './reaction.routes';
+import attachmentRoutes from './attachment.routes';
 
 const router = express.Router();
 
@@ -22,9 +23,11 @@ router.use('/channels', channelRoutes);
 router.use('/servers/:serverId/invites', serverInvitesRoutes);
 router.use('/invites', serverInvitesRoutes);
 router.use('/servers/:serverId/bans', banRoutes);
+router.use('/messages/:messageId/reactions', reactionRoutes);
+router.use('/messages/attachments', attachmentRoutes);
 router.use('/channels/:channelId/messages', messageRoutes);
 router.use('/messages', messageRoutes);
-router.use('/messages/:messageId/reactions', reactionRoutes);
+
 export default router;
 
 

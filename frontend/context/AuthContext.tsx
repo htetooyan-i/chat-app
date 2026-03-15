@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useCallback, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { api } from '../lib/api';
@@ -12,6 +12,11 @@ type AuthContextType = {
   logout: () => Promise<void>;
   deleteAccount: () => Promise<void>;
   refreshUser: () => Promise<void>;
+
+  updateUserInfo: (data: Partial<User>, password: string) => Promise<void>;
+  updateAvatar: (avatarUrl: string) => Promise<void>;
+  updateEmail: (newEmail: string, password: string) => Promise<void>;
+  updatePassword: (newPassword: string, currentPassword: string) => Promise<void>;
 };
 
 
@@ -69,6 +74,47 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await fetchUser();
   }, [fetchUser]);
 
+  const updateUserInfo = async (data: Partial<User>, password: string) => {
+    setUser(user => user ? { ...user, username: data.username ?? user.username, bio: data.bio ?? user.bio } : null);
+    try {
+      await api.patch('/users/me', { username: data.username, password });
+    } catch (error) {
+      await refreshUser();
+      console.error('Failed to update user info:', error);
+      throw error;
+    }
+  };
+
+  const updateAvatar = async (avatarUrl: string) => {
+    setUser(user => user ? { ...user, avatarUrl } : null);
+    try {
+      await api.patch('/users/me/avatar', { avatarUrl });
+    } catch (error) {
+      await refreshUser();
+      console.error('Failed to update user avatar:', error);
+    }
+  }
+
+  const updateEmail = async (newEmail: string, password: string) => {
+    setUser(user => user ? { ...user, email: newEmail } : null);
+    try {
+      await api.patch('/users/me/email', { newEmail, password });
+    } catch (error) {
+      await refreshUser();
+      console.error('Failed to update user email:', error);
+      throw error;
+    }
+  }
+
+  const updatePassword = async (newPassword: string, currentPassword: string) => {
+    try {
+      await api.patch('/auth/change-password', { newPassword, currentPassword });
+    } catch (error) {
+      await refreshUser();
+      console.error('Failed to update user password:', error);
+    }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -78,6 +124,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         logout,
         deleteAccount,
         refreshUser,
+        updateUserInfo,
+        updateAvatar,
+        updateEmail,
+        updatePassword,
       }}
     >
       {children}

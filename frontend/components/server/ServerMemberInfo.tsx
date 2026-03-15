@@ -86,7 +86,7 @@ function ServerMemberInfo() {
                                     <Avatar
                                         shape="circle"
                                         size={32}
-                                        src="/logo.png"
+                                        src={member.user.avatarUrl || "/logo.png"}
                                     />
                                     </Badge>
 

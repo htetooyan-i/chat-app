@@ -89,7 +89,7 @@ function ChatContent({ channel, containerRef, sentinelRef }: ChatContentProps) {
                                 });
                                 return (
                                     <div key={date} className='w-full flex flex-col items-start justify-start'>
-                                        <div className='mx-auto'>
+                                        <div className='mx-auto mt-4'>
                                             <p className='text-sm text-muted-text bg-background p-2 rounded-lg text-[11px]'>{formatDate(date, true)}</p>
                                         </div>
                                         <ChatMessage messages={messages} messagesMap={messagesMap} />

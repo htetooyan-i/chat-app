@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 
 import BanService from '../services/ban.service';
-import ServerInvitesService from '../services/serverInvites.service';
+import ServerInviteService from '../services/serverInvite.service';
 
 export async function verifyNotBanned(req: Request, res: Response, next: NextFunction) {
     const userId = req.user?.userId;
@@ -12,7 +12,7 @@ export async function verifyNotBanned(req: Request, res: Response, next: NextFun
     }
 
     try {
-        const inviteCode = await ServerInvitesService.getInviteByCode(code as string);
+        const inviteCode = await ServerInviteService.getInviteByCode(code as string);
         const existingBan = await BanService.findExistingBan(Number(inviteCode.serverId), userId);
         if (existingBan && !existingBan.revokedAt && (!existingBan.expiresAt || existingBan.expiresAt > new Date())) {
             return res.status(403).json({ message: 'You are banned from this server' });

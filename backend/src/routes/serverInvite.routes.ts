@@ -9,7 +9,7 @@ import {
     DeleteInvite,
     GetInvitesForServer,
     JoinServerViaCode
-} from '../controllers/serverInvites.controller';
+} from '../controllers/serverInvite.controller';
 
 const router = express.Router({ mergeParams: true });
 

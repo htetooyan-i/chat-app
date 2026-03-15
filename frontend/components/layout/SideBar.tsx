@@ -33,7 +33,7 @@ function SideBar({ siderStyle }: SideBarProps) {
     const { servers, refreshServers, leaveServer } = useServer();
     const { channelsByServer, clearServerCache } = useChannel();
     const { me } = useServerMember();
-    const { logout } = useAuth();
+    const { user, logout } = useAuth();
 
     const serverId = Array.isArray(params.serverId) ? Number(params.serverId[0]) : Number(params.serverId);
     const selectedServer = servers.find(
@@ -143,7 +143,7 @@ function SideBar({ siderStyle }: SideBarProps) {
                             <Avatar shape="square" size={50}>
                                 <Image
                                 onClick={handleShowUserSettings}
-                                src="/logo.png"
+                                src={user?.avatarUrl || "/logo.png"}
                                 alt="avatar"
                                 width={50}
                                 height={50}

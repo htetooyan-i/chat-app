@@ -39,12 +39,12 @@ export const useMediaUpload = () => {
                     }
                 }
             );
-            console.log("PublicID: ", data.public_id);
-            console.log("Secure url: ", data.url);
+
             return {
                 url: data.secure_url,
                 publicId: data.public_id,
                 type: data.resource_type as 'image' | 'video' | 'raw',
+                originalName: file.name,
             };
         } finally {
             setUploading(false);
@@ -53,5 +53,11 @@ export const useMediaUpload = () => {
 
     };
 
-    return { upload, uploading, progress };
+    const deleteFile = async (publicId: string, resourceType: 'image' | 'video' | 'raw') => {
+        await api.delete('/messages/attachments', {
+            data: { publicId, resourceType }
+        });
+    };
+
+    return { upload, deleteFile, uploading, progress };
 };

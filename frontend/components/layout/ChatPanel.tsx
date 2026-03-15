@@ -61,8 +61,8 @@ function ChatPanel() {
     }, [loadMore]); 
 
     return (
-        <div className="flex w-full h-screen bg-chat-panel">
-            <Layout className='flex-1 flex flex-col'>
+        <div className="flex min-w-full h-screen bg-chat-panel overflow-hidden">
+            <Layout className='flex-1 flex flex-col h-screen min-h-0 min-w-0'>
                 <ChatHeader 
                     setCollapsed={setCollapsed} 
                     collapsed={collapsed}

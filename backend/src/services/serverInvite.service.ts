@@ -5,7 +5,7 @@ import crypto from 'crypto';
 import { prisma } from "../lib/prisma";
 import { ServerInvite } from '../../generated/prisma/browser';
 
-class ServerInvitesService {
+class ServerInviteService {
 
     // Generate a new invite code, store it in the database, and return the unique raw code
     static async generate(
@@ -95,7 +95,7 @@ class ServerInvitesService {
         try {
             const invites = await prisma.serverInvite.findMany({
                 where: { serverId },
-                include: { createdBy: { select: { id: true, username: true } } },
+                include: { createdBy: { select: { id: true, username: true, avatarUrl: true } } },
                 orderBy: { createdAt: "asc" },
             });
             return invites;
@@ -146,4 +146,4 @@ class ServerInvitesService {
     }
 }
 
-export default ServerInvitesService;
+export default ServerInviteService;

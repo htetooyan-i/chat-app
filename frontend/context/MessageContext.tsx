@@ -7,7 +7,7 @@ import {Message, Reaction} from "@/types/Message";
 import { useSocket } from "@/hooks/useSocket";
 import { groupMessagesByDate } from '@/lib/helper';
 import { useAuth } from "@/hooks/useAuth";
-import {UploadAttachment} from "@/types/Attachment";
+import { UploadAttachment } from "@/types/Attachment";
 
 type MessageContextType = {
 
@@ -16,7 +16,7 @@ type MessageContextType = {
   hasMore: boolean;
 
   sendMessage: (content: string, replyMessage: Message | null, attachments: UploadAttachment[]) => void;
-  editExistingMessage: (messageId: number, content: string) => Promise<void>;
+  editExistingMessage: (messageId: number, content: string, updatedFiles: UploadAttachment[]) => Promise<void>;
   deleteMessage: (messageId: number) => Promise<void>;
 
   loadMore: () => Promise<void>;
@@ -41,6 +41,7 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
                                 () => groupMessagesByDate(messages),
                                 [messages]
                             );
+
     const [hasMore, setHasMore] = useState(true);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
     const oldestMessageId = useRef<number | null>(null);
@@ -54,7 +55,7 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
             const sorted = [...response.data].reverse(); 
             
             oldestMessageId.current = sorted[0]?.id ?? null;
-            setHasMore(response.data.length === 50); // if less than limit, no more pages
+            setHasMore(response.data.length === 50); // if less than the limit, no more pages
             setMessages(sorted);
         } catch (error) {
             console.error("Failed to fetch messages:", error);
@@ -79,7 +80,7 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         };
 
         const handleEditedMessage = (message: Message) => {
-            setMessages(prev => prev.map(msg => msg.id === message.id ? { ...msg, content: message.content, editedAt: new Date() } : msg));
+            setMessages(prev => prev.map(msg => msg.id === message.id ? { ...msg, content: message.content, editedAt: new Date(), attachments: message.attachments } : msg));
         };
 
         const handleDeletedMessage = ({messageId}: {messageId: number}) => {
@@ -127,7 +128,7 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
                                 ? { ...r, count: r.count - 1, userIds: r.userIds.filter(id => id !== data.reaction.userId) }
                                 : r
                             )
-                            .filter(r => r.count > 0) // remove emoji entirely if count hits 0
+                            .filter(r => r.count > 0) // remove emoji entirely if the count hits 0
                     };
                 }
             }));
@@ -165,13 +166,15 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 id: user.id,
                 email: user.email,
                 username: user.username,
-                avatarUrl: "", // Current I haven't implemented avatar upload, so this will be default avatar.
+                bio: user.username,
+                avatarUrl: user.avatarUrl,
+                verified: user.verified,
                 createdAt: new Date(),
             },
             replyTo: replyMessage || null
         };
 
-        // Update UI immediately with temp message
+        // Update UI immediately with a temp message
         setMessages(prev => [...prev, newMessage]);
 
         await api.post(`channels/${channelId}/messages`, {
@@ -182,18 +185,24 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 publicId: f.publicId,
                 url: f.url,
                 type: f.type,
+                originalName: f.originalName,
             })),
         });
 
     };
 
-    const editExistingMessage = async (messageId: number, newContent: string) => {
+    const editExistingMessage = async (messageId: number, newContent: string, updatedFiles: UploadAttachment[]) => {
+
         if (!socket) return;
 
-        await api.patch(`/messages/${messageId}`, { content: newContent });
-
+        const res = await api.patch(`/messages/${messageId}`, { content: newContent, attachments: updatedFiles });
+        const updatedMessage = res.data;
         // update UI
-        setMessages(prev => prev.map(msg => msg.id === messageId ? { ...msg, content: newContent, editedAt: new Date() } : msg));
+        setMessages(prev => prev.map(msg =>
+            msg.id === messageId
+                ? { ...msg, content: updatedMessage.content, editedAt: updatedMessage.editedAt, attachments: updatedMessage.attachments }
+                : msg
+        ));
     };
 
     const deleteMessage = async (messageId: number) => {
@@ -203,15 +212,13 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         // update UI
         setMessages(prev => {
-            const updatedMessages = prev
+            return prev
                 .filter(msg => msg.id !== messageId)
                 .map(msg =>
                     msg.replyToMessageId === messageId
                         ? { ...msg, replyToMessageId: null, replyToDeleted: true }
                         : msg
                 );
-
-            return updatedMessages;
         });
     };
 
@@ -232,8 +239,7 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
             setHasMore(response.data.length === 50);
 
             setMessages(prev => {
-                const updated = [...older, ...prev];
-                return updated;
+                return [...older, ...prev];
             });
 
         } finally {

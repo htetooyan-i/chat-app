@@ -37,16 +37,15 @@ const styles: ModalProps['styles'] = {
 
 function ChangeEmailModal({ showEmailEditingModal, setShowEmailEditingModal }: ChangeEmailModalProps) {
 
-    const { refreshUser } = useAuth();
+    const { updateEmail } = useAuth();
     const [ newEmail, setNewEmail ] = React.useState("");
     const [ password, setPassword ] = React.useState("");
     const { contextHolder, showSuccess, showError } = useNotification();
 
     const handleChangeEmail = async () => {
         try {
-            await api.patch('/users/me/email', { newEmail, password });
+            await updateEmail(newEmail, password);
             showSuccess("Email changed successfully!");
-            await refreshUser();
         } catch (error) {
             console.error('Error updating email:', error);
             showError("Failed to change email.");

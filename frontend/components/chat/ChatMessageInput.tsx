@@ -2,17 +2,15 @@ import React, { useState, KeyboardEvent, useEffect, useRef } from 'react';
 import { Layout, Input, GetProps } from 'antd';
 import type { TextAreaRef } from 'antd/es/input/TextArea';
 import { createStaticStyles } from 'antd-style';
-import {Sticker, X, Paperclip, Play} from 'lucide-react';
-import { CldImage} from "next-cloudinary";
-import { CldVideoPlayer} from "next-cloudinary";
-import 'next-cloudinary/dist/cld-video-player.css';
+import {Sticker, X, Paperclip, Image, FileText, Send } from 'lucide-react';
 
 import { handleMaintenanceRoute } from '@/lib/helper';
 import { useMessage } from '@/hooks/useMessage';
 import { useChatUI } from '@/hooks/useChatUI';
 import { useMediaUpload } from "@/hooks/useMediaUpload";
-import {UploadAttachment} from "@/types/Attachment";
-import CloudVideo from "@/components/ui/CloudVideo";
+import { UploadAttachment } from "@/types/Attachment";
+import { validateFiles } from "@/lib/helper";
+
 
 const { Footer } = Layout;
 const { TextArea } = Input;
@@ -58,15 +56,30 @@ function ChatMessageInput() {
         if (editMessage) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setText(editMessage.content);
+            setFiles(
+                (editMessage.attachments ?? []).map(a => ({
+                    url: a.url,
+                    publicId: a.publicId,
+                    type: a.type as 'image' | 'video' | 'raw',
+                    originalName: a.originalName,
+                }))
+            );
         }
     }, [replyMessage, editMessage]);
 
 
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const { upload } = useMediaUpload();
+
+    const { upload, deleteFile, uploading } = useMediaUpload();
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files ?? []);
-        if (!files.length) return;
+
+        const validFiles = validateFiles(files);
+
+        if (validFiles.length === 0) {
+            e.target.value = '';
+            return;
+        }
 
         const urls = await Promise.all(files.map(file => upload(file)));
         setFiles(prev => [...prev, ...urls]);
@@ -86,32 +99,53 @@ function ChatMessageInput() {
 
     }
 
-    const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    const handleKeyPress = async (e: KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault(); // prevent newline
-        if (text.trim() || files.length > 0) {
-            if (editMessage) {
-                editExistingMessage(editMessage.id, text);
-                setEditMessage(null);
-            } else {
-                sendMessage(text, replyMessage, files);
-                setReplyMessage(null);
-                setFiles([])
+            e.preventDefault(); // prevent newline
+            if (text.trim() || files.length > 0) {
+                if (editMessage) {
+                    await editExistingMessage(editMessage.id, text, files);
+                    setEditMessage(null);
+                    setFiles([]);
+                } else {
+                    sendMessage(text, replyMessage, files);
+                    setReplyMessage(null);
+                    setFiles([]);
+                }
+                setText(''); // clear input
             }
-            setText(''); // clear input
-        }
         }
     };
 
 
     return (
-        <Footer style={{ minHeight: "60px", maxHeight: "340px", background: "var(--chat-panel)", paddingTop: "0", paddingInline: "20px", paddingBottom: "10px", flexShrink: 0, }}>
+        <div className="flex flex-col shrink-0 bg-chat-panel">
             {
                 replyMessage && (
-                    <div className='flex items-center gap-2 px-3 py-1 bg-muted-background rounded-t-lg border border-muted-border'>
+                    <div className='flex items-center gap-2 mx-5 px-3 py-1 bg-muted-background rounded-t-lg border border-muted-border shrink-0'>
                         <div className='flex-1 min-w-0'>
                             <p className='text-[12px] text-muted-text'>Replying to {replyMessage.author.username}</p>
-                            <p className='text-[14px] text-foreground tunerate line-clamp-1'>{replyMessage.content}</p>
+                            {/* FUTURE: Want to show real files*/}
+                            {
+                                replyMessage.content.trim() ? (
+                                    <p className='text-[14px] text-foreground line-clamp-1'>{replyMessage.content}</p>
+                                ) : replyMessage.attachments && replyMessage.attachments.length > 0 ? (
+                                    <div className='flex items-center gap-1 text-muted-text text-[14px]'>
+                                        {
+                                            replyMessage.attachments[0].type === 'IMAGE' ? (
+                                                <Image size={14} />
+                                            ) : (
+                                                <FileText size={14} />
+                                            )
+                                        }
+                                        <span>
+                                            {
+                                                replyMessage.attachments.length === 1
+                                                    ? replyMessage.attachments[0].originalName
+                                                    : `${replyMessage.attachments.length} files`}
+                                        </span>
+                                    </div>
+                            ) : null}
                         </div>
                         <button onClick={() => setReplyMessage(null)} className='text-muted-text hover:text-foreground transition-colors cursor-pointer'>
                             <span className="sr-only">Cancel reply</span>
@@ -121,70 +155,91 @@ function ChatMessageInput() {
                 )
             }
             {
-                files.length > 0 && (
-                    <div className="flex gap-2 px-3 py-2 bg-background rounded-t-lg border-b-0 border border-muted-border overflow-x-auto overflow-y-hidden items-start">
+                (files.length > 0 || uploading ) && (
+                    <div className="flex flex-col items-start gap-2 mx-5 px-3 py-2 bg-background rounded-t-lg border-b-0 border border-muted-border shrink-0 max-h-38 overflow-y-auto">
+                        {/* FIXME: Want to use preview with images*/}
                         {
-                            files.map(file => {
-                                return (
-                                    <div key={file.url} className="shrink-0">
-                                        {file.type === "video" ? (
-                                            <CloudVideo url={file.publicId} />
-                                        ) : file.type === "image" ? (
-                                            <div className="w-37.5 h-50 bg-black border border-muted-border rounded-lg overflow-hidden">
-                                                <CldImage
-                                                    src={file.publicId}
-                                                    width={150}
-                                                    height={200}
-                                                    crop={"fill"}
-                                                    className="w-full h-full"
-                                                    alt="media"
-                                                />
-                                            </div>
-                                        ) : (
-                                            <p>{file.publicId}</p>
-                                        )}
+                            files.map((file, idx) => (
+                                <div key={idx} className={'flex gap-2 justify-start text-foreground items-center'}>
+                                    <div className={'flex gap-1 items-center'}>
+                                        {
+                                            file.type === "image" ? (
+                                                <Image size={16} className={'text-muted-text'}/>
+                                            ) : (
+                                                <FileText size={16} className={'text-muted-text'}/>
+                                            )
+                                        }
+                                        <span className={'text-muted-text'}>{file.originalName}</span>
                                     </div>
-                                );
-                            })
+                                    <button
+                                        onClick={async () => {
+                                            setFiles(prev => prev.filter((_, i) => i !== idx));
+
+                                            if (!editMessage) {
+                                                try {
+                                                    await deleteFile(file.publicId, file.type);
+                                                } catch (error) {
+                                                    // Restore file if delete failed
+                                                    setFiles(prev => [...prev, file]);
+                                                }
+                                            }
+                                        }}
+                                        className="bg-error-background rounded-full p-0.5 cursor-pointer hover:bg-error-background/80"
+                                    >
+                                        <X size={12} className="text-error"/>
+                                    </button>
+                                </div>
+                            ))
+                        }
+                        {
+                            uploading && (
+                                <>
+                                    <span  className={'text-muted-text text-sm'}>Uploading...</span>
+                                </>
+                            )
                         }
                     </div>
                 )
             }
-            <div className={`flex gap-4 border ${(replyMessage || files.length > 0) ? "rounded-b-lg border-t-0" : "rounded-lg"} border-muted-border bg-background px-2 text-foreground min-h-12.5 p-2 items-center`}>
-                <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    multiple={true}
-                    onChange={handleFileChange}
-                />
-                <Paperclip
-                    className="cursor-pointer"
-                    onClick={() => fileInputRef.current?.click()}
-                />
-                {/*<ChatFileUpload />*/}
-                <TextArea 
-                ref={inputRef}
-                value={text} 
-                onChange={(e) => {setText(e.target.value); handleTyping()}}
-                onFocus={() => handleTyping()}
-                onBlur={() => stopTyping()}
-                onKeyDown={handleKeyPress}
-                className={styles.textArea} 
-                styles={stylesFnTextArea} 
-                placeholder="Send a message..." 
-                autoSize={{ minRows: 1, maxRows: 5 }}
-                />
-                <div className='flex gap-2 items-center'>
-                    <X className={`cursor-pointer ${editMessage ? "block" : "hidden"} outline outline-offset-2 rounded-sm me-5 cursor-pointer outline-error/50 text-error`} size={16} onClick={() => {setEditMessage(null); setText("");}}/>
-                    <Sticker className="cursor-pointer" onClick={handleMaintenanceRoute}/>
-                    {/* <Send className="cursor-pointer" onClick={() => {handleSendMessage(text); setText("");}}/> */}
-                </div>
+            <Footer style={{ minHeight: "60px", maxHeight: "340px", width: "100%",background: "var(--chat-panel)", paddingTop: "0", paddingInline: "20px", paddingBottom: "10px", flexShrink: 0, overflow: "hidden" }}>
+                <div className={`flex gap-4 border ${(replyMessage || files.length > 0 || uploading) ? "rounded-b-lg border-t-0" : "rounded-lg"} border-muted-border bg-background px-2 text-foreground min-h-12.5 p-2 items-center shrink-0`}>
+                    <input
+                        type="file"
+                        accept="image/*,.pdf,.doc,.docx,.txt,.xlsx,.csv"
+                        ref={fileInputRef}
+                        className="hidden"
+                        multiple={true}
+                        onChange={handleFileChange}
+                    />
+                    <Paperclip
+                        className="cursor-pointer"
+                        onClick={() => fileInputRef.current?.click()}
+                    />
 
-            </div>
-        </Footer>
+                    {/*<ChatFileUpload />*/}
+                    <TextArea
+                    ref={inputRef}
+                    value={text}
+                    onChange={(e) => {setText(e.target.value); handleTyping()}}
+                    onFocus={() => handleTyping()}
+                    onBlur={() => stopTyping()}
+                    onKeyDown={handleKeyPress}
+                    className={styles.textArea}
+                    styles={stylesFnTextArea}
+                    placeholder="Send a message..."
+                    autoSize={{ minRows: 1, maxRows: 5 }}
+                    />
+
+                    <div className='flex gap-2 items-center'>
+                        <X className={`cursor-pointer ${editMessage ? "block" : "hidden"} outline outline-offset-2 rounded-sm me-5 cursor-pointer outline-error/50 text-error`} size={16} onClick={() => {setEditMessage(null); setText(""); setFiles([])}}/>
+                        <Sticker className="cursor-pointer" onClick={handleMaintenanceRoute}/>
+                        {/*<Send className="cursor-pointer" onClick={() => {sendMessage(text, replyMessage, files); setText("");}}/>*/}
+                    </div>
+
+                </div>
+            </Footer>
+        </div>
     );
 }
 
 export default ChatMessageInput;
-

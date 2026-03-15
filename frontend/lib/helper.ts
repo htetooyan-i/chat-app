@@ -60,11 +60,15 @@ export const groupMessagesByDate = (messages: Message[]) => {
   }, {} as Record<string, Message[]>);
 };
 
-export const addMessageToGroup = ( groups: Record<string, Message[]>, message: Message ) => {
-    const date = new Date(message.createdAt).toDateString();
+export const validateFiles = (files: File[]) => {
+    return files.filter((file) => {
+        // Block videos by MIME type
+        if (file.type.startsWith('video/')) {
+            alert(`"${file.name}" is not allowed. Videos are not accepted.`);
+            return false;
+        }
+        return true;
+    });
+}
 
-    return {
-        ...groups,
-        [date]: groups[date] ? [...groups[date], message] : [message],
-    };
-};
+export const isImage = (file: File) => file.type.startsWith('image/');

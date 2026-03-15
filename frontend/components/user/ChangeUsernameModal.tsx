@@ -6,6 +6,7 @@ import { Modal, ModalProps } from 'antd';
 import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useNotification } from '@/hooks/useNotification';
+import {User} from "@/types/User";
 
 type ChangeUsernameModalProps = {
     showUsernameEditingModal: boolean;
@@ -37,16 +38,17 @@ const styles: ModalProps['styles'] = {
 
 function ChangeUsernameModal({ showUsernameEditingModal, setShowUsernameEditingModal }: ChangeUsernameModalProps) {
 
-    const { refreshUser } = useAuth();
+    const { updateUserInfo } = useAuth();
     const [ newUsername, setNewUsername ] = React.useState("");
     const [ password, setPassword ] = React.useState("");
     const { contextHolder, showSuccess, showError } = useNotification();
 
     const handleChangeUsername = async () => {
         try {
-            await api.patch('/users/me', { username: newUsername, password });
+            const updatedUserData:Partial<User> = {username: newUsername};
+            await updateUserInfo(updatedUserData, password);
+
             showSuccess("Username changed successfully!");
-            await refreshUser();
         } catch (error) {
             console.error('Error updating username:', error);
             showError("Failed to change username.");

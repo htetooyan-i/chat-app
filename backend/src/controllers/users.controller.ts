@@ -106,6 +106,14 @@ export async function UpdateAvatar(req: Request, res: Response) {
 
     try {
         await UsersService.updateAvatar(userId, avatarUrl);
+        const servers = await ServerMemberService.getCurrentUserServers(userId);
+
+        servers.forEach((server) => {
+            io.to(`server-${server.id}`).emit('receivedUpdatedMember',  {
+                userId: userId,
+                avatarUrl: avatarUrl
+            });
+        })
         res.status(200).json({ message: 'Avatar updated successfully' });
     } catch (error) {
         console.error('Error updating user avatar:', error);

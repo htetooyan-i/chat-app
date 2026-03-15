@@ -12,6 +12,7 @@ import { useMessage } from '@/hooks/useMessage';
 import { useAuth } from '@/hooks/useAuth';
 import { useChatUI } from '@/hooks/useChatUI';
 import CloudVideo from "@/components/ui/CloudVideo";
+import ChatAttachments from "@/components/chat/ChatAttachments";
 
 type ChatMessageProps = {
     messages: Message[];
@@ -152,43 +153,13 @@ function ChatMessage({ messages, messagesMap }: ChatMessageProps) {
                                                             {message.content}
                                                         </Linkify>
                                                     </p>
-                                                    {
-                                                        message.attachments && message.attachments.length > 0 && (
-                                                            <div className="flex gap-2 bg-background rounded-t-lg border-b-0 border border-muted-border">
-                                                                {/*FIXME: Use Grid to show media like 3x3 grid or something*/}
-                                                                {
-                                                                    message.attachments.map(file => {
-                                                                        return (
-                                                                            <div key={file.id} className="shrink-0">
-                                                                                {file.type === "VIDEO" ? (
-                                                                                    <CloudVideo url={file.publicId} />
-                                                                                ) : file.type === "IMAGE" ? (
-                                                                                    <div className="w-37.5 h-50 bg-black border border-muted-border rounded-lg overflow-hidden">
-                                                                                        <CldImage
-                                                                                            src={file.publicId}
-                                                                                            width={150}
-                                                                                            height={200}
-                                                                                            crop={"fill"}
-                                                                                            className="w-full h-full"
-                                                                                            alt="media"
-                                                                                        />
-                                                                                    </div>
-                                                                                ) : (
-                                                                                    <p>{file.publicId}</p>
-                                                                                )}
-                                                                            </div>
-                                                                        );
-                                                                    })
-                                                                }
-                                                            </div>
-                                                        )
-                                                    }
+                                                    <ChatAttachments attachments={message.attachments} />
                                                 </div>
                                             </div>
                                         </>
                                     ) : (
-                                        <>
-                                            <Avatar shape="circle" size={48} src="/logo.png" className='border-background' />
+                                        <> {/* Show profile*/}
+                                            <Avatar shape="circle" size={48} src={message.author.avatarUrl || '/logo.png'} className='border-background' />
                                             <div className='flex-1 flex flex-col gap-1'>
                                                 <div className='flex items-center gap-2'>
                                                     <p className='font-semibold'>{message.author?.username}</p>
@@ -205,43 +176,13 @@ function ChatMessage({ messages, messagesMap }: ChatMessageProps) {
                                                         ))
                                                     }
                                                 </div>
-                                                <div>
+                                                <div className='flex flex-col gap-1 items-start'>
                                                     <p className='text-sm text-[13px] font-medium cursor-text'>
                                                         <Linkify options={{ target: "_blank" }}>
                                                             {message.content}
                                                         </Linkify>
                                                     </p>
-                                                    {
-                                                        message.attachments && message.attachments.length > 0 && (
-                                                            <div className="flex gap-2 bg-background rounded-t-lg border-b-0 border border-muted-border">
-                                                                {/*FIXME: Use Grid to show media like 3x3 grid or something*/}
-                                                                {
-                                                                    message.attachments.map(file => {
-                                                                        return (
-                                                                            <div key={file.id} className="shrink-0">
-                                                                                {file.type === "VIDEO" ? (
-                                                                                    <CloudVideo url={file.publicId} />
-                                                                                ) : file.type === "IMAGE" ? (
-                                                                                    <div className="w-37.5 h-50 bg-black border border-muted-border rounded-lg overflow-hidden">
-                                                                                        <CldImage
-                                                                                            src={file.publicId}
-                                                                                            width={150}
-                                                                                            height={200}
-                                                                                            crop={"fill"}
-                                                                                            className="w-full h-full"
-                                                                                            alt="media"
-                                                                                        />
-                                                                                    </div>
-                                                                                ) : (
-                                                                                    <p>{file.publicId}</p>
-                                                                                )}
-                                                                            </div>
-                                                                        );
-                                                                    })
-                                                                }
-                                                            </div>
-                                                        )
-                                                    }
+                                                    <ChatAttachments attachments={message.attachments} />
                                                 </div>
                                             </div>
                                         </>
