@@ -78,7 +78,6 @@ export async function leaveServer(req: Request, res: Response) {
 
 export async function getServerMembers(req: Request, res: Response) {
     const { serverId } = req.params;
-    console.log('Getting members for server ID:', serverId);
     try {
         const members = await ServerMemberService.getServerMembers(Number(serverId));
         res.status(200).json({ message: 'Server members retrieved successfully', data: members });

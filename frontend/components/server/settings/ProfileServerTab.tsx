@@ -1,28 +1,96 @@
-import React from 'react';
+import React, {type SetStateAction, useEffect, useRef, useState} from 'react';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
-import { Avatar, Upload, ButtonProps } from 'antd';
-import Textarea from '@mui/joy/Textarea';
+import { Avatar } from 'antd';
 
 import { useServer } from '@/hooks/useServer';
-import { formatDate } from '@/lib/helper';
+import {formatDate, isImage} from '@/lib/helper';
 import type { Server } from '@/types/Server';
+import {useMediaUpload} from "@/hooks/useMediaUpload";
+import ProfilePreviewModal from "@/components/ui/ProfilePreviewModal";
+import {getErrorMessage} from "@/lib/api";
+import {useNotification} from "@/hooks/useNotification";
 
-type ProfileServerTabProps = {
-    hasUnsavedChanges: boolean;
-    onDirtyChange: (dirty: boolean) => void;
-    serverProfile: Server;
-    setServerProfile: React.Dispatch<React.SetStateAction<Server>>;
-};
 
-function ProfileServerTab({ hasUnsavedChanges, onDirtyChange, serverProfile, setServerProfile }: ProfileServerTabProps) {
+function ProfileServerTab() {
 
     const { serverId } = useParams();
-    const { servers } = useServer();
+    const { servers, updateServer } = useServer();
+    const { contextHolder, showSuccess, showError } = useNotification();
     const selectedServer = servers.find(s => String(s.id) === String(serverId));
 
+    const [ hasUnsavedChanges, setHasUnsavedChanges ] = useState<boolean>(false);
+    const [ profileForm, setProfileForm ] = useState<Server | null>(null);
+    const setServerProfile = (value: SetStateAction<Server>) => {
+        setProfileForm(value as SetStateAction<Server | null>);
+    };
+
+    useEffect(() => {
+        if (selectedServer) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setProfileForm(selectedServer);
+            setHasUnsavedChanges(false);
+        }
+    }, [selectedServer]);
+
+    const handleSaveProfileChanges = async () => {
+        try {
+            await updateServer(profileForm!);
+            showSuccess("Server profile updated successfully");
+            setHasUnsavedChanges(false);
+        } catch (error) {
+            showError(getErrorMessage(error, "Failed to update server profile."));
+        }
+    }
+
+    const { upload } = useMediaUpload();
+
+    {/* FIXME: Combine preview in this page and user profile page*/}
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [croppedPreviewUrl, setCroppedPreviewUrl] = useState<string | null>(null);
+    const localAvatarUrl = croppedPreviewUrl || profileForm?.avatarUrl || "/logo.png";
+    const [modalOpen, setModalOpen] = useState(false);
+
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !isImage(file)) {
+            e.target.value = '';
+            return;
+        }
+        // Just set a local preview — don't upload yet
+        setPreviewUrl(URL.createObjectURL(file));
+        setModalOpen(true);
+        e.target.value = '';
+    };
+
+    const handleConfirm = async (blob: Blob) => {
+        setCroppedPreviewUrl(URL.createObjectURL(blob)); // instant preview
+
+        const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+        const uploaded = await upload(file);
+        setServerProfile(prev => ({ ...prev, avatarUrl: uploaded.url }));
+        if (!hasUnsavedChanges) setHasUnsavedChanges(true);
+        setModalOpen(false);
+    };
+
+    const handleCancel = () => {
+        setModalOpen(false);
+        setPreviewUrl(null);
+    };
+
+    if (!profileForm) return null;
     return (
         <div>
+            {contextHolder}
+            {/* Crop Modal */}
+            <ProfilePreviewModal
+                open={modalOpen}
+                previewUrl={previewUrl}
+                onConfirm={handleConfirm}
+                onCancel={handleCancel}
+            />
             <p className="text-xl font-bold capitalize mb-4">Server Profile</p>
             <div className='flex items-start gap-8 w-full'>
                 {/* Server Profile Data*/}
@@ -35,11 +103,11 @@ function ProfileServerTab({ hasUnsavedChanges, onDirtyChange, serverProfile, set
                         <input
                             type="text"
                             id="server-name"
-                            value={serverProfile.name || ''}
+                            value={profileForm.name || ''}
                             onChange={(e) => {
                                 setServerProfile(prev => ({ ...prev, name: e.target.value }));
                                 if (!hasUnsavedChanges) {
-                                    onDirtyChange(true);
+                                    setHasUnsavedChanges(true);
                                 }
                             }}
                             className="bg-chat-panel border border-muted-border rounded-lg p-2 text-[12px] outline-none focus:ring-0 focus:border-accent w-full"
@@ -81,14 +149,14 @@ function ProfileServerTab({ hasUnsavedChanges, onDirtyChange, serverProfile, set
                             <p className="text-[11px] font-semibold text-muted-text">We recommend an image of at least 512x512 pixels.</p>
                         </div>
                         <div className='flex gap-4'>
-                            <Upload
-                                name="avatar"
-                                listType="picture"
-                                showUploadList={false}
-                                action="/upload.do"
-                            >
-                                <button className="bg-accent text-foreground hover:bg-accent/70 px-4 py-2 rounded-lg font-semibold cursor-pointer">Change Server Icon</button>
-                            </Upload>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                ref={fileInputRef}
+                                className="hidden"
+                                onChange={handleFileChange}
+                            />
+                            <button className="bg-accent text-foreground hover:bg-accent/70 px-4 py-2 rounded-lg font-semibold cursor-pointer" onClick={() => fileInputRef.current?.click()}>Change Server Icon</button>
                             <button className="bg-muted-background text-error border border-muted-border hover:bg-muted-background/70 px-4 py-2 rounded-lg font-semibold cursor-pointer">Change Server Icon</button>
                         </div>
                     </div>
@@ -99,7 +167,7 @@ function ProfileServerTab({ hasUnsavedChanges, onDirtyChange, serverProfile, set
                     {/* Banner */}
                     <div className="relative h-24 w-full">
                         <Image
-                        src="/server-img-default.png"
+                        src="/logo.png"
                         alt="Server Icon"
                         fill
                         className="object-cover"
@@ -107,7 +175,7 @@ function ProfileServerTab({ hasUnsavedChanges, onDirtyChange, serverProfile, set
                         {/* Avatar */}
                         <Avatar
                         size={64}
-                        src="/logo.png"
+                        src={localAvatarUrl || "/logo.png"}
                         className="absolute -bottom-16 left-4 border-4 border-background"
                         />
                     </div>
@@ -140,6 +208,21 @@ function ProfileServerTab({ hasUnsavedChanges, onDirtyChange, serverProfile, set
                         </p>
 
                     </div>
+                </div>
+            </div>
+            {/* Footer */}
+            <div className={`absolute bottom-5 right-20 flex justify-between items-center gap-2 px-4 py-2 bg-chat-panel rounded-md w-[75%] shadow-lg shadow-accent/10 transition-all duration-500 ease-in-out ${hasUnsavedChanges ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}>
+                {/* FIXME: Add thi to profile tab */}
+                <div>
+                    <p className="text-md font-semibold text-foreground">Careful - you have unsaved changes!</p>
+                </div>
+                <div className="flex gap-2">
+                    <button className="bg-muted-background text-error border border-muted-border hover:bg-muted-background/70 px-2 py-1 rounded-lg font-semibold cursor-pointer" onClick={() => { // TODO: This should be changed in future, this works but it's not ideal to reset the form like this
+                        setHasUnsavedChanges(false);
+                        setCroppedPreviewUrl(null);
+                        setProfileForm(selectedServer!);
+                    }}>Reset</button>
+                    <button className="bg-accent text-foreground hover:bg-accent/70 px-2 py-1 rounded-lg font-semibold cursor-pointer" onClick={handleSaveProfileChanges}>Save Changes</button>
                 </div>
             </div>
         </div>

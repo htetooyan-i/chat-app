@@ -56,37 +56,17 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
     const params = useParams();
     const serverId = Array.isArray(params.serverId) ? Number(params.serverId[0]) : Number(params.serverId);
 
-    const { servers, updateServer } = useServer();
+    const { servers } = useServer();
     const selectedServer = servers.find(s => String(s.id) === String(serverId));
 
-    const { contextHolder, showSuccess, showError } = useNotification();
 
     const [ activeTab, setActiveTab ] = useState<SettingsTab>("profile");
-    const [ hasUnsavedChanges, setHasUnsavedChanges ] = useState<boolean>(false);
-    const [ profileForm, setProfileForm ] = useState<Server | null>(null);
-    const setProfileFormSafe = (value: SetStateAction<Server>) => {
-        setProfileForm(value as SetStateAction<Server | null>);
-    };
-
-    useEffect(() => {
-        if (selectedServer) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setProfileForm(selectedServer);
-            setHasUnsavedChanges(false);
-        }
-    }, [selectedServer]);
+    const [modalKey, setModalKey] = useState(0); // FIXME: this is used to track tab changes but want to change this
 
     const renderTab = () => {
         switch (activeTab) {
             case "profile":
-                return profileForm ? (
-                    <ProfileServerTab
-                        hasUnsavedChanges={hasUnsavedChanges}
-                        onDirtyChange={setHasUnsavedChanges}
-                        serverProfile={profileForm}
-                        setServerProfile={setProfileFormSafe}
-                    />
-                ) : null;
+                return <ProfileServerTab key={modalKey}/>;
 
             case "members":
                 return <ServerMemberTab />;
@@ -110,44 +90,19 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
         }
     };
 
-    const handleSaveProfileChanges = async () => {
-        try {
-            await updateServer(profileForm!);
-            showSuccess("Server profile updated successfully");
-            setHasUnsavedChanges(false);
-        } catch (error) {
-            showError(getErrorMessage(error, "Failed to update server profile."));
-        }
-    }
-
     return (
         <div>
-            {contextHolder}
             <Modal
             centered
             title={null}
             open={show}
             onCancel={() => {
                 setActiveTab("profile");
-                setHasUnsavedChanges(false);
+                setModalKey(k => k + 1);
                 onClose();
             }}
             width={activeTab === "profile" ? "60%" : "80%"}
             styles={modalStyles}
-            footer={
-                <div className={`absolute bottom-5 right-20 flex justify-between items-center gap-2 px-4 py-2 bg-chat-panel rounded-md w-[75%] shadow-lg shadow-accent/10 transition-all duration-500 ease-in-out ${hasUnsavedChanges ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}>
-                    <div>
-                        <p className="text-md font-semibold text-foreground">Careful - you have unsaved changes!</p>
-                    </div>
-                    <div className="flex gap-2">
-                        <button className="bg-muted-background text-error border border-muted-border hover:bg-muted-background/70 px-2 py-1 rounded-lg font-semibold cursor-pointer" onClick={() => { // TODO: This should be changed in future, this works but it's not ideal to reset the form like this
-                            setHasUnsavedChanges(false);
-                            setProfileForm(selectedServer!);
-                        }}>Reset</button>
-                        <button className="bg-accent text-foreground hover:bg-accent/70 px-2 py-1 rounded-lg font-semibold cursor-pointer" onClick={handleSaveProfileChanges}>Save Changes</button>
-                    </div>
-                </div>
-            }
             closeIcon={
                 <CircleX color="#ffffff" width={32} height={32} />
             }

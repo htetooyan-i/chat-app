@@ -126,6 +126,7 @@ export const ChannelProvider: React.FC<ChannelProviderProps> = ({ children }) =>
             `/servers/${serverId}/channels`,
             { name: channelName }
         );
+        channelsByServer[serverId] = [...channelsByServer[serverId], res.data];
         return res.data;
     };
 

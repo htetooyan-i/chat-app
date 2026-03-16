@@ -8,14 +8,14 @@ import ServerMemberService from '../services/serverMember.service';
 
 export async function createServer(req: Request, res: Response) {
     const userId = req.user?.userId;
-    const { name } = req.body;
+    const { name, avatarUrl } = req.body;
     if (!userId) {
         return res.status(401).json({ message: 'Unauthorized' });
     }
     try {
         const data = await prisma.$transaction(async (tx) => {
             const server = await tx.server.create({
-                data: { name, ownerId: userId },
+                data: { name, avatarUrl, ownerId: userId },
             });
 
             await tx.serverMember.create({
@@ -32,22 +32,23 @@ export async function createServer(req: Request, res: Response) {
     }
 }
 
-export async function updateServerName(req: Request, res: Response) {
+export async function updateServerProfile(req: Request, res: Response) {
     const userId = req.user?.userId;
     const { serverId } = req.params;
-    const { name } = req.body;
+    const { name, avatarUrl } = req.body;
     if (!userId) {
         return res.status(401).json({ message: 'Unauthorized' });
     }
     try {
-        const data = await ServerService.updateServerName(Number(serverId), name, userId);
-        io.to(`server-${serverId}`).emit('serverNameChanged', { serverId: Number(serverId), name: name});
-        res.status(200).json({ message: 'Server name updated successfully'});
+        await ServerService.updateServerProfile(Number(serverId), userId, name, avatarUrl);
+        io.to(`server-${serverId}`).emit('serverProfileChanged', { serverId: Number(serverId), name: name, avatarUrl: avatarUrl });
+        res.status(200).json({ message: 'Server profile updated successfully'});
     } catch (error: any) {
-        console.error('Error updating server name:', error.message);
+        console.error('Error updating server profile:', error.message);
         res.status(500).json({ message: error.message });
     }
 }
+
 
 export async function getCurrentUserServers(req: Request, res: Response) {
     const userId = req.user?.userId;

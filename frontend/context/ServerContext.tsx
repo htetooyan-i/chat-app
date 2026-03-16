@@ -1,18 +1,17 @@
 "use client";
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { Server } from "@/types/Server";
-import type { ServerInvite } from "@/types/ServerInvite";
 import { useSocket } from "@/hooks/useSocket";
 
 type ServerContextType = {
   servers: Server[];
   loading: boolean;
   refreshServers: () => Promise<Server[]>;
-  createServer: (serverName: string) => Promise<string>;
+  createServer: (serverName: string, avatarUrl: string) => Promise<string>;
   joinServer: (inviteCode: string) => Promise<void>;
   updateServer: (data: Partial<Server>) => Promise<void>;
   deleteServer: () => Promise<void>;
@@ -60,25 +59,24 @@ export const ServerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     if (!socket || !serverId) return;
 
-    const handleChangedServerName = (data: {serverId: number, name: string}) => {
-      setServers(prev => prev.map(server => server.id === data.serverId ? { ...server, name: data.name } : server));
+    const handleChangedServerProfile = (data: {serverId: number, name: string, avatarUrl: string}) => {
+      setServers(prev => prev.map(server => server.id === data.serverId ? { ...server, name: data.name, avatarUrl: data.avatarUrl } : server));
     }
 
-    socket.on("serverNameChanged", handleChangedServerName);
+    socket.on("serverProfileChanged", handleChangedServerProfile);
 
     return () => {
-      socket.off("serverNameChanged");
+      socket.off("serverProfileChanged");
     }
   }, [serverId, socket]);
 
   const refreshServers = async () => await fetchServers();
 
-  const createServer = async (serverName: string): Promise<string> => {
-    const res = await api.post('/servers', { name: serverName });
+  const createServer = async (serverName: string, avatarUrl: string): Promise<string> => {
+    const res = await api.post('/servers', { name: serverName, avatarUrl });
     const inviteRes = await api.post(`/servers/${res.data.server.id}/invites`);
     setServers(prev => [...prev, res.data.server]);
     await refreshServers();
-    console.log("INVITE DATA: ", inviteRes.data);
     return inviteRes.data.code;
   }
 
@@ -89,21 +87,33 @@ export const ServerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const updateServer = async (data: Partial<Server>) => {
-    await api.patch(`/servers/${serverId}`, {name: data.name});
     setServers(prev => prev.map(s => s.id === serverId ? { ...s, ...data } : s));
-    await refreshServers();
+    try {
+      await api.patch(`/servers/${serverId}`, {name: data.name, avatarUrl: data.avatarUrl});
+    } catch (error) {
+      await refreshServers();
+      throw error;
+    }
   };
 
   const deleteServer = async () => {
-    await api.delete(`/servers/${serverId}`);
     setServers(prev => prev.filter(s => s.id !== serverId))
-    await refreshServers(); // sync with backend in background
+    try {
+      await api.delete(`/servers/${serverId}`);
+    } catch (e) {
+      await refreshServers(); // sync with the backend in the background
+      throw e;
+    }
   };
 
   const leaveServer = async (selectedServerId: number) => {
-    await api.delete(`/servers/${selectedServerId}/leave`);
     setServers(prev => prev.filter(s => s.id !== selectedServerId))
-    await refreshServers();
+    try {
+      await api.delete(`/servers/${selectedServerId}/leave`);
+    } catch (e) {
+      await refreshServers();
+      throw e;
+    }
   };
 
   return (

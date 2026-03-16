@@ -81,6 +81,7 @@ model UserToken {
 model Server {
   id        Int      @id @default(autoincrement())
   name      String
+  avatarUrl String?
   ownerId   Int
   createdAt DateTime @default(now())
 

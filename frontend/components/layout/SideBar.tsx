@@ -165,7 +165,7 @@ function SideBar({ siderStyle }: SideBarProps) {
                                     <ContextDropdownComponent items={dropDownItems(server.id)}>
                                         <Badge>
                                             <Avatar
-                                                src='/server-img-default.png'
+                                                src={server.avatarUrl || '/server-img-default.png'}
                                                 size={50}
                                                 shape="circle"
                                                 style={{

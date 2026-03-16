@@ -22,7 +22,7 @@ class ServerService {
         }
     }
 
-    static async updateServerName(serverId: number, name: string, userId: number) {
+    static async updateServerProfile(serverId: number, userId: number, name?: string, avatarUrl?: string) {
 
         if (name === undefined || name.trim() === '') {
             throw new Error('Server name is required');
@@ -35,11 +35,11 @@ class ServerService {
             }
             const updatedServer = await prisma.server.update({
                 where: { id: serverId },
-                data: { name },
+                data: { name, avatarUrl },
             });
             return updatedServer;
         } catch (error: any) {
-            console.error('Error updating server name:', error.message);
+            console.error('Error updating server profile:', error.message);
             throw error;
         }
     }

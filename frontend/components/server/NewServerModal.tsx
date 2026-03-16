@@ -41,14 +41,15 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
 
     const [ isCreating, setIsCreating ] = useState(true);
     const [ isSucceed, setIsSucceed ] = useState(false);
-    const [serverName, setServerName] = useState(""); 
+    const [ serverName, setServerName ] = useState("");
+    const [ avatarUrl, setAvatarUrl ] = useState("");
     const [inviteCode, setInviteCode] = useState("");
     const { contextHolder, showSuccess, showError } = useNotification();
 
 
     const handleCreateNewServer = async () => {
         try {
-            const invite = await createServer(serverName);
+            const invite = await createServer(serverName, avatarUrl);
             setInviteCode(invite);
             showSuccess("Server created successfully!");
             setIsSucceed(true);
@@ -90,6 +91,7 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
                         setIsCreating(true);
                         setIsSucceed(false);
                         setServerName("");
+                        setAvatarUrl("");
                     }}
             width={"25%"}
             styles={styles}
@@ -104,6 +106,7 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
                                 setIsCreating(true);
                                 setIsSucceed(false);
                                 setServerName("");
+                                setAvatarUrl("");
                             }}
                         >
                             Cancel
@@ -142,7 +145,7 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
             >
                 {
                     isCreating ? (
-                        <CreateServer isSuccessed={isSucceed} serverName={serverName} setServerName={setServerName} inviteCode={inviteCode} />
+                        <CreateServer isSucceed={isSucceed} serverName={serverName} setServerName={setServerName} inviteCode={inviteCode} avatarUrl={avatarUrl} setAvatarUrl={setAvatarUrl} />
                     ) : (
                         <JoinServer inviteCode={inviteCode} setInviteCode={setInviteCode} />
                     )   

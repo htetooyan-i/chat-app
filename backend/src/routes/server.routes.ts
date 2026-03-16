@@ -7,15 +7,14 @@ import {
     createServer,
     deleteServer,
     getCurrentUserServers,
-    updateServerName
+    updateServerProfile
  } from '../controllers/server.controller';
 
 const router = express.Router();
 
 router.post('/', authMiddleware, createServer);
 router.get('/my-servers', authMiddleware, getCurrentUserServers);
-router.patch('/:serverId', authMiddleware, requireServerRole([MemberRole.ADMIN, MemberRole.OWNER]), updateServerName);
+router.patch('/:serverId', authMiddleware, requireServerRole([MemberRole.ADMIN, MemberRole.OWNER]), updateServerProfile);
 router.delete('/:serverId', authMiddleware,  requireServerRole([MemberRole.OWNER]), deleteServer);
-
 
 export default router;
