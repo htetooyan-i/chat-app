@@ -3,9 +3,10 @@ import Image from "next/image";
 import { useParams } from 'next/navigation';
 import { Image as ImageIcon, ChevronDown, FileText, ChevronsDown } from 'lucide-react';
 import { Skeleton } from 'antd';
+import Lightbox from "yet-another-react-lightbox";
+import Download from "yet-another-react-lightbox/plugins/download";
 
 import {useServerAttachment} from "@/hooks/useServerAttachment";
-import Lightbox from "yet-another-react-lightbox";
 
 function ServerFileInfo() {
 
@@ -34,15 +35,17 @@ function ServerFileInfo() {
                 open={open}
                 close={() => setOpen(false)}
                 index={index}
-                slides={images.map(a => ({ src: a.url }))}
+                slides={images.map(a => ({ src: a.url, download: { filename: a.originalName, url: a.url}}))}
+                plugins={[Download]}
             />
-            <div className="overflow-y-auto h-full">
-                <header className="p-4 flex justify-between items-center">
+            <div className="h-screen flex flex-col">
+                <header className="p-4 pb-0 flex justify-between items-center">
                     <h2 className="text-[21px] font-bold py-2">Files</h2>
                 </header>
-                <main className="flex flex-col gap-4">
+                <main className="flex flex-col gap-4 overflow-y-auto h-full my-2" style={{scrollbarWidth: "none"}}>
+                    {/* Images */}
                     <section className={'px-2'}>
-                        <div className="flex justify-between items-center px-2">
+                        <div className="flex justify-between items-center px-2 pb-1 sticky top-0 bg-background z-10">
                             <div className="flex items-center gap-2">
                                 <ImageIcon />
                                 <span className={'font-medium'}>{totalImages} Images</span>
@@ -79,8 +82,9 @@ function ServerFileInfo() {
                             }
                         </div>
                     </section>
+                    {/* Files*/}
                     <section className={'px-2'}>
-                        <div className="flex justify-between items-center px-2">
+                        <div className="flex justify-between items-center px-2 pb-1 sticky top-0 bg-background z-10">
                             <div className="flex items-center gap-2">
                                 <FileText />
                                 <span className={'font-medium'}>{totalRaws} Files</span>
@@ -97,6 +101,13 @@ function ServerFileInfo() {
                                         <span className={'text-xs text-muted-text truncate'}>{file.originalName}</span>
                                     </div>
                                 ))
+                            }
+                            {
+                                loading && (
+                                    Array.from({ length: 10 }).map((_, idx) => (
+                                        <Skeleton.Node key={idx} active style={{ height: "30px", width: "100%", backgroundColor: "var(--muted-background)", borderRadius: "6px"}} />
+                                    ))
+                                )
                             }
                             {
                                 hasMoreRaws && (

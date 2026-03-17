@@ -1,4 +1,5 @@
-import React, {useRef} from 'react';
+import React from 'react';
+import { ShieldCheck, ShieldX } from 'lucide-react';
 
 import UserProfile from './UserProfile';
 import { useAuth } from '@/hooks/useAuth';
@@ -34,7 +35,19 @@ function UserGeneralInfo() {
                 {/* Email */}
                 <div className='flex justify-between items-start gap-4'>
                     <div className='relative flex-1 flex flex-col gap-1'>
-                        <p className='font-bold text-[14px]'>Email</p>
+                        <div className='flex items-center gap-2'>
+                            <p className='font-bold text-[14px]'>Email</p>
+                            <div className={`flex items-center gap-1 text-[12px] font-medium px-2 py-0.5 rounded-full ${user?.verified ? "text-success bg-success-background border border-success" : "text-error bg-error-background border border-error"}`}>
+                                {
+                                    user?.verified ? (
+                                        <ShieldCheck size={14}/>
+                                    ) : (
+                                        <ShieldX size={14}/>
+                                    )
+                                }
+                                <span className={'font-medium'}>{user?.verified ? "Verified" : "Not Verified"}</span>
+                            </div>
+                        </div>
                         <p className='font-medium text-[12px]'>{user?.email}</p>
                     </div>
                     <div>

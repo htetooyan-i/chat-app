@@ -7,8 +7,9 @@
   --chat-panel: #1E293B;
   --accent: #8B5CF6;
   --success: #22C55E;
+  --success-background: rgba(29, 71, 49, 0.6);
   --error: #EF4444;
-  --error-background: rgba(239, 68, 68, 0.3);
+  --error-background: rgba(110, 42, 42, 0.3);
   --warning: #F59E0B;
   --text: #E5E7EB;
   --muted-text: #94A3B8;
@@ -29,6 +30,7 @@
   --color-chat-panel: var(--chat-panel);
   --color-accent: var(--accent);
   --color-success: var(--success);
+  --color-success-background: var(--success-background);
   --color-error: var(--error);
   --color-error-background: var(--error-background);
   --color-warning: var(--warning);

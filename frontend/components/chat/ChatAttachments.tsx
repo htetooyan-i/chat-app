@@ -5,6 +5,7 @@ import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 
 import { Attachment} from "@/types/Attachment";
+import Download from "yet-another-react-lightbox/plugins/download";
 
 type ChatAttachmentProps = {
     attachments?: Attachment[];
@@ -24,7 +25,8 @@ function ChatAttachments({attachments}: ChatAttachmentProps) {
                 open={open}
                 close={() => setOpen(false)}
                 index={index}
-                slides={imageAttachments.map(a => ({ src: a.url }))}
+                slides={attachments.map(a => ({ src: a.url, download: { filename: a.originalName, url: a.url}}))}
+                plugins={[Download]}
             />
             {attachments.map((file) => (
                 <div key={file.id} className="w-36 h-50 bg-muted-background border border-muted-border rounded-lg overflow-hidden">

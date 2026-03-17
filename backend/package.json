@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "@prisma/adapter-pg": "^7.3.0",
+    "@react-email/components": "^1.0.9",
     "argon2": "^0.44.0",
     "cloudinary": "^2.9.0",
     "cors": "^2.8.6",
@@ -23,6 +24,8 @@
     "morgan": "^1.10.1",
     "nodemailer": "^8.0.1",
     "pg": "^8.17.2",
+    "react-email": "^5.2.9",
+    "resend": "^6.9.4",
     "socket.io": "^4.8.3",
     "twilio": "^5.12.1"
   },

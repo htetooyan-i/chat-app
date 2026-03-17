@@ -1,35 +1,46 @@
-import { transporter } from "../lib/mailer";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
+import EmailTemplates from "../lib/EmailTemplates";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export class EmailService {
 
-    private static async sendEmail(to: string, subject: string, html: string) {
-        const info = await transporter.sendMail({
-            from: '"My App" <no-reply@chatapp.com>',
+    private static async sendEmail(to: string, subject: string, react: React.ReactNode) {
+        try {
+            const response = await resend.emails.send({
+            from: process.env.FROM_EMAIL || "no-reply@chatapp.com",
             to,
             subject,
-            html,
-        });
+            react,
+            });
+            console.log("Email sent:", response);
+            return response;
+        } catch (err) {
+            console.error("Error sending email:", err);
+            throw err;
+        }
+    }
 
-        console.log("Preview URL:", nodemailer.getTestMessageUrl(info));
+    private static createLink(path: string, token: string) {
+        const base = "http://localhost:4000"; // Change to your frontend URL in production
+        return `${base}${path}?token=${token}`;
+    }
+
+    static async sendWelcomEmail(to: string, token: string) {
+        const link = this.createLink("/api/auth/verify-email", token);
+        const react = await EmailTemplates.WelcomeEmailTemplate(link);
+        await this.sendEmail(to, "Welcome to ChatApp!", react);
     }
 
     static async sendVerificationEmail(to: string, token: string) {
-        const link = `http://localhost:4000/api/auth/verify-email?token=${token}`;
-        const html = `
-            <p>Click the link below to verify your email:</p>
-            <a href="${link}">Verify Email</a>
-        `;
-        await this.sendEmail(to, "Verify your email", html);
+        const link = this.createLink("/api/auth/verify-email", token);
+        const react = await EmailTemplates.VerificationEmailTemplate(link);
+        await this.sendEmail(to, "Verify your email", react);
     }
 
     static async sendPasswordResetEmail(to: string, token: string) {
-        const link = `http://localhost:4000/api/auth/reset-password?token=${token}`;
-        const html = `
-            <p>Click the link below to reset your password:</p>
-            <a href="${link}">Reset Password</a>
-        `;
-        await this.sendEmail(to, "Reset your password", html);
+        const react = await EmailTemplates.PasswordResetEmailTemplate("http://localhost:3000/reset-password?token=" + token);
+        await this.sendEmail(to, "Reset your password", react);
     }
 
 }

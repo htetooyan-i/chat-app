@@ -14,7 +14,7 @@ export async function RegisterUser(req: Request, res: Response) {
         
         // Generate email verification token and send verification email
         const rawToken = await TokenService.generate(newUser.id, "EMAIL_VERIFICATION", 60); // Generate token with 1 hour expiration
-        await EmailService.sendVerificationEmail(email!, rawToken).catch(console.error);
+        await EmailService.sendWelcomEmail(email, rawToken).catch(console.error);
 
         res.cookie("refreshToken", newUser.refreshToken, {
             httpOnly: true,
@@ -179,13 +179,34 @@ export async function VerifyEmail(req: Request, res: Response) {
 
     try {
         await AuthService.changeUserVerificationStatus(tokenRecord.userId, true); // Update user's verification status to true
-        res.status(200).json({ message: "Email verified successfully"});
+        await TokenService.markTokenUsed(tokenRecord.id); // Mark the token as used so it can't be used again
+
+
+        res.cookie("emailVerified", "true", { // This cookie is just used to show the success message on the frontend after redirect, it will be cleared immediately after the frontend reads it
+            httpOnly: true,
+            maxAge: 60 * 1000,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+        });
+
+        res.redirect(`http://localhost:3000/verify-email?status=success`);
     } catch (error) {
         res.status(400).json({ error: "Invalid or expired token" });
+        res.redirect(`http://localhost:3000/verify-email?status=error`);
     }
 }
 
-export async function ResendVerificationEmail(req: Request, res: Response) {
+export async function VerifyRedirectCookie(req: Request, res: Response) {
+    const cookie = req.cookies.emailVerified;
+
+    if (cookie) {
+        res.clearCookie("emailVerified"); // optional: consume once
+        return res.sendStatus(200);
+    }
+    res.sendStatus(401); // no cookie, invalid access
+}
+
+export async function SendVerificationEmail(req: Request, res: Response) {
     const { userId, email } = req.user || {};
 
     if (!userId || !email) {
@@ -231,7 +252,7 @@ export async function RequestPasswordReset(req: Request, res: Response) {
     }
 }
 
-// FUTURE: This endpoint is not used in the current flow because we only verify the password reset token when the submit the form to reset password, but we could use this endpoint when we want to verify the token first before showing the reset password form to the user
+// FUTURE: This endpoint is not used in the current flow because we only verify the password reset token when the submit the form to reset password, but we could use this endpoint when we want to verify the token first before showing the reset password form to the user *** FIXED ***
 export async function VerifyResetToken(req: Request, res: Response) {
     const token = req.query.token;
     if (typeof token !== "string") {
@@ -248,6 +269,7 @@ export async function VerifyResetToken(req: Request, res: Response) {
 }
 
 export async function ResetPassword(req: Request, res: Response) {
+    const refreshToken = req.cookies.refreshToken;
     const token = req.query.token;
     const { newPassword } = req.body;
 
@@ -267,6 +289,13 @@ export async function ResetPassword(req: Request, res: Response) {
 
         await AuthService.changePassword(tokenRecord.userId, "", newPassword, true); // We can pass empty string for current password since we already verified the token
         await TokenService.markTokenUsed(tokenRecord.id); // Mark the token as used so it can't be used again
+        
+        if (refreshToken) {
+            await AuthService.logout(refreshToken);
+            res.clearCookie("refreshToken");
+            res.clearCookie("accessToken");
+        }
+
         res.status(200).json({ message: "Password reset successfully" });
 
     } catch (error) {
@@ -307,6 +336,7 @@ export async function VerifyPhoneOTP(req: Request, res: Response) {
         res.status(500).json({ error: "Failed to verify OTP" });
     }
 }
+
 
 
 

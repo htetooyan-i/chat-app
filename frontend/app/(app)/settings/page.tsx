@@ -4,11 +4,12 @@ import { X } from 'lucide-react';
 
 import UserGeneralInfo from '@/components/user/UserGeneralInfo';
 import UserSettingsPassword from '@/components/user/UserSettingsPassword';
-import { useUserSettingLayout } from '@/hooks/useUserSettingsLayout';
 import ChangeUsernameModal from '@/components/user/ChangeUsernameModal';
 import ChangeEmailModal from '@/components/user/ChangeEmailModal';
 import ChangePasswordModal from '@/components/user/ChangePasswordModal';
 import AccountRemoval from '@/components/user/AccountRemoval';
+import { useUserSettingLayout } from '@/hooks/useUserSettingsLayout';
+import { useAuth } from '@/hooks/useAuth';
 
 function page() {
 
@@ -27,7 +28,9 @@ function page() {
         }
     };
 
+    const { user } = useAuth();
 
+    if (!user) return null;
 
     return (
         <div className='bg-background'>

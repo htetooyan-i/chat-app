@@ -38,7 +38,7 @@ const styles: ModalProps['styles'] = {
 
 function ChangePasswordModal({ showPasswordEditingModal, setShowPasswordEditingModal }: ChangePasswordModalProps) {
 
-    const { updatePassword } = useAuth();
+    const { updatePassword, user } = useAuth();
     const [ currentPassword, setCurrentPassword ] = React.useState("");
     const [ newPassword, setNewPassword ] = React.useState("");
     const [ confirmPassword, setConfirmPassword ] = React.useState("");
@@ -64,6 +64,16 @@ function ChangePasswordModal({ showPasswordEditingModal, setShowPasswordEditingM
         setShowPasswordEditingModal(false);
     }
 
+    const handleResetPassword = async () => {
+        if (!user) return;
+        try {
+            await api.post('/auth/request-password-reset', { email: user.email });
+            showSuccess("Password reset email sent successfully!", `Please check your email ${user.email} start with for further instructions.`);
+        } catch (error) {
+            console.error('Error resetting password:', error);
+            showError("Failed to reset password.");
+        }
+    }
     const handleCancel = () => {
         setNewPassword("");
         setCurrentPassword("");
@@ -145,8 +155,8 @@ function ChangePasswordModal({ showPasswordEditingModal, setShowPasswordEditingM
                                 }
                             </div>
                         </div>
+                        <div className={'text-xs underline text-accent cursor-pointer'} onClick={handleResetPassword}> Forget password?</div>
                     </div>
-
                     <div className='mb-4'>
                         {!parsePasswordValidation(newPassword) && newPassword && <p className="text-red-500 text-[12px] mt-1">Password must be at least 8 characters with uppercase, lowercase, and a number</p>}
                         {parsePasswordValidation(newPassword) && isPasswordInvalid && <p className="text-red-500 text-[12px] mt-1">Passwords do not match</p>}

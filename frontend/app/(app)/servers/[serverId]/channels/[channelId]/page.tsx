@@ -1,26 +1,37 @@
 "use client";
+import React from 'react';
 import { Skeleton } from 'antd';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 
 import ChatPanel from "@/components/layout/ChatPanel";
 import { useAuth } from "@/hooks/useAuth";
 import { useChannel } from "@/hooks/useChannel";
 import { useServer } from "@/hooks/useServer";
+import PageNotFound from "@/components/ui/PageNotFound";
 
-function page() {
+function Page() {
 
     const params = useParams();
-    const router = useRouter();
-    const serverId = Array.isArray(params.serverId) ? params.serverId[0] : params.serverId;
-    const channelId = Array.isArray(params.channelId) ? params.channelId[0] : params.channelId;
+    const serverId = Array.isArray(params.serverId) ? Number(params.serverId[0]) : Number(params.serverId);
+    const channelId = Array.isArray(params.channelId) ? Number(params.channelId[0]) : Number(params.channelId);
 
     const { loading: authLoading } = useAuth();
     const { servers, loading: serverLoading } = useServer();
     const { channels, loading: channelLoading } = useChannel();
-    
-    // if ( !(serverId && servers.find(s => s.id === serverId)) || !(channelId && channels.find(c => c.id === Number(channelId))) ) {
-    //     router.back();
-    // }
+
+    const isDataReady = !authLoading && !serverLoading && !channelLoading;
+
+    if (isDataReady) { // FIXME: Want to redirect back to channel index if server or channel doesn't exist'
+        const serverExists = serverId && servers.some(s => s.id === serverId);
+        const channelExists = channelId && channels.some(c => c.id === channelId);
+
+        if (!serverExists || !channelExists) {
+            return (
+                <PageNotFound />
+            );
+        }
+    }
+
     return (
         <div className="flex w-full">
             {(authLoading || serverLoading || channelLoading) ? (
@@ -58,4 +69,4 @@ function page() {
     );
 }
 
-export default page;
+export default Page;
