@@ -20,7 +20,7 @@ export default function ServerLayout({ children }: { children: React.ReactNode }
         <ServerMemberProvider>
           <ServerAdminProvider>
             <Layout>
-                <SideBar siderStyle={siderStyle} />
+                {/*<SideBar siderStyle={siderStyle} />*/}
                 {children}
             </Layout>
           </ServerAdminProvider>

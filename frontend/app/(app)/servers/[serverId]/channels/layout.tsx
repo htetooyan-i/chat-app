@@ -11,7 +11,7 @@ const siderStyle: React.CSSProperties = {
 export default function ChannelLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <ChannelPanel siderStyle={siderStyle} />
+      {/*<ChannelPanel siderStyle={siderStyle} />*/}
       {children}
     </>
   );

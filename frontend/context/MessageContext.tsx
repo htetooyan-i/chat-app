@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useEffect, useState, useRef, useMemo } from "react";
+import React, { createContext, useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useParams } from "next/navigation";
 
 import { api } from "@/lib/api";
@@ -13,6 +13,7 @@ type MessageContextType = {
 
   messages: Message[];
   groupedMessages: Record<string, Message[]>;
+  loading: boolean;
   hasMore: boolean;
 
   sendMessage: (content: string, replyMessage: Message | null, attachments: UploadAttachment[]) => void;
@@ -37,6 +38,7 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     
 
     const [ messages, setMessages ] = useState<Message[]>([]);
+    const [ loading, setLoading ] = useState(false);
     const groupedMessages = useMemo(
                                 () => groupMessagesByDate(messages),
                                 [messages]
@@ -46,21 +48,23 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const [isFetchingMore, setIsFetchingMore] = useState(false);
     const oldestMessageId = useRef<number | null>(null);
 
-    const fetchMessages = async () => {
+    const fetchMessages = useCallback(async () => {
         setMessages([]);
         oldestMessageId.current = null;
         setHasMore(true);
+        setLoading(true);
         try {
             const response = await api.get(`/channels/${channelId}/messages?limit=50`);
-            const sorted = [...response.data].reverse(); 
-            
+            const sorted = [...response.data].reverse();
             oldestMessageId.current = sorted[0]?.id ?? null;
-            setHasMore(response.data.length === 50); // if less than the limit, no more pages
+            setHasMore(response.data.length === 50);
             setMessages(sorted);
         } catch (error) {
             console.error("Failed to fetch messages:", error);
+        } finally {
+            setLoading(false);
         }
-    };
+    }, [channelId]);
 
     useEffect(() => {
         if (!socket || !channelId) return;
@@ -147,7 +151,7 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
             socket.off("messageDeleted", handleDeletedMessage);
             socket.emit("leaveChannel", `channel-${channelId}`);
         };
-    }, [channelId, socket]);
+    }, [channelId, socket, fetchMessages]);
 
     const sendMessage = async (text: string, replyMessage: Message | null, attachments: UploadAttachment[]) => {
         if ((!text.trim() && attachments.length == 0) || !socket || !channelId || !user) return;
@@ -255,7 +259,7 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
 
     return (
-        <MessageContext.Provider value={{ messages, groupedMessages, hasMore, sendMessage, editExistingMessage, deleteMessage, loadMore, toggleReaction }}>
+        <MessageContext.Provider value={{ messages, groupedMessages, loading, hasMore, sendMessage, editExistingMessage, deleteMessage, loadMore, toggleReaction }}>
             {children}
         </MessageContext.Provider>
     );

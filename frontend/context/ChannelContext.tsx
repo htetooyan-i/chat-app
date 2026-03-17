@@ -66,7 +66,7 @@ export const ChannelProvider: React.FC<ChannelProviderProps> = ({ children }) =>
 
         fetchChannels();
 
-    }, [fetchChannels, serverId]);
+    }, [fetchChannels, serverId, serverLoading, channelsByServer]);
 
     useEffect(() => {
         if (!socket || !channelId) return;

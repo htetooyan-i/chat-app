@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 import { useAuth } from '@/hooks/useAuth';
 
-function page() {
+function Page() {
 
     const router = useRouter();
     const { user, loading } = useAuth();
@@ -58,4 +58,4 @@ function page() {
     );
 }
 
-export default page;
+export default Page;
