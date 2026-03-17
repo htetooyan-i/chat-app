@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Layout } from 'antd';
 import { UserRoundPlus, IdCard } from "lucide-react";
 import ServerMemberInfo from "../server/ServerMemberInfo";
+import ServerFileInfo from "@/components/server/ServerFileInfo";
 
 const { Sider } = Layout;
 
@@ -25,6 +26,8 @@ export default function InfoPanel({ type }: { type: Tabs }) {
         type === "users" as Tabs ? 
         (
           <ServerMemberInfo />
+        ) : type === "files" as Tabs ? (
+            <ServerFileInfo/>
         ) : (
           <div className="flex items-center justify-center h-full">
             <p className="text-muted-text">No { type === "settings" ? "Settings" : type === "files" ? "Files" : "Info" } to show</p>

@@ -16,6 +16,7 @@ type ServerContextType = {
   updateServer: (data: Partial<Server>) => Promise<void>;
   deleteServer: () => Promise<void>;
   leaveServer: (selectedServerId: number) => Promise<void>;
+  deleteAvatar: () => Promise<void>;
 };
 
 export const ServerContext = createContext<ServerContextType | undefined>(undefined);
@@ -116,8 +117,19 @@ export const ServerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
+  const deleteAvatar = async ()=> {
+    setServers(prev => prev.map(s => s.id == serverId ? { ...s, avatarUrl: null} : s));
+
+    try {
+      await api.delete(`/servers/${serverId}/avatar`);
+    } catch (e) {
+      await refreshServers();
+      throw e;
+    }
+  }
+
   return (
-    <ServerContext.Provider value={{ servers, loading, refreshServers, createServer, joinServer, updateServer, deleteServer, leaveServer }}>
+    <ServerContext.Provider value={{ servers, loading, refreshServers, createServer, joinServer, updateServer, deleteServer, leaveServer, deleteAvatar }}>
       {children}
     </ServerContext.Provider>
   );

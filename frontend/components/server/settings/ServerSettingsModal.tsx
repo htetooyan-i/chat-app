@@ -81,7 +81,7 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
                 return (
                     <DeleteServerTab
                         serverName={selectedServer?.name || "Server"}
-                        onClose={() => onClose()}
+                        onClose={() => {setActiveTab("profile"); onClose()}}
                     />
                 );
 

@@ -44,6 +44,23 @@ class ServerService {
         }
     }
 
+    static async deleteServerAvatar(serverId: number, userId: number) {
+        try {
+            const server = await prisma.server.findUnique({ where: { id: serverId } });
+            if (!server) {
+                throw new Error('Server not found');
+            }
+            const updatedServer = await prisma.server.update({
+                where: { id: serverId },
+                data: { avatarUrl: null },
+            });
+            return updatedServer;
+        } catch (error: any) {
+            console.error('Error deleting server avatar:', error.message);
+            throw error;
+        }
+    }
+
     static async deleteServer(serverId: number, userId: number) {
         try {
             const server = await prisma.server.findUnique({ where: { id: serverId } });

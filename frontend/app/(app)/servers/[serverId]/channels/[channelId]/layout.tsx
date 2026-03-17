@@ -1,5 +1,6 @@
 import { MessageProvider } from '@/context/MessageContext';
 import { ChatUIProvider } from '@/context/ChatUIContext';
+import { ServerAttachmentProvider} from "@/context/ServerAttachmentContext";
 
 export default function ServerLayout({
   children,
@@ -11,7 +12,7 @@ export default function ServerLayout({
     <div className="flex-1">
       <MessageProvider>
         <ChatUIProvider>
-          {children}
+            <ServerAttachmentProvider>{children}</ServerAttachmentProvider>
         </ChatUIProvider>
       </MessageProvider>
     </div>

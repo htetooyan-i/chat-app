@@ -10,6 +10,7 @@ type ChatAttachmentProps = {
     attachments?: Attachment[];
 }
 function ChatAttachments({attachments}: ChatAttachmentProps) {
+
     const [open, setOpen] = useState(false);
     const [index, setIndex] = useState(0);
 
@@ -42,9 +43,17 @@ function ChatAttachments({attachments}: ChatAttachmentProps) {
                             }}
                         />
                     ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center px-2">
-                            <FileFilled className="text-5xl"/>
-                            <p className="text-xs truncate w-full text-center">{file.originalName}</p>
+                        <div className="w-full h-full flex flex-col items-center justify-center">
+                            <a
+                                href={file.url}
+                                download={file.originalName}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex flex-col items-center justify-center gap-1 w-full h-full"
+                            >
+                                <FileFilled className="text-5xl" style={{color: "var(--muted-text"}}/>
+                                <p className="text-xs truncate w-full text-center text-muted-text">{file.originalName}</p>
+                            </a>
                         </div>
                     )}
                 </div>

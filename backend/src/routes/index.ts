@@ -25,6 +25,7 @@ router.use('/invites', serverInvitesRoutes);
 router.use('/servers/:serverId/bans', banRoutes);
 router.use('/messages/:messageId/reactions', reactionRoutes);
 router.use('/messages/attachments', attachmentRoutes);
+router.use('/channels/:channelId/attachments', attachmentRoutes);
 router.use('/channels/:channelId/messages', messageRoutes);
 router.use('/messages', messageRoutes);
 

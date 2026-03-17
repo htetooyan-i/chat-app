@@ -3,7 +3,7 @@ import { Message } from "./Message"
 export type UploadAttachment = {
     url: string;
     publicId: string;
-    type: 'image' | 'video' | 'raw';
+    type: 'image' | 'video' | 'raw' | 'pdf';
     originalName: string;
 }
 

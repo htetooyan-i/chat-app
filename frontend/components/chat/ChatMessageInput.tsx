@@ -1,5 +1,5 @@
 import React, { useState, KeyboardEvent, useEffect, useRef } from 'react';
-import { Layout, Input, GetProps } from 'antd';
+import { Layout, Input, GetProps, Progress } from 'antd';
 import type { TextAreaRef } from 'antd/es/input/TextArea';
 import { createStaticStyles } from 'antd-style';
 import {Sticker, X, Paperclip, Image, FileText, Send } from 'lucide-react';
@@ -70,7 +70,7 @@ function ChatMessageInput() {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const { upload, deleteFile, uploading } = useMediaUpload();
+    const { upload, deleteFile, uploading, progress } = useMediaUpload();
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files ?? []);
 
@@ -133,6 +133,7 @@ function ChatMessageInput() {
                                     <div className='flex items-center gap-1 text-muted-text text-[14px]'>
                                         {
                                             replyMessage.attachments[0].type === 'IMAGE' ? (
+                                                // eslint-disable-next-line jsx-a11y/alt-text
                                                 <Image size={14} />
                                             ) : (
                                                 <FileText size={14} />
@@ -164,6 +165,7 @@ function ChatMessageInput() {
                                     <div className={'flex gap-1 items-center'}>
                                         {
                                             file.type === "image" ? (
+                                                // eslint-disable-next-line jsx-a11y/alt-text
                                                 <Image size={16} className={'text-muted-text'}/>
                                             ) : (
                                                 <FileText size={16} className={'text-muted-text'}/>
@@ -179,8 +181,11 @@ function ChatMessageInput() {
                                                 try {
                                                     await deleteFile(file.publicId, file.type);
                                                 } catch (error) {
-                                                    // Restore file if delete failed
-                                                    setFiles(prev => [...prev, file]);
+                                                    setFiles(prev => {
+                                                        const newFiles = [...prev];
+                                                        newFiles.splice(idx, 0, file);
+                                                        return newFiles;
+                                                    });
                                                 }
                                             }
                                         }}
@@ -193,9 +198,10 @@ function ChatMessageInput() {
                         }
                         {
                             uploading && (
-                                <>
-                                    <span  className={'text-muted-text text-sm'}>Uploading...</span>
-                                </>
+                                <div className={'w-1/4'}>
+                                    <Progress percent={progress} size="small" status={"active"} styles={{'indicator': {color: "var(--foreground)"}}}/>
+                                    {/*<span  className={'text-muted-text text-sm'}>Uploading...</span>*/}
+                                </div>
                             )
                         }
                     </div>

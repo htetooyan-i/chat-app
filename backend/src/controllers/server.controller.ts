@@ -49,6 +49,23 @@ export async function updateServerProfile(req: Request, res: Response) {
     }
 }
 
+export async function deleteServerAvatar(req: Request, res: Response) {
+    const userId = req.user?.userId;
+    const { serverId } = req.params;
+
+    if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    try {
+        await ServerService.deleteServerAvatar(Number(serverId), userId);
+        io.to(`server-${serverId}`).emit('serverProfileChanged', { serverId: Number(serverId), avatarUrl: null });
+        res.status(200).json({ message: 'Server avatar deleted successfully' });
+    } catch (error: any) {
+        console.error('Error deleting server avatar:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+}
 
 export async function getCurrentUserServers(req: Request, res: Response) {
     const userId = req.user?.userId;

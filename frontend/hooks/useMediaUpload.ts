@@ -26,6 +26,7 @@ export const useMediaUpload = () => {
             formData.append('timestamp', timestamp);
             formData.append('api_key', apiKey);
             formData.append('folder', 'chat-media');
+            formData.append('type', 'upload');
             // formData.append('format', format);
 
             const { data } = await cloudinaryApi.post(
@@ -40,10 +41,15 @@ export const useMediaUpload = () => {
                 }
             );
 
+            const getResourceType = (file: File, cloudinaryType: string): 'image' | 'video' | 'raw' | 'pdf' => {
+                if (file.type === 'application/pdf') return 'raw';
+                return cloudinaryType as 'image' | 'video' | 'raw' | 'pdf';
+            };
+
             return {
                 url: data.secure_url,
                 publicId: data.public_id,
-                type: data.resource_type as 'image' | 'video' | 'raw',
+                type: getResourceType(file, data.resource_type),
                 originalName: file.name,
             };
         } finally {
@@ -53,7 +59,7 @@ export const useMediaUpload = () => {
 
     };
 
-    const deleteFile = async (publicId: string, resourceType: 'image' | 'video' | 'raw') => {
+    const deleteFile = async (publicId: string, resourceType: 'image' | 'video' | 'raw' | 'pdf') => {
         await api.delete('/messages/attachments', {
             data: { publicId, resourceType }
         });

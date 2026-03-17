@@ -9,6 +9,7 @@ import { Message } from '@/types/Message';
 import { formatDate } from '@/lib/helper';
 import { useMessage } from '@/hooks/useMessage';
 import { useChatUI } from '@/hooks/useChatUI';
+import { useAuth } from '@/hooks/useAuth';
 
 const { Content } = Layout;
 
@@ -20,15 +21,31 @@ type ChatContentProps = {
 function ChatContent({ channel, containerRef, sentinelRef }: ChatContentProps) {
 
     const [ showEditChannelModal, setShowEditChannelModal ] = useState(false);
-    
+
+    const { user } = useAuth();
     const { groupedMessages, hasMore } = useMessage();
     const { typingUsers } = useChatUI();
     
-    // Scroll to bottom when messages change
+    // Scroll to bottom when current user sends messages
     const bottomRef = useRef<HTMLDivElement | null>(null);
+    const prevMyMessageCountRef = useRef(0);
+
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: "auto" });
-    }, [groupedMessages]);
+        const allMessages = Object.values(groupedMessages).flat();
+        const myMessageCount = allMessages.filter(msg => msg.authorId === user?.id).length;
+
+        if (myMessageCount > prevMyMessageCountRef.current) {
+            // immediate scroll
+            bottomRef.current?.scrollIntoView({ behavior: "auto" });
+
+            // scroll again after attachments render
+            setTimeout(() => {
+                bottomRef.current?.scrollIntoView({ behavior: "auto" });
+            }, 500);
+        }
+
+        prevMyMessageCountRef.current = myMessageCount;
+    }, [groupedMessages, user?.id]);
 
     return (
         <>

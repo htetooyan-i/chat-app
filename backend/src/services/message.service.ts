@@ -3,6 +3,7 @@ import { AttachmentType } from "../../generated/prisma/enums"
 
 import cloudinary from '../lib/cloudinary';
 import { Result } from "pg";
+import { channel } from "node:diagnostics_channel";
 
 class MessageService {
 
@@ -145,6 +146,7 @@ class MessageService {
                     await tx.attachment.createMany({
                         data: attachments.map((a: any) => ({
                             messageId: message.id,
+                            channelId,
                             publicId: a.publicId,
                             url: a.url,
                             type: a.type.toUpperCase() as AttachmentType,
@@ -204,6 +206,7 @@ class MessageService {
                     await tx.attachment.createMany({
                         data: addedFiles.map((a: any) => ({
                             messageId,
+                            channelId: currentMessage.channelId,
                             publicId: a.publicId,
                             url: a.url,
                             type: a.type.toUpperCase() as AttachmentType,
@@ -222,7 +225,7 @@ class MessageService {
             // Delete removed files from Cloudinary
             await Promise.all(removedFiles.map(a =>
                 cloudinary.uploader.destroy(a.publicId, {
-                    resource_type: a.type.toLowerCase() as 'image' | 'video' | 'raw',
+                    resource_type: a.type.toLowerCase() as 'image' | 'video' | 'raw' | 'pdf',
                     invalidate: true
                 })
             ));
@@ -254,6 +257,16 @@ class MessageService {
                 where: { replyToMessageId: messageId },
                 data: { replyToDeleted: true }
             });
+
+            if (message.attachments.length > 0) {
+                await Promise.all(message.attachments.map(a =>
+                    cloudinary.uploader.destroy(a.publicId, {
+                        resource_type: a.type.toLowerCase() as 'image' | 'video' | 'raw' | 'pdf',
+                        invalidate: true
+                    })
+                ));
+            }
+                
 
             await prisma.message.delete({ where: { id: messageId } });
 

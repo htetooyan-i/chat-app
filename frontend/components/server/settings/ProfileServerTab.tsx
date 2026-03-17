@@ -43,13 +43,20 @@ function ProfileServerTab() {
         }
     }
 
+    const handleResetAvatar = () => {
+        setServerProfile(prev => ({ ...prev, avatarUrl: null }));
+        if (!hasUnsavedChanges) {
+            setHasUnsavedChanges(true);
+        }
+    }
+
     const { upload } = useMediaUpload();
 
     {/* FIXME: Combine preview in this page and user profile page*/}
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [croppedPreviewUrl, setCroppedPreviewUrl] = useState<string | null>(null);
-    const localAvatarUrl = croppedPreviewUrl || profileForm?.avatarUrl || "/logo.png";
+    const localAvatarUrl = croppedPreviewUrl || profileForm?.avatarUrl || "/server-img-default.png";
     const [modalOpen, setModalOpen] = useState(false);
 
 
@@ -157,7 +164,7 @@ function ProfileServerTab() {
                                 onChange={handleFileChange}
                             />
                             <button className="bg-accent text-foreground hover:bg-accent/70 px-4 py-2 rounded-lg font-semibold cursor-pointer" onClick={() => fileInputRef.current?.click()}>Change Server Icon</button>
-                            <button className="bg-muted-background text-error border border-muted-border hover:bg-muted-background/70 px-4 py-2 rounded-lg font-semibold cursor-pointer">Change Server Icon</button>
+                            <button className="bg-error-background text-error border border-error hover:bg-error-background/70 px-4 py-2 rounded-lg font-semibold cursor-pointer" onClick={handleResetAvatar}>Reset Server Icon</button>
                         </div>
                     </div>
                 </div>
@@ -175,7 +182,7 @@ function ProfileServerTab() {
                         {/* Avatar */}
                         <Avatar
                         size={64}
-                        src={localAvatarUrl || "/logo.png"}
+                        src={localAvatarUrl}
                         className="absolute -bottom-16 left-4 border-4 border-background"
                         />
                     </div>

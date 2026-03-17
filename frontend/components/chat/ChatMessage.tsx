@@ -112,7 +112,7 @@ function ChatMessage({ messages, messagesMap }: ChatMessageProps) {
                                                     }
                                                 </p>
                                             )}
-                                            {/* Show deleted reply message */}
+                                            {/* Show a deleted reply message */}
                                             <p className={`text-sm text-[11px] font-medium cursor-text line-clamp-1 ${message.replyToDeleted ? "text-error" : "text-muted-text"}`}>
                                                 <Linkify options={{ target: "_blank" }}>
                                                     {message.replyToDeleted
