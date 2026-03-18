@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowDownWideNarrow, Ellipsis } from 'lucide-react';
 import { Avatar } from 'antd';
 
@@ -9,12 +9,42 @@ import Spinner from '@/components/ui/Spinner';
 import { formatDate } from '@/lib/helper';
 import { useNotification } from '@/hooks/useNotification';
 import { useServerMember } from '@/hooks/useServerMember';
-import { MemberRole } from '@/types/ServerMember';
 import { getErrorMessage } from '@/lib/api';
 
-function ServerMemberTab() {
+import { MemberRole } from '@/types/ServerMember';
+import { Server } from '@/types/Server';
 
-    const { kickMember, setSelectedUserId, changeMemberRole, members, loading } = useServerMember();
+type ServerMemberTabProps = {
+    selectedServer: Server
+}
+
+function ServerMemberTab({ selectedServer }: ServerMemberTabProps) {
+
+    const {
+        kickMember,
+        setSelectedUserId,
+        changeMemberRole,
+        members,
+        loading,
+        setPreviewServerId,
+        clearPreviewServer,
+        fetchMembers
+    } = useServerMember();
+
+    useEffect(() => {
+        if (!selectedServer?.id) return;
+
+        setPreviewServerId(selectedServer.id);
+
+        // only fetch if not already loaded
+        if (members.length === 0) {
+            fetchMembers(selectedServer.id);
+        }
+
+        return () => {
+            clearPreviewServer();
+        };
+    }, [selectedServer.id]);
 
     const [ memberFilter, setMemberFilter ] = useState("");
     const [ sortOption, setSortOption ] = useState<"asc" | "desc">("asc");

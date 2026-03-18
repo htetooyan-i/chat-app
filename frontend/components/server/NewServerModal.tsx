@@ -37,51 +37,13 @@ type NewServerModalProps = {
 
 function NewServerModal({ showServerCreationModal, setShowServerCreationModal }: NewServerModalProps) {
 
-    const { createServer, joinServer } = useServer();
 
     const [ isCreating, setIsCreating ] = useState(true);
     const [ isSucceed, setIsSucceed ] = useState(false);
-    const [ serverName, setServerName ] = useState("");
-    const [ avatarUrl, setAvatarUrl ] = useState("");
-    const [inviteCode, setInviteCode] = useState("");
-    const { contextHolder, showSuccess, showError } = useNotification();
 
-
-    const handleCreateNewServer = async () => {
-        try {
-            const invite = await createServer(serverName, avatarUrl);
-            setInviteCode(invite);
-            showSuccess("Server created successfully!");
-            setIsSucceed(true);
-        } catch (error) {
-            showError(getErrorMessage(error, "Failed to create server"));
-        }
-    }
-
-    const handleJoinServer = async () => {
-        let finalCode = inviteCode;
-
-        // If the invite code is a URL, extract the code
-        if (inviteCode.startsWith("http")) {
-            const parts = inviteCode.split("/");
-            finalCode = parts[parts.length - 1];
-        }
-
-        try {
-            await joinServer(finalCode);
-            
-            showSuccess("Joined server successfully!");
-            setInviteCode("");
-            setIsCreating(true);
-            setShowServerCreationModal(false);
-        } catch (error) {
-            showError(getErrorMessage(error, "Failed to join server"));
-        }
-    };
 
     return (
         <div>
-            {contextHolder}
             <Modal
             centered
             title={ isSucceed ? "Your server is ready!" : "Customize Your Server" }
@@ -90,69 +52,34 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
                         setShowServerCreationModal(false);
                         setIsCreating(true);
                         setIsSucceed(false);
-                        setServerName("");
-                        setAvatarUrl("");
                     }}
             width={"25%"}
             styles={styles}
             closable={false}
-            footer={
-                isCreating ? (
-                    <div className="flex justify-end gap-2">
-                        <button
-                            className="flex-1 px-4 py-2 bg-muted-background border border-muted-border font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
-                            onClick={() => {
-                                setShowServerCreationModal(false);
-                                setIsCreating(true);
-                                setIsSucceed(false);
-                                setServerName("");
-                                setAvatarUrl("");
-                            }}
-                        >
-                            Cancel
-                        </button>
-                        { !isSucceed && (
-                            <button
-                                className="flex-1 px-4 py-2 bg-accent font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
-                                onClick={handleCreateNewServer}
-                            >
-                                Create
-                            </button>
-                        )}
-                    </div>
-                ) : (
-                    <div className="flex justify-end gap-2">
-                        <button
-                            className="flex-1 px-4 py-2 bg-muted-background border border-muted-border font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
-                            onClick={() => {
-                                setShowServerCreationModal(false);
-                                setIsCreating(true);
-                                setIsSucceed(false);
-                                setInviteCode("");
-                            }}
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            className="flex-1 px-4 py-2 bg-accent font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
-                            onClick={handleJoinServer}
-                        >
-                            Join
-                        </button>
-                    </div>
-                )
-            }
+            footer={null}
             >
                 {
-                    isCreating ? (
-                        <CreateServer isSucceed={isSucceed} serverName={serverName} setServerName={setServerName} inviteCode={inviteCode} avatarUrl={avatarUrl} setAvatarUrl={setAvatarUrl} />
+                    isSucceed ? (
+                        <div className="flex flex-col items-center justify-center gap-4">
+                            {/* <p className="text-center text-muted-text">Share this invite code with your friends to join the server:</p>
+                            <div className="flex items-center gap-2">
+                                <code className="bg-muted-background px-4 py-2 rounded font-mono text-accent">{inviteCode}</code>
+                                <button
+                                    className="px-3 py-2 bg-accent text-white rounded hover:bg-accent/80 cursor-pointer text-sm font-semibold"
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(inviteCode);
+                                        showSuccess("Invite code copied!");
+                                    }}
+                                >
+                                    Copy
+                                </button>
+                            </div> */}
+                        </div>
+                    ) : isCreating ? (
+                        <CreateServer onClose={() => {setShowServerCreationModal(false)}} changeView={() => setIsCreating(false)} />
                     ) : (
-                        <JoinServer inviteCode={inviteCode} setInviteCode={setInviteCode} />
+                        <JoinServer onClose={() => {setShowServerCreationModal(false)}} changeView={() => setIsCreating(true)} />
                     )   
-                }
-
-                {
-                    !isSucceed && <button type="button" onClick={() => setIsCreating(prev => !prev)} className="underline text-accent font-[11px] my-2">{ isCreating ? "Already have an invite?" : "Want to create a new server?" }</button>
                 }
             </Modal>
         </div>

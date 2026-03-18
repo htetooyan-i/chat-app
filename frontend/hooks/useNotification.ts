@@ -7,53 +7,60 @@ export const useNotification = () => {
     const [api, contextHolder] = notification.useNotification();
 
     useEffect(() => {
+        
         setMounted(true);
     }, []);
 
     const showSuccess = (title: string, description?: string) => {
-
         if (!mounted) return;
-
-        api.success({
-            title,
-            description,
-            placement: 'topRight',
-            showProgress: true,
-            duration: 3,
-        });
+        setTimeout(() => {
+            api.success({
+                title,
+                description,
+                placement: 'topRight',
+                showProgress: true,
+                duration: 3,
+            });
+        }, 0);
     };
 
     const showError = (title: string, description?: string) => {
         if (!mounted) return;
-        api.error({
-            title,
-            description,
-            placement: 'topRight',
-            showProgress: true,
-            duration: 5,
-        });
+        setTimeout(() => {
+            api.error({
+                title,
+                description,
+                placement: 'topRight',
+                showProgress: true,
+                duration: 5,
+            });
+        }, 0);
     };
 
     const showWarning = (title: string, description?: string) => {
         if (!mounted) return;
-        api.warning({
-            title,
-            description,
-            placement: 'topRight',
-            showProgress: true,
-            duration: 4,
-        });
+        setTimeout(() => {
+            api.warning({
+                title,
+                description,
+                placement: 'topRight',
+                showProgress: true,
+                duration: 4,
+            });
+        }, 0);
     };
 
     const showInfo = (title: string, description?: string) => {
         if (!mounted) return;
-        api.info({
-            title,
-            description,
-            placement: 'topRight',
-            showProgress: true,
-            duration: 4,
-        });
+        setTimeout(() => {
+            api.info({
+                title,
+                description,
+                placement: 'topRight',
+                showProgress: true,
+                duration: 4,
+            });
+        }, 0);
     };
 
     return {

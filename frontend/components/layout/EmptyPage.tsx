@@ -20,12 +20,14 @@ type EmptyPageProps = {
 function EmptyPage({username, page}: EmptyPageProps) {
     return (
         <Layout style={{ height: "100vh", overflow: "hidden", display: "flex", backgroundColor: "red" }}>
-            <ServerSidebar siderStyle={siderStyle} />
+            {
+                page === 'server' && <ServerSidebar siderStyle={siderStyle} />
+            }
             {
                 page === 'channel' && <ChannelSidebar siderStyle={siderStyle} />
             }
 
-            <Layout className="flex items-center justify-center" style={{ flex: 1, backgroundColor: "var(--background)" }}>
+            <Layout className="flex items-center justify-center" style={{ flex: 1, backgroundColor: "var(--chat-panel)" }}>
                 <div className="text-center">
                     <h2 className="text-gray-500 text-4xl">
                         Welcome {username}!

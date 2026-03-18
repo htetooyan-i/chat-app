@@ -11,13 +11,15 @@ import ProfilePreviewModal from "@/components/ui/ProfilePreviewModal";
 import {getErrorMessage} from "@/lib/api";
 import {useNotification} from "@/hooks/useNotification";
 
+type ProfileServerTabProps = {
+    selectedServer: Server;
+}
 
-function ProfileServerTab() {
 
-    const { serverId } = useParams();
-    const { servers, updateServer } = useServer();
+function ProfileServerTab({ selectedServer }: ProfileServerTabProps) {
+
+    const { updateServer } = useServer();
     const { contextHolder, showSuccess, showError } = useNotification();
-    const selectedServer = servers.find(s => String(s.id) === String(serverId));
 
     const [ hasUnsavedChanges, setHasUnsavedChanges ] = useState<boolean>(false);
     const [ profileForm, setProfileForm ] = useState<Server | null>(null);

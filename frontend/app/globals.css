@@ -77,8 +77,8 @@ body {
   width: 8px;
   height: 8px;
   top: auto;
-  bottom: -2px;
-  right: 5px;
+  bottom: -5px;
+  right: -2px;
   box-shadow: none !important;
 }
 .ant-layout-sider-children {

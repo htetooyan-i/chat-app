@@ -37,7 +37,7 @@ export default function MessagePage() {
         if (channelsLoading) return;
 
         if (!parsedServerId) {
-            router.replace(`/servers`);
+            router.replace(`/channels`);
             return;
         }
 
@@ -45,15 +45,15 @@ export default function MessagePage() {
 
         if (!serverExists) {
             if (servers.length > 0) {
-                router.replace(`/servers/${servers[0].id}/channels`);
+                router.replace(`/channels/${servers[0].id}`);
             } else {
-                router.replace(`/servers`);
+                router.replace(`/channels`);
             }
             return;
         }
 
         if (!parsedChannelId) {
-            router.replace(`/servers/${parsedServerId}/channels`);
+            router.replace(`/channels/${parsedServerId}`);
             return;
         }
 
@@ -63,27 +63,20 @@ export default function MessagePage() {
 
         if (!validChannel) {
             if (channels.length > 0) {
-                router.replace(`/servers/${parsedServerId}/channels/${channels[0].id}`);
+                router.replace(`/channels/${parsedServerId}/${channels[0].id}`);
             } else {
-                router.replace(`/servers/${parsedServerId}/channels`);
+                router.replace(`/channels/${parsedServerId}`);
             }
         }
     }, [channelsLoading, channels, parsedChannelId, parsedServerId, router, servers]);
 
-    if (authLoading) return <Skeletons.AuthSkeleton />;
-    if (serversLoading || channelsLoading) return <Skeletons.FullPageSkeleton />;
-
     return (
-        <Layout style={{ height: "100vh", overflow: "hidden", display: "flex" }}>
-            <ServerSidebar siderStyle={siderStyle} />
-            <ChannelSidebar siderStyle={siderStyle} />
-            <Layout>
-                {messagesLoading ? (
-                    <Skeletons.ChatPanelSkeleton />
-                ) : (
-                    <MessagesPanel />
-                )}
-            </Layout>
+        <Layout>
+            {messagesLoading ? (
+                <Skeletons.ChatPanelSkeleton />
+            ) : (
+                <MessagesPanel />
+            )}
         </Layout>
     );
 }

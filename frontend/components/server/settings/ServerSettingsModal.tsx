@@ -1,5 +1,4 @@
-import React, { useEffect, useState, type SetStateAction } from 'react';
-import { useParams } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
 import { Layout, Modal, ModalProps } from 'antd';
 import { CircleX } from 'lucide-react';
 
@@ -8,11 +7,9 @@ import DeleteServerTab from '@/components/server/settings/DeleteServerTab';
 import InviteServerTab from './InviteServerTab';
 import ServerMemberTab from './ServerMemberTab';
 import ProfileServerTab from './ProfileServerTab';
-import {getErrorMessage} from '@/lib/api';
 import { useServer } from '@/hooks/useServer';
-import { useNotification } from '@/hooks/useNotification';
+import { useServerAdmin } from '@/hooks/useServerAdmin';
 
-import type { Server } from '@/types/Server';
 
 const { Content, Sider } = Layout;
 
@@ -38,6 +35,7 @@ const modalStyles: ModalProps['styles'] = {
 
 type ServerSettingsModalProps = {
     show: boolean;
+    serverId: number | null;
     onClose: () => void;
 };
 
@@ -51,14 +49,25 @@ type SettingsTab = "profile" | "members" | "invites" | "bans" | "delete";
 //   delete: "Delete Server",
 // };
 
-function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
-
-    const params = useParams();
-    const serverId = Array.isArray(params.serverId) ? Number(params.serverId[0]) : Number(params.serverId);
+function ServerSettingsModal({ show, serverId, onClose }: ServerSettingsModalProps) {
 
     const { servers } = useServer();
+    const { setPreviewServerId, clearPreviewServer } = useServerAdmin();
     const selectedServer = servers.find(s => String(s.id) === String(serverId));
 
+    useEffect(() => {
+        if (show && selectedServer?.id) {
+            setPreviewServerId(selectedServer.id);
+        } else if (!show) {
+            clearPreviewServer();
+        }
+    }, [show, selectedServer?.id, setPreviewServerId, clearPreviewServer]);
+
+    useEffect(() => {
+        if (show && !selectedServer) {
+            onClose();
+        }
+    }, [show, selectedServer, onClose]);
 
     const [ activeTab, setActiveTab ] = useState<SettingsTab>("profile");
     const [modalKey, setModalKey] = useState(0); // FIXME: this is used to track tab changes but want to change this
@@ -66,21 +75,21 @@ function ServerSettingsModal({ show, onClose }: ServerSettingsModalProps) {
     const renderTab = () => {
         switch (activeTab) {
             case "profile":
-                return <ProfileServerTab key={modalKey}/>;
+                return <ProfileServerTab key={modalKey} selectedServer={selectedServer!}/>;
 
             case "members":
-                return <ServerMemberTab />;
+                return <ServerMemberTab selectedServer={selectedServer!}/>;
 
             case "invites":
-                return <InviteServerTab />;
+                return <InviteServerTab selectedServer={selectedServer!}/>;
 
             case "bans":
-                return <BanServerTab />;
+                return <BanServerTab selectedServer={selectedServer!}/>;
 
             case "delete":
                 return (
                     <DeleteServerTab
-                        serverName={selectedServer?.name || "Server"}
+                        selectedServer={selectedServer!}
                         onClose={() => {setActiveTab("profile"); onClose()}}
                     />
                 );

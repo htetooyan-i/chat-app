@@ -41,7 +41,10 @@ function SideBar({ siderStyle }: SideBarProps) {
     );
 
     const { collapsed, setCollapsed } = useServerLayout();
+
     const [ showServerSettingsModal, setShowServerSettingsModal ] = useState(false);
+    const [ shownSettingServerId, setShownSettingServerId ] = useState<number | null>(null);
+
     const [showServerCreationModal, setShowServerCreationModal] = useState(false);
     
     const dropDownItems = (selectedServerId: number): ContextDropdownItem[] => {
@@ -50,9 +53,15 @@ function SideBar({ siderStyle }: SideBarProps) {
             items.push(
                 {
                     label: "Settings",
-                    onClick: () => setShowServerSettingsModal(true),
+                    onClick: () => {
+                        setShowServerSettingsModal(true);
+                        setShownSettingServerId(selectedServerId);
+                    },
                     type: "normal",
                     icon: <Settings width={20} height={20}/>,
+                    meta: {
+                        disallowSelect: true
+                    }
                 },
             )
         }
@@ -74,9 +83,9 @@ function SideBar({ siderStyle }: SideBarProps) {
     const handleSelectServer = (serverId: number) => {
         const cached = channelsByServer[serverId];
         if (cached?.[0]) {
-            router.push(`/servers/${serverId}/channels/${cached[0].id}`);
+            router.push(`/channels/${serverId}/${cached[0].id}`);
         } else {
-            router.push(`/servers/${serverId}/channels`);
+            router.push(`/channels/${serverId}`);
         }
     };
 
@@ -100,12 +109,12 @@ function SideBar({ siderStyle }: SideBarProps) {
                 if (servers.length > 0) {
                     const cached = channelsByServer[servers[0].id];
                     if (cached?.[0]) {
-                        router.push(`/servers/${servers[0].id}/channels/${cached[0].id}`);
+                        router.push(`/channels/${servers[0].id}/${cached[0].id}`);
                     } else {
-                        router.push(`/servers/${servers[0].id}/channels`);
+                        router.push(`/channels/${servers[0].id}`);
                     }
                 } else {
-                    router.push("/servers");
+                    router.push("/channels");
                 }
             }
 
@@ -123,7 +132,7 @@ function SideBar({ siderStyle }: SideBarProps) {
     return (
         <div>
             {contextHolder}
-            <ServerSettingsModal show={showServerSettingsModal} onClose={() => setShowServerSettingsModal(false)} />
+            <ServerSettingsModal show={showServerSettingsModal} serverId={shownSettingServerId} onClose={() => setShowServerSettingsModal(false)} />
             <NewServerModal showServerCreationModal={showServerCreationModal} setShowServerCreationModal={setShowServerCreationModal} />
             <Sider 
             width={80} 
@@ -140,15 +149,13 @@ function SideBar({ siderStyle }: SideBarProps) {
                     {/* User Avatar */}
                     <header className='h-16 sticky top-0 z-10 flex justify-center items-center pt-3 pb-3 bg-sidebar border-b border-muted-border'>
                         <Badge dot color="green" className="bottom-badge cursor-pointer">
-                            <Avatar shape="square" size={50}>
-                                <Image
-                                onClick={handleShowUserSettings}
+                            <Avatar
+                                shape="square"
+                                size={50}
                                 src={user?.avatarUrl || "/logo.png"}
-                                alt="avatar"
-                                width={50}
-                                height={50}
-                                style={{ objectFit: "cover", borderRadius: "10px"}}
-                                />
+                                onClick={handleShowUserSettings}
+
+                            >
                             </Avatar>
                         </Badge>
                     </header>

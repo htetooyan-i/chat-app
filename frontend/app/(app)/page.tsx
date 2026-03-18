@@ -16,7 +16,7 @@ function AppIndexPage() {
             router.replace("/auth");
         } else if (!loading && user) {
             // If the user is authenticated, redirect to the servers page
-            router.replace("/servers");
+            router.replace("/channels");
         }
     }, [user, loading, router]);
 

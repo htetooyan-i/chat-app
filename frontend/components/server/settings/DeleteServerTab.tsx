@@ -5,17 +5,16 @@ import { useServer } from '@/hooks/useServer';
 import { useChannel } from '@/hooks/useChannel';
 import { useNotification } from '@/hooks/useNotification';
 import {getErrorMessage} from "@/lib/api";
+import { Server } from '@/types/Server';
 
 type DeleteServerTabProps = {
-    serverName: string;
+    selectedServer: Server;
     onClose: () => void;
 };
 
-function DeleteServerTab({ serverName, onClose }: DeleteServerTabProps) {
+function DeleteServerTab({ selectedServer, onClose }: DeleteServerTabProps) {
 
     const router = useRouter();
-    const params = useParams();
-    const serverId = Array.isArray(params.serverId) ? Number(params.serverId[0]) : Number(params.serverId);
     
     const { servers, deleteServer } = useServer();
     const { channelsByServer, clearServerCache } = useChannel();
@@ -26,8 +25,8 @@ function DeleteServerTab({ serverName, onClose }: DeleteServerTabProps) {
 
     const handleDeleteServer = async () => {
         try {   
-            await deleteServer();
-            clearServerCache(serverId);
+            await deleteServer(selectedServer.id!);
+            clearServerCache(selectedServer.id);
 
             // navigate first before refreshing
             if (servers.length > 0) {
@@ -54,7 +53,7 @@ function DeleteServerTab({ serverName, onClose }: DeleteServerTabProps) {
             <div className="py-4">
                 {/* Description */}
                 <div>
-                    <p className='text-muted-text font-semibold text-[11px]'>Are you sure you want to delete <span className='uppercase'>{serverName}</span>?</p>
+                    <p className='text-muted-text font-semibold text-[11px]'>Are you sure you want to delete <span className='uppercase'>{selectedServer.name}</span>?</p>
                     <p className="text-error mb-4 font-semibold text-[11px]">This action is irreversible. All data in this server will be permanently deleted.</p>
                 </div>
                 {/* Confirmation Input */}
@@ -85,7 +84,7 @@ function DeleteServerTab({ serverName, onClose }: DeleteServerTabProps) {
                             handleDeleteServer();
                             setConfirmationName("");
                         }}
-                        disabled={confirmationName.toUpperCase() !== serverName.toUpperCase()}
+                        disabled={confirmationName.toUpperCase() !== selectedServer.name.toUpperCase()}
                         className="bg-error hover:bg-error/70 text-foreground px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed mt-4 cursor-pointer"
                     >
                         Delete Server
