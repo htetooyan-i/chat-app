@@ -1,3 +1,5 @@
+import {ApiResponse} from "@/types/ApiResponse";
+
 export type User = {
   id: number;
   username: string;
@@ -7,3 +9,5 @@ export type User = {
   avatarUrl?: string;
   createdAt: Date | string;
 };
+
+export type GetUserResponse = ApiResponse<User>;

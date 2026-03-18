@@ -1,4 +1,5 @@
 import type { MemberRole } from "./ServerMember";
+import {ApiResponse} from "@/types/ApiResponse";
 
 export type ServerBan = {
     id: number;
@@ -15,3 +16,5 @@ export type ServerBan = {
         avatar?: string;
     }
 }
+
+export type GetServerBanResponse = ApiResponse<ServerBan[]>;

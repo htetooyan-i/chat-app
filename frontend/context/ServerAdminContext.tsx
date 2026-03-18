@@ -2,11 +2,11 @@
 import React, { createContext, useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
-import { api } from "@/lib/api";
+import {api, getErrorMessage} from "@/lib/api";
 import { useSocket } from "@/hooks/useSocket";
 
-import type { ServerInvite } from "@/types/ServerInvite";
-import type { ServerBan } from "@/types/ServerBan";
+import type {GetServerInviteResponse, GetServerInvitesResponse, ServerInvite} from "@/types/ServerInvite";
+import type {GetServerBanResponse, ServerBan} from "@/types/ServerBan";
 
 type ServerAdminContextType = {
     invites: ServerInvite[];
@@ -41,9 +41,10 @@ export const ServerAdminProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const fetchInvites = useCallback(async () => {
         try {
             setInviteLoading(true);
-            const res = await api.get(`/servers/${serverId}/invites/`);
-            setInvites(res.data || []);
+            const res: GetServerInvitesResponse = await api.get(`/servers/${serverId}/invites/`).then(res => res.data);
+            setInvites(res.data);
         } catch (error) {
+            getErrorMessage(error, "Failed to fetch invite codes.")
             console.error("Error fetching invite codes:", error);
         } finally {
             setInviteLoading(false);
@@ -59,28 +60,24 @@ export const ServerAdminProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const refreshInvites = async () => await fetchInvites();
 
     const createInvite = async (expireAfter: string, maxUses: string): Promise<ServerInvite> => {
-        const res = await api.post(`/servers/${serverId}/invites`, {
+        const res: GetServerInviteResponse = await api.post(`/servers/${serverId}/invites`, {
             expiresInMinutes: expireAfter === "never" ? null : parseInt(expireAfter) * 24 * 60, // Convert days to minutes
             maxUses: maxUses === "No Limit" ? null : parseInt(maxUses),
-        });
+        }).then(res => res.data);
         await refreshInvites();
         return res.data;
     }
 
     const revokeInvite = async (inviteId: number) => {
+        setInvites(prev => prev.filter(invite => invite.id !== inviteId));
+
         try {
-            setInvites(prev => prev.filter(invite => invite.id !== inviteId));
-
-            try {
-                await api.delete(`/servers/${serverId}/invites/${inviteId}`);
-            } catch (error) {
-                await fetchInvites();
-                throw error;
-            }
-
+            await api.delete(`/servers/${serverId}/invites/${inviteId}`);
         } catch (error) {
-            console.error("Error revoking invite:", error);
+            await fetchInvites();
+            throw getErrorMessage(error, "Failed to revoke invite.");
         }
+
     }
 
     // ** INVITE SOCKET LOGICS
@@ -115,10 +112,10 @@ export const ServerAdminProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const fetchBans = useCallback(async () => {
         try {
             setBanLoading(true);
-            const res = await api.get(`/servers/${serverId}/bans`);
+            const res: GetServerBanResponse = await api.get(`/servers/${serverId}/bans`).then(res => res.data);
             setBans(res.data);
         } catch (error) {
-            console.error("Error fetching bans:", error);
+            throw getErrorMessage(error, "Failed to fetch bans.")
         } finally {
             setBanLoading(false);
         }
@@ -127,7 +124,7 @@ export const ServerAdminProvider: React.FC<{ children: React.ReactNode }> = ({ c
     useEffect(() => {
         if (!serverId) return;
         fetchBans();
-    }, [fetchBans]);
+    }, [fetchBans, serverId]);
 
     const refreshBans = async () => fetchBans();
 
@@ -136,8 +133,8 @@ export const ServerAdminProvider: React.FC<{ children: React.ReactNode }> = ({ c
         try {
             await api.patch(`/servers/${serverId}/bans/${banId}/revoke`);
         } catch (error) {
-            console.error("Error revoking ban:", error);
-            throw error;
+            await refreshBans();
+            throw getErrorMessage(error, "Failed to revoke ban.");
         }
     };
 
@@ -169,7 +166,7 @@ export const ServerAdminProvider: React.FC<{ children: React.ReactNode }> = ({ c
         } catch (error) {
             console.error("Error deciding appeal:", error);
             await refreshBans();
-            throw error;
+            throw getErrorMessage(error, "Failed to decide appeal.");
         }
     };
 
@@ -179,7 +176,7 @@ export const ServerAdminProvider: React.FC<{ children: React.ReactNode }> = ({ c
             await api.delete(`/servers/${serverId}/bans/${banId}`);
         } catch (error) {
             await refreshBans();
-            throw error;
+            throw getErrorMessage(error, "Failed to delete ban.");
         }
     }
 

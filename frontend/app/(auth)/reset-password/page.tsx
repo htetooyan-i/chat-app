@@ -7,7 +7,7 @@ import { Skeleton } from 'antd';
 import { useRouter } from 'next/navigation';
 
 import { parsePasswordValidation } from '@/lib/helper';
-import { api } from '@/lib/api';
+import {api, getErrorMessage} from '@/lib/api';
 
 function ResetPasswordPage() {
 
@@ -35,7 +35,8 @@ function ResetPasswordPage() {
             try {
                 await api.post(`/auth/verify-reset-token?token=${token}`);
                 setTokenValid(true);
-            } catch {
+            } catch (error) {
+                getErrorMessage(error, "Invalid or expired token");
                 setTokenValid(false);
             }
         };
@@ -52,6 +53,7 @@ function ResetPasswordPage() {
             await api.post(`/auth/reset-password?token=${token}`, { newPassword: password });
             setSuccess(true);
         } catch (error) {
+            getErrorMessage(error, "Failed to reset password");
             console.error("Error resetting password:", error);
         } finally {
             setLoading(false);

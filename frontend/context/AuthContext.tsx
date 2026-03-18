@@ -2,13 +2,18 @@
 import React, { createContext, useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { api } from '../lib/api';
-import { User } from '../types/User';
+import {api, getErrorMessage} from '../lib/api';
+import {GetUserResponse, User} from '../types/User';
+import {ApiResponse} from "@/types/ApiResponse";
 
 type AuthContextType = {
   user: User | null;
   loading: boolean;
   isAuthenticated: boolean;
+
+  register: (data: { username: string; email: string; password: string; confirmPassword: string }) => Promise<ApiResponse<void>>;
+  login: (data: { email: string; password: string }) => Promise<ApiResponse<void>>;
+
   logout: () => Promise<void>;
   deleteAccount: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -30,10 +35,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const fetchUser = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get('/auth/me');
-      setUser(res.data.data);
-
+      const res: GetUserResponse = await api.get('/auth/me').then(r => r.data);
+      setUser(res.data);
     } catch (error) {
+      getErrorMessage(error, "Failed to fetch user")
       setUser(null);
     } finally {
       setLoading(false);
@@ -44,26 +49,44 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     fetchUser();
   }, [fetchUser]);
 
+  const register = useCallback(async (data: { username: string; email: string; password: string; confirmPassword: string }) => {
+    try {
+      const res: ApiResponse<void> = await api.post('/auth/register', data, { withCredentials: true }).then(r => r.data);
+      return res;
+    } catch (error) {
+      throw getErrorMessage(error, "Failed to register")
+    }
+  }, []);
+
+  const login = useCallback(async (data: { email: string; password: string }) => {
+    try {
+      const res: ApiResponse<void> = await api.post('/auth/login', data, { withCredentials: true }).then(r => r.data);
+      return res;
+    } catch (error) {
+      throw getErrorMessage(error, "Failed to login")
+    }
+  }, []);
+
   // Logout function
   const logout = useCallback(async () => {
     try {
       await api.post('/auth/logout');
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
       setUser(null);
       router.replace('/auth');
+    } catch (error) {
+      console.error('Logout error:', error);
+      throw getErrorMessage(error, "Failed to logout")
     }
   }, [router]);
 
   const deleteAccount = useCallback(async () => {
     try {
       await api.delete('/auth/delete');
-    } catch (error) {
-      console.error('Account deletion error:', error);
-    } finally {
       setUser(null);
       router.replace('/auth');
+    } catch (error) {
+      console.error('Account deletion error:', error);
+      throw getErrorMessage(error, "Failed to delete account")
     }
     
   }, [router]);
@@ -121,6 +144,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         user,
         loading,
         isAuthenticated: !!user,
+        register,
+        login,
         logout,
         deleteAccount,
         refreshUser,

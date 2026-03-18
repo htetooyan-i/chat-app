@@ -37,7 +37,7 @@ export class TokenService {
 
 
     // Verify if a token is valid for a user and mark it as used
-    static async verifyToken(type: VerifyTokenType, rawToken: string): Promise<UserToken | null> {
+    static async verifyToken(type: VerifyTokenType, rawToken: string, includeUsed = true): Promise<UserToken | null> {
 
         const hashedToken = crypto
                 .createHash("sha256")
@@ -46,7 +46,7 @@ export class TokenService {
 
         try {
             const tokenRecord = await prisma.userToken.findFirst({
-            where: { type, token: hashedToken, expiresAt: { gt: new Date() } },
+            where: { type, token: hashedToken, used: includeUsed, expiresAt: { gt: new Date() } },
             });
 
             if (!tokenRecord) return null;

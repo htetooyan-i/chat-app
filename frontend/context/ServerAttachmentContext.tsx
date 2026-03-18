@@ -1,8 +1,9 @@
 "use client";
-import React, { createContext, useCallback, useMemo, useRef, useState } from "react";
+import React, { createContext, useCallback, useRef, useState } from "react";
 
 import { api } from "@/lib/api";
-import { Attachment } from "@/types/Attachment";
+import type { ApiResponse } from "@/types/ApiResponse";
+import type { Attachment, GetAttachmentsResponse } from "@/types/Attachment";
 
 type ServerAttachmentContext = {
     attachments: Attachment[];
@@ -31,21 +32,20 @@ export const ServerAttachmentProvider: React.FC<{ children: React.ReactNode }> =
 
         const page = reset ? 1 : pageRef.current;
 
-        const res = await api.get(`/channels/${channelId}/attachments?page=${page}&limit=20`);
-        const { attachments: newAttachments, totalImages: newTotalImages, totalRaws: newTotalRaws } = res.data;
-
+        const res: GetAttachmentsResponse = await api.get(`/channels/${channelId}/attachments?page=${page}&limit=20`).then(r => r.data);
+        console.log(res);
         setAttachments(prev => {
-            const updated = reset ? newAttachments : [...prev, ...newAttachments];
+            const updated = reset ? res.data.items : [...prev, ...res.data.items];
             const updatedImages = updated.filter((a: Attachment) => a.type === "IMAGE");
             const updatedRaws = updated.filter((a: Attachment) => a.type === "RAW");
-            setHasMoreImages(newTotalImages > updatedImages.length);
-            setHasMoreRaws(newTotalRaws > updatedRaws.length);
+            setHasMoreImages(res.data.pagination.totalImages > updatedImages.length);
+            setHasMoreRaws(res.data.pagination.totalRaws > updatedRaws.length);
             return updated;
         });
 
         pageRef.current = reset ? 2 : pageRef.current + 1;
-        setTotalImages(newTotalImages);
-        setTotalRaws(newTotalRaws);
+        setTotalImages(res.data.pagination.totalImages);
+        setTotalRaws(res.data.pagination.totalRaws);
         setLoading(false);
     }, []);
 

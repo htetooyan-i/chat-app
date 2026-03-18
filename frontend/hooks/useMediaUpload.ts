@@ -1,6 +1,12 @@
 import { useState } from "react";
 
 import { api, cloudinaryApi } from "@/lib/api"
+import {ApiResponse} from "@/types/ApiResponse";
+
+type MediaUploadResponse = ApiResponse<{
+    timestamp: number,
+    signature: string
+}>
 
 export const useMediaUpload = () => {
     const [uploading, setUploading] = useState(false);
@@ -17,13 +23,13 @@ export const useMediaUpload = () => {
 
         try {
             // get signature
-            const { data: { timestamp, signature } } = await api.get('/messages/attachments/sign-upload');
+            const res: MediaUploadResponse = await api.get('/messages/attachments/sign-upload').then(res => res.data);
 
             // upload to cloudinary
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('signature', signature);
-            formData.append('timestamp', timestamp);
+            formData.append('signature', res.data.signature);
+            formData.append('timestamp', res.data.timestamp.toString());
             formData.append('api_key', apiKey);
             formData.append('folder', 'chat-media');
             formData.append('type', 'upload');
@@ -41,9 +47,9 @@ export const useMediaUpload = () => {
                 }
             );
 
-            const getResourceType = (file: File, cloudinaryType: string): 'image' | 'video' | 'raw' | 'pdf' => {
+            const getResourceType = (file: File, cloudinaryType: string): 'image' | 'video' | 'raw' => {
                 if (file.type === 'application/pdf') return 'raw';
-                return cloudinaryType as 'image' | 'video' | 'raw' | 'pdf';
+                return cloudinaryType as 'image' | 'video' | 'raw';
             };
 
             return {
@@ -59,7 +65,7 @@ export const useMediaUpload = () => {
 
     };
 
-    const deleteFile = async (publicId: string, resourceType: 'image' | 'video' | 'raw' | 'pdf') => {
+    const deleteFile = async (publicId: string, resourceType: 'image' | 'video' | 'raw') => {
         await api.delete('/messages/attachments', {
             data: { publicId, resourceType }
         });

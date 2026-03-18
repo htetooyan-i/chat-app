@@ -2,7 +2,7 @@
 import React, { createContext, useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useParams } from "next/navigation";
 
-import { api } from "@/lib/api";
+import {api, getErrorMessage} from "@/lib/api";
 import {Message, Reaction} from "@/types/Message";
 import { useSocket } from "@/hooks/useSocket";
 import { groupMessagesByDate } from '@/lib/helper';
@@ -181,17 +181,22 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         // Update UI immediately with a temp message
         setMessages(prev => [...prev, newMessage]);
 
-        await api.post(`channels/${channelId}/messages`, {
-            content: text,
-            replyToMessageId: replyMessage?.id,
-            clientMsgId,
-            attachments: attachments.map(f => ({
-                publicId: f.publicId,
-                url: f.url,
-                type: f.type,
-                originalName: f.originalName,
-            })),
-        });
+        try {
+            await api.post(`channels/${channelId}/messages`, {
+                content: text,
+                replyToMessageId: replyMessage?.id,
+                clientMsgId,
+                attachments: attachments.map(f => ({
+                    publicId: f.publicId,
+                    url: f.url,
+                    type: f.type,
+                    originalName: f.originalName,
+                })),
+            });
+        } catch (error) {
+            await fetchMessages();
+            throw getErrorMessage(error, "Failed to create message. Please try again later.");
+        }
 
     };
 

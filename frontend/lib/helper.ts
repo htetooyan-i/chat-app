@@ -25,7 +25,6 @@ export const formatDate = (dateInput: Date | string, dayIncluded: boolean = fals
     });
 };
 
-
 export const calculateDays = (startDate: Date | string, endDate: Date | string) => {
     const start = new Date(startDate);
     const end = new Date(endDate);

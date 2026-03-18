@@ -81,7 +81,7 @@ class AuthService {
     static async getUserByEmail(email: string) {
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user) {
-            throw new Error(AuthErrorCode.USER_NOT_FOUND);
+            throw new Error(AuthErrorCode.EMAIL_NOT_FOUND);
         }
         return user;
     }
@@ -120,7 +120,7 @@ class AuthService {
                 where: { id: userId },
             });
         } catch (err) {
-            throw new Error("Failed to delete user");
+            throw new Error(AuthErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -134,7 +134,7 @@ class AuthService {
         if (!isVerified) {
             const isCurrentPasswordValid = await Hash.verify(user.passwordHash, currentPassword);
             if (!isCurrentPasswordValid) {
-                throw new Error(AuthErrorCode.INVALID_CREDENTIALS);
+                throw new Error(AuthErrorCode.WRONG_PASSWORD);
             }
         }
 
@@ -145,7 +145,7 @@ class AuthService {
                 data: { passwordHash: newHashedPassword },
             });
         } catch (err) {
-            throw new Error("Failed to change password");
+            throw new Error(AuthErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -157,7 +157,7 @@ class AuthService {
                 data: { verified: verified },
             });
         } catch (err) {
-            throw new Error("Failed to verify user");
+            throw new Error(AuthErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -175,7 +175,7 @@ class AuthService {
             await Hash.verify(user.passwordHash, password);
         } catch (err: any) {
             console.error("Error verifying password:", err.message);
-            throw new Error("Failed to verify password");
+            throw new Error(AuthErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
 

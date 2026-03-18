@@ -1,8 +1,6 @@
 import axios, { AxiosError } from 'axios';
+import {ApiResponse} from "@/types/ApiResponse";
 
-type ApiError = {
-  message?: string;
-};
 
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api',
@@ -19,10 +17,10 @@ export const getErrorMessage = (
     defaultErrorMessage: string
 ): string => {
   if (err instanceof AxiosError) {
-    const axiosError = err as AxiosError<ApiError>;
-    return axiosError.response?.data?.message ?? defaultErrorMessage;
+    // Axios wraps backend JSON in err.response.data
+    const response = err.response?.data as ApiResponse<void> | undefined;
+    return response?.error?.detail ?? defaultErrorMessage;
   }
 
   return defaultErrorMessage;
 };
-

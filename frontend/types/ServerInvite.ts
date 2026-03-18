@@ -1,4 +1,5 @@
 import { User } from "./User";
+import {ApiResponse} from "@/types/ApiResponse";
 
 export type ServerInvite = {
     id: number;
@@ -9,3 +10,7 @@ export type ServerInvite = {
     maxUses: number | null;
     createdBy: User | null;
 }
+
+export type GetServerInvitesResponse = ApiResponse<ServerInvite[]>;
+
+export type GetServerInviteResponse = ApiResponse<ServerInvite>;

@@ -225,7 +225,7 @@ class MessageService {
             // Delete removed files from Cloudinary
             await Promise.all(removedFiles.map(a =>
                 cloudinary.uploader.destroy(a.publicId, {
-                    resource_type: a.type.toLowerCase() as 'image' | 'video' | 'raw' | 'pdf',
+                    resource_type: a.type.toLowerCase() as 'image' | 'video' | 'raw',
                     invalidate: true
                 })
             ));
@@ -261,7 +261,7 @@ class MessageService {
             if (message.attachments.length > 0) {
                 await Promise.all(message.attachments.map(a =>
                     cloudinary.uploader.destroy(a.publicId, {
-                        resource_type: a.type.toLowerCase() as 'image' | 'video' | 'raw' | 'pdf',
+                        resource_type: a.type.toLowerCase() as 'image' | 'video' | 'raw',
                         invalidate: true
                     })
                 ));

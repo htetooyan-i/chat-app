@@ -8,7 +8,7 @@ import { useNotification } from '@/hooks/useNotification';
 import LoginForm from "@/components/auth/LoginForm";
 import RegisterForm from '@/components/auth/RegisterForm';
 import ForgetPasswordModal from '@/components/auth/ForgetPasswordModal';
-import { api } from '@/lib/api';
+import {api, getErrorMessage} from '@/lib/api';
 
 function AuthPage() {
     const [isLogin, setIsLogin] = React.useState(true);
@@ -22,9 +22,9 @@ function AuthPage() {
         try {
             
             await api.post(
-                `/auth/${isLogin ? "login" : "register"}`, 
+                `/auth/${isLogin ? "login" : "register"}`,
                 data,
-                { withCredentials: true } 
+                { withCredentials: true }
             );
             
             showSuccess(
@@ -38,21 +38,15 @@ function AuthPage() {
             }, 1000);
 
         } catch (error) {
-            if (isCancel(error)) {
-                showError("Request cancelled");
-            } else {
-                const axiosError = error as AxiosError<{ error: string }>;
-                
-                showError(
-                    `${isLogin ? "Login" : "Registration"} failed`,
-                    axiosError.response?.data?.error || axiosError.message || "An unexpected error occurred"
-                );
-            }
+            showError(
+                `${isLogin ? "Login" : "Registration"} failed`,
+                getErrorMessage(error, `Failed to ${isLogin ? "login" : "register"}.`)
+            );
         }
         setIsSubmitting(false);
     };
 
-    const handleSocialMediaLogin = (provider: string) => {
+    const handleSocialMediaLogin = () => {
         // Placeholder for social media login logic
         showInfo("This feature is coming soon!");
 
@@ -117,9 +111,9 @@ function AuthPage() {
 
                 {/* Social login options */}
                 <div className="flex items-center justify-center gap-5 mt-10">
-                    <button onClick={() => handleSocialMediaLogin("Google")}><Image src="/google-logo.png" alt="Google Sign-In" width={40} height={40} className="cursor-pointer p-1"/></button>
-                    <button onClick={() => handleSocialMediaLogin("Facebook")}><Image src="/facebook-logo.png" alt="Facebook Sign-In" width={40} height={40} className="cursor-pointer p-1"/></button>
-                    <button onClick={() => handleSocialMediaLogin("GitHub")}><Image src="/github-logo.png" alt="GitHub Sign-In" width={40} height={40} className="cursor-pointer p-1"/></button>
+                    <button onClick={() => handleSocialMediaLogin()}><Image src="/google-logo.png" alt="Google Sign-In" width={40} height={40} className="cursor-pointer p-1"/></button>
+                    <button onClick={() => handleSocialMediaLogin()}><Image src="/facebook-logo.png" alt="Facebook Sign-In" width={40} height={40} className="cursor-pointer p-1"/></button>
+                    <button onClick={() => handleSocialMediaLogin()}><Image src="/github-logo.png" alt="GitHub Sign-In" width={40} height={40} className="cursor-pointer p-1"/></button>
                 </div>
             </div>
             {/* Decorative image or illustration */}

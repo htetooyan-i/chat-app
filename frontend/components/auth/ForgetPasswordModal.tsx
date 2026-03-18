@@ -3,10 +3,9 @@
 import React, { useState } from 'react';
 import { Modal } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
-import axios, { AxiosError } from 'axios';
 
 import { useNotification } from '@/hooks/useNotification';
-import { api } from '@/lib/api';
+import {api, getErrorMessage} from '@/lib/api';
 
 
 interface ForgetPasswordModalProps {
@@ -42,11 +41,9 @@ export default function ForgetPasswordModal({ open, onClose }: ForgetPasswordMod
             }, 1500);
 
         } catch (error) {
-            const axiosError = error as AxiosError<{ error: string }>;
-            
             showError(
                 'Failed to send reset email',
-                axiosError.response?.data?.error || 'An unexpected error occurred'
+                getErrorMessage(error, "An unexpected error occurred.")
             );
         } finally {
             setIsLoading(false);

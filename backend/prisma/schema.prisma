@@ -35,7 +35,6 @@ enum AttachmentType {
   IMAGE
   VIDEO
   RAW
-  PDF
   GIF
 }
 
