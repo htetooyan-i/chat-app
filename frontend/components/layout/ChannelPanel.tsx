@@ -35,7 +35,7 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
         {
             label: "Edit Channel",
             onClick: () => {
-                router.push(`/servers/${serverId}/channels/${channel.id}`);
+                router.push(`/channels/${serverId}/${channel.id}`);
                 setShowEditChannelModal(true);
             },
             type: "normal"
@@ -43,15 +43,15 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
         {
             label: "Delete Channel",
             onClick: () => {
-                router.push(`/servers/${serverId}/channels/${channel.id}`);
-                setShowDeleteChannelModal(true);
+                router.push(`/channels/${serverId}/${channel.id}`);
+                setShowDeleteChannelModal(true); // FUTURE: want to use alert instead of modal for delete confirmation
             },
             type: "danger"
         }
     ];
 
     const handleChangeChannel = (selectedChannelId: number) => {
-        router.push(`/servers/${serverId}/channels/${selectedChannelId}`);
+        router.push(`/channels/${serverId}/${selectedChannelId}`);
     };
 
     const handleDeleteChannel = async () => {
@@ -60,9 +60,9 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
 
             // After deletion, redirect to the first available channel or back to server main page
             if (channels.length > 0) {
-                router.push(`/servers/${serverId}/channels/${channels[0].id}`);
+                router.push(`/channels/${serverId}/${channels[0].id}`);
             } else {
-                router.push(`/servers/${serverId}`);
+                router.push(`/channels/${serverId}`);
             }
 
             toast.success("Channel deleted successfully!");

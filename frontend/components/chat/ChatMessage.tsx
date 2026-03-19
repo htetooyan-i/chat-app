@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Linkify from "linkify-react";
 import { Avatar, Divider } from 'antd';
 import { Copy, Ellipsis, MessageCircleReply, Pencil, Trash } from 'lucide-react';
-import {CldImage, CldVideoPlayer} from "next-cloudinary";
 import 'next-cloudinary/dist/cld-video-player.css';
 
 import ButtonDropDown, { ButtonDropDownItem } from '../ui/ButtonDropDown';
@@ -11,7 +10,6 @@ import { Message } from '@/types/Message';
 import { useMessage } from '@/hooks/useMessage';
 import { useAuth } from '@/hooks/useAuth';
 import { useChatUI } from '@/hooks/useChatUI';
-import CloudVideo from "@/components/ui/CloudVideo";
 import ChatAttachments from "@/components/chat/ChatAttachments";
 
 type ChatMessageProps = {
@@ -168,7 +166,7 @@ function ChatMessage({ messages, messagesMap }: ChatMessageProps) {
                                                             <div
                                                                 key={emoji}
                                                                 className={`flex items-center gap-1 px-1 py-0.5 bg-accent/20 border border-accent text-accent rounded text-[10px] font-medium cursor-pointer`}
-                                                                onClick={() => toggleReaction(message.id, emoji)}
+                                                                onClick={() => {toggleReaction(message.id, emoji);}}
                                                             >
                                                                 <span>{emoji}</span>
                                                                 <span>{count}</span>

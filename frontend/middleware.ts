@@ -10,6 +10,10 @@ export function middleware(req: NextRequest) {
   const isRootRoute = pathname === "/";
   const isProtectedRoute = pathname.startsWith("/channels") || pathname.startsWith("/settings");
 
+  if (pathname === "/login") { // FIXME: find which route is causing the issue and remove this
+    return NextResponse.redirect(new URL("/auth", req.url));
+  }
+
   if (isMaintenanceRoute) return NextResponse.next();
 
   if (isRootRoute && token) return NextResponse.next();
@@ -36,13 +40,6 @@ export function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico, other icons, images from /public
-     */
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)).*)",
-  ],
+    "/((?!api|_next|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)).*)",
+  ]
 };

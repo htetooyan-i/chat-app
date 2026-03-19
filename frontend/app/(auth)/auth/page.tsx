@@ -108,11 +108,11 @@ function AuthPage() {
                 </div>
 
                 {/* Social login options */}
-                <div className="flex items-center justify-center gap-5 mt-10">
+                {/* <div className="flex items-center justify-center gap-5 mt-10">
                     <button onClick={() => handleSocialMediaLogin()}><Image src="/google-logo.png" alt="Google Sign-In" width={40} height={40} className="cursor-pointer p-1"/></button>
                     <button onClick={() => handleSocialMediaLogin()}><Image src="/facebook-logo.png" alt="Facebook Sign-In" width={40} height={40} className="cursor-pointer p-1"/></button>
                     <button onClick={() => handleSocialMediaLogin()}><Image src="/github-logo.png" alt="GitHub Sign-In" width={40} height={40} className="cursor-pointer p-1"/></button>
-                </div>
+                </div> */}
             </div>
             {/* Decorative image or illustration */}
             <div className="relative w-1/3 h-full bg-accent rounded-3xl shadow-lg overflow-hidden">

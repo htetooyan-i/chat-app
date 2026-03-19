@@ -108,31 +108,49 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
                 if (data.action === "added") {
                     if (existing) {
-                        // increment count and add userId
+                        if (existing.userIds.includes(data.reaction.userId)) {
+                            return msg; // already counted → do nothing
+                        }
+
                         return {
                             ...msg,
-                            reactions: reactions.map(r => r.emoji === data.reaction.emoji
-                                ? { ...r, count: r.count + 1, userIds: [...r.userIds, data.reaction.userId] }
-                                : r
-                            )
+                            reactions: reactions.map(r =>
+                                r.emoji === data.reaction.emoji
+                                    ? {
+                                        ...r,
+                                        count: r.count + 1,
+                                        userIds: [...r.userIds, data.reaction.userId],
+                                    }
+                                    : r
+                            ),
                         };
                     } else {
-                        // new emoji reaction
                         return {
                             ...msg,
-                            reactions: [...reactions, { emoji: data.reaction.emoji, count: 1, userIds: [data.reaction.userId] }]
+                            reactions: [
+                                ...reactions,
+                                {
+                                    emoji: data.reaction.emoji,
+                                    count: 1,
+                                    userIds: [data.reaction.userId],
+                                },
+                            ],
                         };
                     }
                 } else {
-                    // removed
                     return {
                         ...msg,
                         reactions: reactions
-                            .map(r => r.emoji === data.reaction.emoji
-                                ? { ...r, count: r.count - 1, userIds: r.userIds.filter(id => id !== data.reaction.userId) }
-                                : r
+                            .map(r =>
+                                r.emoji === data.reaction.emoji
+                                    ? {
+                                        ...r,
+                                        count: r.count - 1,
+                                        userIds: r.userIds.filter(id => id !== data.reaction.userId),
+                                    }
+                                    : r
                             )
-                            .filter(r => r.count > 0) // remove emoji entirely if the count hits 0
+                            .filter(r => r.count > 0),
                     };
                 }
             }));
