@@ -21,7 +21,7 @@ export class EmailService {
     }
 
     private static createLink(path: string, token: string) {
-        const base = "http://localhost:4000"; // Change to your frontend URL in production
+        const base = process.env.FRONTEND_URL; // Change to your frontend URL in production
         return `${base}${path}?token=${token}`;
     }
 
@@ -38,7 +38,7 @@ export class EmailService {
     }
 
     static async sendPasswordResetEmail(to: string, token: string) {
-        const react = await EmailTemplates.PasswordResetEmailTemplate("http://localhost:3000/reset-password?token=" + token);
+        const react = await EmailTemplates.PasswordResetEmailTemplate(`${process.env.FRONTEND_URL}/reset-password?token=${token}`);
         await this.sendEmail(to, "Reset your password", react);
     }
 

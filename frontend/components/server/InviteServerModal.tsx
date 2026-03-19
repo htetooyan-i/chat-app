@@ -183,7 +183,7 @@ function InviteServerModal({ show, onClose, fromSettings }: InviteServerModalPro
                             {/* Need to check the expire date */}
                             <p className='text-[12px] text-muted-text'>Your Link expire in 7 days. <span className='text-accent hover:underline cursor-pointer' onClick={() => setCreateNewCode(true)}>Edit invite link</span></p>
                             <div className={`flex gap-1 w-full items-center border rounded-lg p-1 ps-2 ${copied ? "bg-green-300/10 border-success" : "bg-chat-panel border-muted-border"}`}>
-                                <p>https://localhost:4000/invites/{inviteCode?.code}</p>
+                                <p>http://www.konyat.chat/invites/{inviteCode?.code}</p>
                                 <button className={`ml-auto px-2 py-1 text-white rounded hover:opacity-80 cursor-pointer ${copied ? "bg-success" : "bg-accent"}`} onClick={handleCopyInviteLink}>{copied ? "Copied!" : "Copy"}</button>
                             </div>
                         </main>

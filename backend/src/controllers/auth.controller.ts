@@ -327,9 +327,9 @@ export async function VerifyEmail(req: Request, res: Response) {
             sameSite: "strict",
         });
 
-        res.redirect(`http://localhost:3000/verify-email?status=success`);
+        res.redirect(`${process.env.FRONTEND_URL}/verify-email?status=success`);
     } catch (error) {
-        res.redirect(`http://localhost:3000/verify-email?status=error`);
+        res.redirect(`${process.env.FRONTEND_URL}/verify-email?status=error`);
     }
 }
 
