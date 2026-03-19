@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import { AttachmentType } from "../../generated/prisma/enums"
+import { AttachmentType } from "@prisma/client"
 
 import cloudinary from '../lib/cloudinary';
 import { Result } from "pg";

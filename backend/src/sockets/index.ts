@@ -1,5 +1,5 @@
 // @ts-ignore
-import cookie from 'cookie';
+import { parse } from "cookie";
 import { Server, Socket } from "socket.io";
 
 import { registerChatEvents } from "./chat.socket";
@@ -12,7 +12,7 @@ const setupSocket = (io: Server) => {
 
   io.use(async (socket: Socket, next: any) => {
 
-    const cookies = cookie.parse(socket.handshake.headers.cookie || "");
+    const cookies = parse(socket.handshake.headers.cookie || "");
 
     const token = cookies.accessToken;
 

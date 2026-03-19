@@ -12,7 +12,7 @@ declare global {
         id: number;
         serverId: number;
         userId: number;
-        role: import("../../generated/prisma/enums").MemberRole;
+        role: import("@prisma/client").MemberRole;
       };
     }
   }

@@ -1,7 +1,15 @@
-node_modules
-# Keep environment variables out of version control
+# Node dependencies
+/node_modules/
+
+# Environment variables
 .env
 
-/generated/prisma
+# Prisma generated client
+/node_modules/.prisma/
+/generated/prisma/
 
-.idea
+# IDE settings
+/.idea/
+
+# TypeScript output
+/dist/

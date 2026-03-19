@@ -19,13 +19,14 @@ export async function RegisterUser(req: Request, res: Response) {
         res.cookie("refreshToken", newUser.refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
 
         res.cookie("accessToken", newUser.accessToken, {
             httpOnly: false, // We need access token to be accessible by client-side JavaScript to include in Authorization header for API requests
             secure: process.env.NODE_ENV === "production",
             sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
-            maxAge: 7 * 60 * 1000, // 15 minutes
+            maxAge: 7 * 24 * 60 * 1000, // 7 days
         });
 
         res.status(200).json({

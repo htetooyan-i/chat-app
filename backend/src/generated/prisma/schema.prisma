@@ -1,0 +1,194 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+enum VerifyTokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  PHONE_VERIFICATION
+}
+
+enum MemberRole {
+  ADMIN
+  MODERATOR
+  MEMBER
+  OWNER
+}
+
+enum ChannelType {
+  TEXT
+  ANNOUNCEMENT
+  BUSINESS
+}
+
+enum BanAppealStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  REJECTED
+  SUPERSEDED
+}
+
+enum AttachmentType {
+  IMAGE
+  VIDEO
+  RAW
+  GIF
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String
+  avatarUrl    String?
+  bio          String?
+  verified     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tokens         UserToken[]
+  memberships    ServerMember[]
+  ownedServers   Server[]       @relation("ServerOwner")
+  createdInvites ServerInvite[]
+  bans           Ban[]
+  messages       Message[]
+  reactions      Reaction[]
+}
+
+model UserToken {
+  id        Int             @id @default(autoincrement())
+  userId    Int
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String
+  type      VerifyTokenType
+  expiresAt DateTime
+  used      Boolean         @default(false)
+  createdAt DateTime        @default(now())
+}
+
+model Server {
+  id        Int      @id @default(autoincrement())
+  name      String
+  avatarUrl String?
+  ownerId   Int
+  createdAt DateTime @default(now())
+
+  owner    User           @relation("ServerOwner", fields: [ownerId], references: [id])
+  members  ServerMember[]
+  channels Channel[]
+  invites  ServerInvite[]
+  bans     Ban[]
+}
+
+model Ban {
+  id           Int             @id @default(autoincrement())
+  serverId     Int
+  userId       Int
+  bannedByRole MemberRole // FUTURE: Want to use id but if, id is used need to fetch servermember to get role
+  reason       String?
+  expiresAt    DateTime?
+  createdAt    DateTime        @default(now())
+  revokedAt    DateTime?
+  appealStatus BanAppealStatus
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  server Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
+}
+
+model ServerMember {
+  id       Int        @id @default(autoincrement())
+  userId   Int
+  serverId Int
+  role     MemberRole @default(MEMBER) // admin | moderator | member
+  joinedAt DateTime   @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  server Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, serverId])
+}
+
+model Channel {
+  id        Int         @id @default(autoincrement())
+  name      String
+  serverId  Int
+  type      ChannelType
+  createdAt DateTime    @default(now())
+
+  server      Server       @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  messages    Message[]
+  attachments Attachment[]
+
+  @@unique([serverId, name])
+}
+
+model ServerInvite {
+  id          Int       @id @default(autoincrement())
+  code        String    @unique
+  serverId    Int
+  maxUses     Int?
+  currentUses Int       @default(0)
+  expiresAt   DateTime?
+  createdById Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  server    Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  createdBy User   @relation(fields: [createdById], references: [id])
+}
+
+model Message {
+  id               Int       @id @default(autoincrement())
+  channelId        Int
+  authorId         Int
+  replyToMessageId Int?
+  content          String?
+  createdAt        DateTime  @default(now())
+  editedAt         DateTime?
+  replyToDeleted   Boolean   @default(false)
+  clientMsgId      String?   @unique
+
+  channel     Channel      @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  author      User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  replyTo     Message?     @relation("MessageReplies", fields: [replyToMessageId], references: [id], onDelete: SetNull)
+  replies     Message[]    @relation("MessageReplies")
+  attachments Attachment[]
+  reactions   Reaction[]
+}
+
+model Attachment {
+  id           Int            @id @default(autoincrement())
+  messageId    Int
+  channelId    Int
+  originalName String
+  type         AttachmentType
+  publicId     String
+  url          String
+  message      Message        @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  channel      Channel        @relation(fields: [channelId], references: [id], onDelete: Cascade)
+}
+
+model Reaction {
+  id        Int      @id @default(autoincrement())
+  messageId Int
+  userId    Int
+  emoji     String   @db.VarChar(20)
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+}

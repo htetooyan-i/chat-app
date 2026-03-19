@@ -1,6 +1,6 @@
 import { prisma } from '../lib/prisma';
-import { MemberRole } from '../../generated/prisma/enums';
-import { ServerMember } from '../../generated/prisma/client';
+import { MemberRole } from '@prisma/client';
+import { ServerMember } from '@prisma/client';
 
 class BanService {
 

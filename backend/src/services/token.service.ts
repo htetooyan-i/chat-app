@@ -2,8 +2,8 @@ import crypto from 'crypto';
 
 import { Hash } from "../lib/hash";
 import { prisma } from "../lib/prisma";
-import { VerifyTokenType } from "../../generated/prisma/enums";
-import { UserToken } from '../../generated/prisma/client';
+import { VerifyTokenType } from "@prisma/client";
+import { UserToken } from '@prisma/client';
 
 export class TokenService {
 
@@ -43,12 +43,15 @@ export class TokenService {
                 .createHash("sha256")
                 .update(rawToken)
                 .digest("hex");
-
         try {
             const tokenRecord = await prisma.userToken.findFirst({
-            where: { type, token: hashedToken, used: includeUsed, expiresAt: { gt: new Date() } },
+            where: {
+                type,
+                token: hashedToken,
+                expiresAt: { gt: new Date() },
+                ...(includeUsed ? {} : { used: false })
+            },
             });
-
             if (!tokenRecord) return null;
             return tokenRecord;
         } catch (error: any) {

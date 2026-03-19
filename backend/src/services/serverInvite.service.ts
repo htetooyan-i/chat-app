@@ -3,7 +3,7 @@
 import crypto from 'crypto';
 
 import { prisma } from "../lib/prisma";
-import { ServerInvite } from '../../generated/prisma/browser';
+import { ServerInvite } from '@prisma/client';
 
 class ServerInviteService {
 

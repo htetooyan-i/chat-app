@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 
 import ServerMemberService from '../services/serverMember.service';
-import { MemberRole } from "../../generated/prisma/enums";
+import { MemberRole } from "@prisma/client";
 
 export function requireServerRole(requiredRoles: MemberRole[]) {
     return async (req: Request, res: Response, next: NextFunction) => {
