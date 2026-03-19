@@ -31,9 +31,6 @@ export default function ChannelIndexPage() {
     }
 
     return (
-        <div className="flex w-full">
-            <Skeletons.ChannelPanelSkeleton />
-            <Skeletons.ChatPanelSkeleton />
-        </div>
+        <Skeletons.ChatPanelSkeleton />
     );
 }

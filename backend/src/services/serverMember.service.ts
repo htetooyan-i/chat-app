@@ -57,7 +57,7 @@ class ServerMemberService {
                     serverId,
                     role: server.ownerId === userId ? MemberRole.OWNER : MemberRole.MEMBER,
                 },
-                include: { user: true},
+                include: { user: true, server: true },
             });
         } catch (error: any) {
             console.error('Error adding member to server:', error.message);

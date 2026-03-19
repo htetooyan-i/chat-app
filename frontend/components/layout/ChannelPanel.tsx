@@ -101,7 +101,7 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
                 backgroundColor: "var(--background)",
                 display: "flex",
                 flexDirection: "column",
-                scrollbarColor: "red transparent",
+                scrollbarColor: "var(--muted-border) transparent",
                 scrollbarWidth: "thin",
             }}
             >

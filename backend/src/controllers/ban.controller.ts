@@ -141,7 +141,12 @@ export async function ReviewBanAppeal(req: Request, res: Response) {
 
     try {
         const updatedBan = await BanService.reviewBanRequest(parsedBanId, reviewerId, decision, duration);
+
         io.to(`server-${serverId}`).emit("banUpdated", {banId: parsedBanId, decision, bannedUserId: updatedBan.userId});
+        if (decision === "ACCEPTED") {
+            io.to(`server-${serverId}`).emit("memberBanned", updatedBan.userId);
+        }
+        
         return res.status(200).json({
             success: true,
             data: null,

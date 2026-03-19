@@ -103,14 +103,6 @@ export const ServerAdminProvider: React.FC<{ children: React.ReactNode }> = ({ c
             maxUses: maxUses === "No Limit" ? null : parseInt(maxUses),
         }).then(r => r.data);
 
-        setInvitesByServer(prev => {
-            const current = prev[activeServerId] ?? [];
-            return {
-                ...prev,
-                [activeServerId]: [...current, res.data],
-            };
-        });
-
         return res.data;
     }, [activeServerId]);
 
@@ -225,6 +217,7 @@ export const ServerAdminProvider: React.FC<{ children: React.ReactNode }> = ({ c
         }
     }, [activeServerId, fetchBans]);
 
+    // ***** Socket listeners for real-time updates *****
     useEffect(() => {
         if (!socket || !activeServerId) return;
 
@@ -258,13 +251,17 @@ export const ServerAdminProvider: React.FC<{ children: React.ReactNode }> = ({ c
             }));
         };
 
-        const banUpdated = (data: { banId: number; decision: string }) => {
+        const banUpdated = (data: { banId: number; decision: string, bannedUserId: number }) => {
             const newStatus = data.decision as ServerBan["appealStatus"];
             setBansByServer(prev => ({
                 ...prev,
-                [activeServerId]: (prev[activeServerId] ?? []).map(b =>
-                    b.id === data.banId ? { ...b, appealStatus: newStatus } : b
-                ),
+                [activeServerId]: (prev[activeServerId] ?? []).map(b =>{
+                    if (b.id === data.banId) return { ...b, appealStatus: newStatus };
+                    if (data.decision === "ACCEPTED" && b.userId === data.bannedUserId && b.appealStatus === "PENDING") {
+                        return { ...b, appealStatus: "SUPERSEDED" };
+                    }
+                    return b;
+                }),
             }));
         };
 

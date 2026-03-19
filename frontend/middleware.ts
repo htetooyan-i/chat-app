@@ -8,7 +8,7 @@ export function middleware(req: NextRequest) {
   const isMaintenanceRoute = pathname.startsWith("/maintenance");
   const isAuthRoute = pathname === "/auth";
   const isRootRoute = pathname === "/";
-  const isProtectedRoute = pathname.startsWith("/servers") || pathname.startsWith("/settings");
+  const isProtectedRoute = pathname.startsWith("/channels") || pathname.startsWith("/settings");
 
   if (isMaintenanceRoute) return NextResponse.next();
 
@@ -23,7 +23,7 @@ export function middleware(req: NextRequest) {
   }
 
   if (token && isAuthRoute) {
-    return NextResponse.redirect(new URL("/servers", req.url));
+    return NextResponse.redirect(new URL("/channels", req.url));
   }
 
   if (!token && isAuthRoute) {

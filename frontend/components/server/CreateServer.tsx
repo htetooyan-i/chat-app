@@ -29,24 +29,6 @@ function CreateServer({ onClose, changeView }: CreateServerProps) {
     const [modalOpen, setModalOpen] = useState(false);
     const { upload } = useMediaUpload();
 
-    // Notifications via state
-    const [successMessage, setSuccessMessage] = useState<string | null>(null);
-    const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-    useEffect(() => {
-        if (successMessage) {
-            showSuccess(successMessage);
-            setSuccessMessage(null);
-        }
-    }, [successMessage, showSuccess]);
-
-    useEffect(() => {
-        if (errorMessage) {
-            showError(errorMessage);
-            setErrorMessage(null);
-        }
-    }, [errorMessage, showError]);
-
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file || !isImage(file)) {
@@ -88,9 +70,9 @@ function CreateServer({ onClose, changeView }: CreateServerProps) {
             if (!invite) throw new Error("No invite code returned");
             setInviteCode(invite);
             setIsSucceed(true);
-            setSuccessMessage("Server created successfully!");
+            showSuccess("Server created successfully!");
         } catch (error) {
-            setErrorMessage(getErrorMessage(error, "Failed to create server"));
+            showError(getErrorMessage(error, "Failed to create server"));
         }
     };
 
@@ -154,7 +136,7 @@ function CreateServer({ onClose, changeView }: CreateServerProps) {
                     </div>
                 </main>
             ) : (
-                <main className='flex flex-col gap-4 min-h-[100px]'>
+                <main className='flex flex-col gap-4'>
                     <p className='text-[12px] text-muted-text'>
                         Invite others to join your server using the link below.
                     </p>
@@ -167,7 +149,11 @@ function CreateServer({ onClose, changeView }: CreateServerProps) {
                 </main>
             )}
 
-            <button type="button" onClick={changeView} className="underline text-accent font-[11px] my-2 cursor-pointer">Already have a link?</button>
+            {
+                !isSucceed && (
+                    <button type="button" onClick={changeView} className="underline text-accent font-[11px] my-2 cursor-pointer">Already have a link?</button>
+                )
+            }
 
             {/* Footer */}
             <div className="flex justify-end gap-2 mt-4">

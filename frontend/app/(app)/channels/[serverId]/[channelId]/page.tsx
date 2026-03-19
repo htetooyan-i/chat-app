@@ -1,29 +1,17 @@
 "use client";
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Layout } from "antd";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useServer } from "@/hooks/useServer";
 import { useChannel } from "@/hooks/useChannel";
 import { useMessage } from "@/hooks/useMessage";
-import ServerSidebar from "@/components/layout/SideBar";
-import ChannelSidebar from "@/components/layout/ChannelPanel";
 import MessagesPanel from "@/components/layout/ChatPanel";
 import Skeletons from "@/components/layout/Skeletons";
 
-const siderStyle: React.CSSProperties = {
-    overflow: 'hidden',
-    position: 'relative',
-    insetInlineStart: 0,
-    top: 0,
-    height: '100vh',
-};
-
 export default function MessagePage() {
 
-    const { loading: authLoading } = useAuth();
-    const { servers, loading: serversLoading } = useServer();
+    const { servers } = useServer();
     const { channels, loading: channelsLoading } = useChannel();
     const { loading: messagesLoading } = useMessage();
 
@@ -70,13 +58,5 @@ export default function MessagePage() {
         }
     }, [channelsLoading, channels, parsedChannelId, parsedServerId, router, servers]);
 
-    return (
-        <Layout>
-            {messagesLoading ? (
-                <Skeletons.ChatPanelSkeleton />
-            ) : (
-                <MessagesPanel />
-            )}
-        </Layout>
-    );
+    return messagesLoading ? <Skeletons.ChatPanelSkeleton /> : <MessagesPanel />;
 }

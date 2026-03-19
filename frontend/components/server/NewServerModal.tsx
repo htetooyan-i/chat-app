@@ -39,19 +39,16 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
 
 
     const [ isCreating, setIsCreating ] = useState(true);
-    const [ isSucceed, setIsSucceed ] = useState(false);
-
 
     return (
         <div>
             <Modal
             centered
-            title={ isSucceed ? "Your server is ready!" : "Customize Your Server" }
+            title={ isCreating ? "Customize Your Server" : "Join Server" }
             open={showServerCreationModal}
             onCancel={() => {
                         setShowServerCreationModal(false);
                         setIsCreating(true);
-                        setIsSucceed(false);
                     }}
             width={"25%"}
             styles={styles}
@@ -59,23 +56,7 @@ function NewServerModal({ showServerCreationModal, setShowServerCreationModal }:
             footer={null}
             >
                 {
-                    isSucceed ? (
-                        <div className="flex flex-col items-center justify-center gap-4">
-                            {/* <p className="text-center text-muted-text">Share this invite code with your friends to join the server:</p>
-                            <div className="flex items-center gap-2">
-                                <code className="bg-muted-background px-4 py-2 rounded font-mono text-accent">{inviteCode}</code>
-                                <button
-                                    className="px-3 py-2 bg-accent text-white rounded hover:bg-accent/80 cursor-pointer text-sm font-semibold"
-                                    onClick={() => {
-                                        navigator.clipboard.writeText(inviteCode);
-                                        showSuccess("Invite code copied!");
-                                    }}
-                                >
-                                    Copy
-                                </button>
-                            </div> */}
-                        </div>
-                    ) : isCreating ? (
+                    isCreating ? (
                         <CreateServer onClose={() => {setShowServerCreationModal(false)}} changeView={() => setIsCreating(false)} />
                     ) : (
                         <JoinServer onClose={() => {setShowServerCreationModal(false)}} changeView={() => setIsCreating(true)} />

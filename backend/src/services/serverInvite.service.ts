@@ -34,6 +34,7 @@ class ServerInviteService {
                         maxUses: maxUses ?? null,
                         currentUses: 0,
                     },
+                    include: { createdBy: { select: { id: true, username: true, avatarUrl: true } } },
                 });
 
                 return invite;

@@ -165,7 +165,7 @@ function ServerMemberTab({ selectedServer }: ServerMemberTabProps) {
                                 <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Name</th>
                                 <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Member Since</th>
                                 <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Joined Discord</th>
-                                <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Joined Method</th>
+                                {/* // FUTURE: show how user joined the server, via invite link, or from server discovery, etc <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Joined Method</th> */}
                                 <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Roles</th>
                                 <th className="px-4 py-2" />
                             </tr>
@@ -193,7 +193,7 @@ function ServerMemberTab({ selectedServer }: ServerMemberTabProps) {
                                                     </td>
                                                     <td className="px-4 py-2 font-semibold">{formatDate(member.joinedAt, true)}</td>
                                                     <td className="px-4 py-2 font-semibold">{formatDate(member.user.createdAt, true)}</td>
-                                                    <td className="px-4 py-2 font-semibold">J2as8Hb</td>
+                                                    {/* <td className="px-4 py-2 font-semibold">J2as8Hb</td> */}
                                                     <td className="px-4 py-2 text-muted-text font-semibold">
                                                         {member.role}
                                                         {/* Want to use select in future */}

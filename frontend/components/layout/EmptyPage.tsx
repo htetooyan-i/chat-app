@@ -1,7 +1,6 @@
 import React from 'react';
 import { Layout } from 'antd';
 
-import ServerSidebar from '@/components/layout/SideBar';
 import ChannelSidebar from '@/components/layout/ChannelPanel';
 
 const siderStyle: React.CSSProperties = {
@@ -21,10 +20,7 @@ function EmptyPage({username, page}: EmptyPageProps) {
     return (
         <Layout style={{ height: "100vh", overflow: "hidden", display: "flex", backgroundColor: "red" }}>
             {
-                page === 'server' && <ServerSidebar siderStyle={siderStyle} />
-            }
-            {
-                page === 'channel' && <ChannelSidebar siderStyle={siderStyle} />
+                page === 'server' && <ChannelSidebar siderStyle={siderStyle} />
             }
 
             <Layout className="flex items-center justify-center" style={{ flex: 1, backgroundColor: "var(--chat-panel)" }}>

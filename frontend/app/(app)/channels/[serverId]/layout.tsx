@@ -1,13 +1,12 @@
 import React from "react";
 import { Layout } from "antd";
 
-import SidebarWrapper from "@/components/layout/Wrappers/SidebarWrapper";
+import ChannelPanelWrapper from "@/components/layout/Wrappers/ChannelPanelWrapper";
 
 export default function ChannelLayout({ children }: { children: React.ReactNode }) {
-
     return (
-        <Layout>
-            <SidebarWrapper />
+        <Layout className="flex-1 h-full min-w-0 overflow-hidden flex flex-row" style={{ flexDirection: "row" }}>
+            <ChannelPanelWrapper />
             {children}
         </Layout>
     );

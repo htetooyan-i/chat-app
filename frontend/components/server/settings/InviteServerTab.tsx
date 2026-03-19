@@ -100,7 +100,7 @@ function InviteServerTab({ selectedServer }: InviteServerTabProps) {
                         ) : (
                             invites.map(invite => (
                                 <tr
-                                    key={invite.id}
+                                    key={invite.code}
                                     className="hover:bg-chat-panel/50 cursor-pointer border-b border-muted-border text-[12px]"
                                 >
                                     <td className="px-4 py-2 flex items-center gap-2 font-semibold">

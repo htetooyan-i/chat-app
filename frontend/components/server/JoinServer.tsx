@@ -10,27 +10,9 @@ type JoinServerProps = {
 
 function JoinServer({ onClose, changeView }: JoinServerProps) {
 
-    const { joinServer } = useServer();
+    const { joinServer, refreshServers } = useServer();
     const { contextHolder, showSuccess, showError } = useNotification();
     const [ inviteCode, setInviteCode ] = useState("");
-
-    // Notifications via state
-    const [successMessage, setSuccessMessage] = useState<string | null>(null);
-    const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-    useEffect(() => {
-        if (successMessage) {
-            showSuccess(successMessage);
-            setSuccessMessage(null);
-        }
-    }, [successMessage, showSuccess]);
-
-    useEffect(() => {
-        if (errorMessage) {
-            showError(errorMessage);
-            setErrorMessage(null);
-        }
-    }, [errorMessage, showError]);
 
     const handleJoinServer = async () => {
         let finalCode = inviteCode;
@@ -43,12 +25,17 @@ function JoinServer({ onClose, changeView }: JoinServerProps) {
 
         try {
             await joinServer(finalCode);
-            
-            setSuccessMessage("Server joined successfully!");
+            await refreshServers();
+            // queueMicrotask(() => {
+            //     showSuccess("Server joined successfully!");
+            // });
             setInviteCode("");
             onClose();
         } catch (error) {
-            setErrorMessage(getErrorMessage(error, "Failed to join server"));
+            console.error("Failed to join server:", error);
+            queueMicrotask(() => {
+                showError(getErrorMessage(error, "Failed to join server. Please check the invite code and try again."));
+            });
         }
     };
 
@@ -56,7 +43,7 @@ function JoinServer({ onClose, changeView }: JoinServerProps) {
         <>
             {contextHolder}
             <main className="flex flex-col gap-10 items-center justify-center">
-                <p className='text-[12px] text-muted-text'>Enter an invite code below to join a server.</p>
+                <p className='text-[12px] text-muted-text w-full'>Enter an invite code below to join a server.</p>
                 <div className='flex flex-col gap-1 w-full'>
                     <label htmlFor="inviteCode" className="text-[14px] font-bold">Invite Code <span className='text-error'>*</span></label>
                     <input 

@@ -1,3 +1,4 @@
+import { ApiResponse } from "./ApiResponse";
 import { User } from "./User";
 
 export type MemberRole = "OWNER" | "ADMIN" | "MEMBER" | "MODERATOR";
@@ -10,3 +11,5 @@ export type ServerMember = {
     joinedAt: Date | string;
     user: User;
 };
+
+export type PostCreateNewServerMemberResponse = ApiResponse<ServerMember>;

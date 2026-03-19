@@ -6,6 +6,8 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { Server } from "@/types/Server";
 import { useSocket } from "@/hooks/useSocket";
+import { CreateServerInviteResponse } from "@/types/ServerInvite";
+import { PostCreateNewServerMemberResponse } from "@/types/ServerMember";
 
 type ServerContextType = {
   servers: Server[];
@@ -75,16 +77,13 @@ export const ServerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const createServer = async (serverName: string, avatarUrl: string): Promise<string> => {
     const res = await api.post('/servers', { name: serverName, avatarUrl });
-    const inviteRes = await api.post(`/servers/${res.data.server.id}/invites`);
+    const inviteRes: CreateServerInviteResponse = await api.post(`/servers/${res.data.server.id}/invites`).then(res => res.data);
     setServers(prev => [...prev, res.data.server]);
-    await refreshServers();
     return inviteRes.data.code;
   }
 
   const joinServer = async (inviteCode: string) => {
-
-      await api.post(`/invites/${inviteCode}`);
-      await refreshServers();
+    await api.post(`/invites/${inviteCode}`);
   };
 
   const updateServer = async (data: Partial<Server>) => {

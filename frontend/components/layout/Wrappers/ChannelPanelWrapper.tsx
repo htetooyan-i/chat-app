@@ -10,7 +10,7 @@ const siderStyle: React.CSSProperties = {
     position: 'relative',
     insetInlineStart: 0,
     top: 0,
-    height: '100vh',
+    height: '100%',
 };
 
 export default function ChannelPanelWrapper() {

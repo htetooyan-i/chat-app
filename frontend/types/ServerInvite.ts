@@ -14,3 +14,5 @@ export type ServerInvite = {
 export type GetServerInvitesResponse = ApiResponse<ServerInvite[]>;
 
 export type GetServerInviteResponse = ApiResponse<ServerInvite>;
+
+export type CreateServerInviteResponse = ApiResponse<ServerInvite>;

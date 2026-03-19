@@ -27,5 +27,10 @@ export default function Page() {
         );
     }
 
-    return <Skeletons.FullPageSkeleton />;
+    return (
+        <div className="flex w-full h-full min-w-0">
+            <Skeletons.ChannelPanelSkeleton />
+            <Skeletons.ChatPanelSkeleton />
+        </div>
+    );
 }

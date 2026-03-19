@@ -31,11 +31,12 @@ class BanService {
                 where: {
                     serverId,
                 },
+                orderBy: { createdAt: "desc" },
                 include: {
                     user: true,
                 }
             });
-
+            console.log(bans);
             return bans;
         } catch (error: any) {
             throw error;
