@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowDownWideNarrow, Ellipsis } from 'lucide-react';
 import { Avatar } from 'antd';
+import { toast } from "sonner";
 
 import ButtonDropDown, { ButtonDropDownItem } from '@/components/ui/ButtonDropDown';
 import BanMemberModal from './BanMemberModal';
 import ChangeMemberRoleModal from './ChangeMemberRoleModal';
 import Spinner from '@/components/ui/Spinner';
 import { formatDate } from '@/lib/helper';
-import { useNotification } from '@/hooks/useNotification';
 import { useServerMember } from '@/hooks/useServerMember';
 import { getErrorMessage } from '@/lib/api';
 
@@ -51,8 +51,6 @@ function ServerMemberTab({ selectedServer }: ServerMemberTabProps) {
 
     const [ showChangeRoleModal, setShowChangeRoleModal ] = useState(false);
     const [ showBanMemberModal, setShowBanMemberModal ] = useState(false);
-    
-    const { contextHolder, showSuccess, showError } = useNotification();
 
     const processedMembers = members
                                 .filter(member =>
@@ -116,24 +114,27 @@ function ServerMemberTab({ selectedServer }: ServerMemberTabProps) {
     const handleKickMember = async (memberId: number) => {
         try {
             await kickMember(memberId);
-            showSuccess("Member kicked successfully");
+            toast.success("Member kicked successfully");
         } catch (error) {
-            showError(getErrorMessage(error, "Failed to kick member"));
+            toast.error("Failed to kick member.", {
+                description: getErrorMessage(error, "Failed to kick member")
+            });
         }
     };
 
     const handleChangeMemberRole = async (newRole: MemberRole) => {
         try {
             await changeMemberRole(newRole);
-            showSuccess("Member role updated successfully");
+            toast.success("Member role updated successfully");
         } catch (error) {
-            showError(getErrorMessage(error, "Failed to change member role."));
+            toast.error("Failed to change member role.", {
+                description: getErrorMessage(error, "Failed to change member role.")
+            });
         }
     };
     
     return (
         <div className="flex flex-col h-full">
-            {contextHolder}
             <ChangeMemberRoleModal show={showChangeRoleModal} onClose={() => setShowChangeRoleModal(false)} changeMemberRole={handleChangeMemberRole}/>
             <BanMemberModal show={showBanMemberModal} onClose={() => setShowBanMemberModal(false)} byAuthority />
             <p className="text-xl font-bold capitalize mb-4">Server Members</p>

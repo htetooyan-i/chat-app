@@ -88,7 +88,7 @@ function AccountRemoval() {
             </header>
             {/* FIX: color styes with tailwaind is not working */}
             <main className="flex gap-4">
-                <button onClick={() => alert("Account deletion is currently unavailable. Please try again later.")} className=' hover:opacity-80 px-4 py-2 rounded-md cursor-pointer font-semibold transition-opacity' style={{ background: "var(--sidebar)", color: "var(--error)", border: "1px solid var(--error)"}}>Disable Account</button>
+                <button onClick={() => alert("Account deletion is currently unavailable. Please try again later.")} className=' hover:opacity-80 px-4 py-2 rounded-md cursor-pointer font-semibold transition-opacity' style={{ background: "var(--normal-sidebar)", color: "var(--error)", border: "1px solid var(--error)"}}>Disable Account</button>
                 <button onClick={() => setShowModal(true)} className='hover:opacity-80 text-foreground px-4 py-2 rounded-md cursor-pointer font-semibold transition-opacity' style={{ background: "var(--error)"}}>Delete Account</button>
             </main>
         </div>

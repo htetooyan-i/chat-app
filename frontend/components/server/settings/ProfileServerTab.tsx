@@ -1,7 +1,7 @@
 import React, {type SetStateAction, useEffect, useRef, useState} from 'react';
 import Image from 'next/image';
-import { useParams } from 'next/navigation';
 import { Avatar } from 'antd';
+import { toast } from "sonner"
 
 import { useServer } from '@/hooks/useServer';
 import {formatDate, isImage} from '@/lib/helper';
@@ -9,7 +9,6 @@ import type { Server } from '@/types/Server';
 import {useMediaUpload} from "@/hooks/useMediaUpload";
 import ProfilePreviewModal from "@/components/ui/ProfilePreviewModal";
 import {getErrorMessage} from "@/lib/api";
-import {useNotification} from "@/hooks/useNotification";
 
 type ProfileServerTabProps = {
     selectedServer: Server;
@@ -19,7 +18,6 @@ type ProfileServerTabProps = {
 function ProfileServerTab({ selectedServer }: ProfileServerTabProps) {
 
     const { updateServer } = useServer();
-    const { contextHolder, showSuccess, showError } = useNotification();
 
     const [ hasUnsavedChanges, setHasUnsavedChanges ] = useState<boolean>(false);
     const [ profileForm, setProfileForm ] = useState<Server | null>(null);
@@ -38,10 +36,12 @@ function ProfileServerTab({ selectedServer }: ProfileServerTabProps) {
     const handleSaveProfileChanges = async () => {
         try {
             await updateServer(profileForm!);
-            showSuccess("Server profile updated successfully");
+            toast.success("Server profile updated successfully");
             setHasUnsavedChanges(false);
         } catch (error) {
-            showError(getErrorMessage(error, "Failed to update server profile."));
+            toast.error("Failed to update server profile.", {
+                description: getErrorMessage(error, "Failed to update server profile.")
+            });
         }
     }
 
@@ -92,7 +92,6 @@ function ProfileServerTab({ selectedServer }: ProfileServerTabProps) {
     if (!profileForm) return null;
     return (
         <div>
-            {contextHolder}
             {/* Crop Modal */}
             <ProfilePreviewModal
                 open={modalOpen}

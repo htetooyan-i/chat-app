@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { LogOut, Plus, Settings } from 'lucide-react';
 import { Avatar, Badge, Layout } from 'antd';
 import { useRouter, useParams, usePathname } from 'next/navigation';
-import Image from 'next/image';
+import { toast } from "sonner";
 
 import ContextDropdownComponent, { ContextDropdownItem } from '@/components/ui/ContextDropdown';
 import ServerSettingsModal from '../server/settings/ServerSettingsModal';
@@ -11,7 +11,6 @@ import NewServerModal from '../server/NewServerModal';
 import { useAuth } from '@/hooks/useAuth';
 import { useServerLayout } from '@/hooks/useServerLayout';
 import { useServer } from '@/hooks/useServer';
-import { useNotification } from '@/hooks/useNotification';
 import { useChannel } from '@/hooks/useChannel';
 import { useServerMember } from '@/hooks/useServerMember';
 import { getErrorMessage } from '@/lib/api'
@@ -28,7 +27,6 @@ function SideBar({ siderStyle }: SideBarProps) {
     const router = useRouter();
     const pathname = usePathname();
     const params = useParams();
-    const { contextHolder, showSuccess, showError } = useNotification();
     
     const { servers, refreshServers, leaveServer } = useServer();
     const { channelsByServer, clearServerCache } = useChannel();
@@ -100,7 +98,7 @@ function SideBar({ siderStyle }: SideBarProps) {
     const handleLeaveServer = async (selectedServerId: number) => {
         try {
             await leaveServer(selectedServerId);
-            showSuccess("You have left the server.");
+            toast.success("You have left the server.");
 
             clearServerCache(selectedServerId);
 
@@ -121,7 +119,9 @@ function SideBar({ siderStyle }: SideBarProps) {
             await refreshServers();
 
         } catch (error) {
-            showError(getErrorMessage(error, "Failed to leave server."));
+            toast.error("Failed to leave server.", {
+                description: getErrorMessage(error, "An unexpected error occurred.")
+            });
         }
     };
 
@@ -131,7 +131,6 @@ function SideBar({ siderStyle }: SideBarProps) {
 
     return (
         <div>
-            {contextHolder}
             <ServerSettingsModal show={showServerSettingsModal} serverId={shownSettingServerId} onClose={() => setShowServerSettingsModal(false)} />
             <NewServerModal showServerCreationModal={showServerCreationModal} setShowServerCreationModal={setShowServerCreationModal} />
             <Sider 
@@ -143,11 +142,11 @@ function SideBar({ siderStyle }: SideBarProps) {
             onBreakpoint={(broken) => {
                 setCollapsed(broken);
             }}
-            style={{ ...siderStyle, backgroundColor: "var(--sidebar)", scrollbarWidth: "none", display: "flex", flexDirection: "column" }}
+            style={{ ...siderStyle, backgroundColor: "var(--normal-sidebar)", scrollbarWidth: "none", display: "flex", flexDirection: "column" }}
             >
                 <div className="flex flex-col h-full">
                     {/* User Avatar */}
-                    <header className='h-16 sticky top-0 z-10 flex justify-center items-center pt-3 pb-3 bg-sidebar border-b border-muted-border'>
+                    <header className='h-16 sticky top-0 z-10 flex justify-center items-center pt-3 pb-3 bg-normal-sidebar border-b border-muted-border'>
                         <Badge dot color="green" className="bottom-badge cursor-pointer">
                             <Avatar
                                 shape="square"
@@ -189,7 +188,7 @@ function SideBar({ siderStyle }: SideBarProps) {
                                 </div>
                         ))}
                     </div>
-                    <footer className="flex flex-col items-center py-5 bg-sidebar border-t border-muted-border">
+                    <footer className="flex flex-col items-center py-5 bg-normal-sidebar border-t border-muted-border">
                     {/* Add Server Button */}
                     <div onClick={() => setShowServerCreationModal(true)} className="server-item flex items-center justify-center relative my-2 cursor-pointer hover:opacity-80 transition-opacity duration-200">
                         <Badge>

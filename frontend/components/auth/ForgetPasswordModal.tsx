@@ -3,11 +3,9 @@
 import React, { useState } from 'react';
 import { Modal } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
+import { toast } from "sonner";
 
-import { useNotification } from '@/hooks/useNotification';
 import {api, getErrorMessage} from '@/lib/api';
-
-
 interface ForgetPasswordModalProps {
     open: boolean;
     onClose: () => void;
@@ -16,7 +14,6 @@ interface ForgetPasswordModalProps {
 export default function ForgetPasswordModal({ open, onClose }: ForgetPasswordModalProps) {
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const { contextHolder, showSuccess, showError } = useNotification();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -29,9 +26,11 @@ export default function ForgetPasswordModal({ open, onClose }: ForgetPasswordMod
                 { withCredentials: true }
             );
 
-            showSuccess(
+            toast.success(
                 'Password reset email sent successfully!',
-                'Please check your email for further instructions.'
+                {
+                    description: 'Please check your email for further instructions.'
+                }
             );
 
             // Add a short delay to allow users to read the success message before redirecting, OPTIONAL: can be removed if immediate redirect is preferred
@@ -41,9 +40,11 @@ export default function ForgetPasswordModal({ open, onClose }: ForgetPasswordMod
             }, 1500);
 
         } catch (error) {
-            showError(
+            toast.error(
                 'Failed to send reset email',
-                getErrorMessage(error, "An unexpected error occurred.")
+                {
+                    description: getErrorMessage(error, "An unexpected error occurred.")
+                }
             );
         } finally {
             setIsLoading(false);
@@ -52,7 +53,6 @@ export default function ForgetPasswordModal({ open, onClose }: ForgetPasswordMod
 
     return (
         <>
-            {contextHolder}
             <Modal
                 title="Reset Password"
                 centered

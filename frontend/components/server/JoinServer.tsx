@@ -1,7 +1,8 @@
-import { useNotification } from '@/hooks/useNotification';
+import { useState } from 'react';
+import { toast } from "sonner";
+
 import { useServer } from '@/hooks/useServer';
 import { getErrorMessage } from '@/lib/api';
-import React, { useEffect, useState } from 'react';
 
 type JoinServerProps = {
     onClose: () => void;
@@ -11,7 +12,6 @@ type JoinServerProps = {
 function JoinServer({ onClose, changeView }: JoinServerProps) {
 
     const { joinServer, refreshServers } = useServer();
-    const { contextHolder, showSuccess, showError } = useNotification();
     const [ inviteCode, setInviteCode ] = useState("");
 
     const handleJoinServer = async () => {
@@ -34,14 +34,15 @@ function JoinServer({ onClose, changeView }: JoinServerProps) {
         } catch (error) {
             console.error("Failed to join server:", error);
             queueMicrotask(() => {
-                showError(getErrorMessage(error, "Failed to join server. Please check the invite code and try again."));
+                toast.error("Failed to join server. Please check the invite code and try again.", {
+                    description: getErrorMessage(error, "Failed to join server. Please check the invite code and try again.")
+                });
             });
         }
     };
 
     return (
         <>
-            {contextHolder}
             <main className="flex flex-col gap-10 items-center justify-center">
                 <p className='text-[12px] text-muted-text w-full'>Enter an invite code below to join a server.</p>
                 <div className='flex flex-col gap-1 w-full'>

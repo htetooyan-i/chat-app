@@ -13,54 +13,46 @@ export const useNotification = () => {
 
     const showSuccess = (title: string, description?: string) => {
         if (!mounted) return;
-        setTimeout(() => {
-            api.success({
-                title,
-                description,
-                placement: 'topRight',
-                showProgress: true,
-                duration: 3,
-            });
-        }, 0);
+        api.success({
+            title,
+            description,
+            placement: 'topRight',
+            showProgress: true,
+            duration: 3,
+        });
     };
 
     const showError = (title: string, description?: string) => {
         if (!mounted) return;
-        setTimeout(() => {
-            api.error({
-                title,
-                description,
-                placement: 'topRight',
-                showProgress: true,
-                duration: 5,
-            });
-        }, 0);
+        api.error({
+            title,
+            description,
+            placement: 'topRight',
+            showProgress: true,
+            duration: 5,
+        });
     };
 
     const showWarning = (title: string, description?: string) => {
         if (!mounted) return;
-        setTimeout(() => {
-            api.warning({
-                title,
-                description,
-                placement: 'topRight',
-                showProgress: true,
-                duration: 4,
-            });
-        }, 0);
+        api.warning({
+            title,
+            description,
+            placement: 'topRight',
+            showProgress: true,
+            duration: 4,
+        });
     };
 
     const showInfo = (title: string, description?: string) => {
         if (!mounted) return;
-        setTimeout(() => {
-            api.info({
-                title,
-                description,
-                placement: 'topRight',
-                showProgress: true,
-                duration: 4,
-            });
-        }, 0);
+        api.info({
+            title,
+            description,
+            placement: 'topRight',
+            showProgress: true,
+            duration: 4,
+        });
     };
 
     return {

@@ -2,9 +2,8 @@
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import Image from "next/image";
-import axios, { isCancel, AxiosError } from "axios";
+import { toast } from "sonner";
 
-import { useNotification } from '@/hooks/useNotification';
 import LoginForm from "@/components/auth/LoginForm";
 import RegisterForm from '@/components/auth/RegisterForm';
 import ForgetPasswordModal from '@/components/auth/ForgetPasswordModal';
@@ -14,7 +13,6 @@ function AuthPage() {
     const [isLogin, setIsLogin] = React.useState(true);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [showForgetPassword, setShowForgetPassword] = useState(false);
-    const { contextHolder, showSuccess, showError, showInfo } = useNotification();
     const router = useRouter();
 
     const handleFormSubmit = async (data: { username?: string; email: string; password: string; confirmPassword?: string }) => {
@@ -27,10 +25,9 @@ function AuthPage() {
                 { withCredentials: true }
             );
             
-            showSuccess(
-                `${isLogin ? "Login" : "Registration"} successful!`,
-                isLogin ? "Redirecting to dashboard..." : "Please check your email to verify."
-            );
+            toast.success(`${isLogin ? "Login" : "Registration"} successful!`, {
+                description: isLogin ? "Redirecting to dashboard..." : "Please check your email to verify."
+            });
 
             // Add a short delay to allow users to read the success message before redirecting, OPTIONAL: can be removed if immediate redirect is preferred
             setTimeout(() => {
@@ -38,9 +35,11 @@ function AuthPage() {
             }, 1000);
 
         } catch (error) {
-            showError(
+            toast.error(
                 `${isLogin ? "Login" : "Registration"} failed`,
-                getErrorMessage(error, `Failed to ${isLogin ? "login" : "register"}.`)
+                {
+                    description: getErrorMessage(error, `Failed to ${isLogin ? "login" : "register"}.`)
+                }
             );
         }
         setIsSubmitting(false);
@@ -48,13 +47,12 @@ function AuthPage() {
 
     const handleSocialMediaLogin = () => {
         // Placeholder for social media login logic
-        showInfo("This feature is coming soon!");
+        toast.info("This feature is coming soon!");
 
     };
   
     return (
         <div className="flex items-center justify-center h-screen py-10 gap-25">
-            {contextHolder}
             {showForgetPassword && (
                 <ForgetPasswordModal 
                     open={showForgetPassword} 
@@ -70,10 +68,10 @@ function AuthPage() {
                 <nav className='px-3'>
                     <ul className='flex gap-10'>
                         <li className={`border-b-4 transition-all ${isLogin ? "border-accent" : "border-transparent"}`}>
-                            <button onClick={() => setIsLogin(true)} type='button' className={`${isLogin ? "text-primary" : "text-muted-text"} block w-full text-center pt-5 text-[25px] font-bold`}>Login</button>
+                            <button onClick={() => setIsLogin(true)} type='button' className={`${isLogin ? "text-foreground" : "text-muted-text"} block w-full text-center pt-5 text-[25px] font-bold`}>Login</button>
                         </li>
                         <li className={`border-b-4 transition-all ${!isLogin ? "border-accent" : "border-transparent"}`}>
-                            <button onClick={() => setIsLogin(false)} type='button' className={`${!isLogin ? "text-primary" : "text-muted-text"} block w-full text-center pt-5 text-[25px] font-bold`}>Sign Up</button>
+                            <button onClick={() => setIsLogin(false)} type='button' className={`${!isLogin ? "text-foreground" : "text-muted-text"} block w-full text-center pt-5 text-[25px] font-bold`}>Sign Up</button>
                         </li>
                     </ul>
                 </nav>

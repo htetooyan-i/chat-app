@@ -1,11 +1,8 @@
 import React from 'react';
-import { CloseOutlined } from '@ant-design/icons';
 import { Modal, ModalProps } from 'antd';
+import { toast } from "sonner";
 
-
-import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
-import { useNotification } from '@/hooks/useNotification';
 
 type ChangeEmailModalProps = {
     showEmailEditingModal: boolean;
@@ -40,15 +37,14 @@ function ChangeEmailModal({ showEmailEditingModal, setShowEmailEditingModal }: C
     const { updateEmail } = useAuth();
     const [ newEmail, setNewEmail ] = React.useState("");
     const [ password, setPassword ] = React.useState("");
-    const { contextHolder, showSuccess, showError } = useNotification();
 
     const handleChangeEmail = async () => {
         try {
             await updateEmail(newEmail, password);
-            showSuccess("Email changed successfully!");
+            toast.success("Email changed successfully!");
         } catch (error) {
             console.error('Error updating email:', error);
-            showError("Failed to change email.");
+            toast.error("Failed to change email.");
         }
 
         setNewEmail("");
@@ -64,7 +60,6 @@ function ChangeEmailModal({ showEmailEditingModal, setShowEmailEditingModal }: C
 
     return (
         <div>
-            {contextHolder}
             <Modal
             centered
             footer={null}

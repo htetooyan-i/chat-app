@@ -1,14 +1,14 @@
 import React from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { toast } from "sonner"
 
 import { useServer } from '@/hooks/useServer';
 import { useChannel } from '@/hooks/useChannel';
-import { useNotification } from '@/hooks/useNotification';
 import {getErrorMessage} from "@/lib/api";
 import { Server } from '@/types/Server';
 
 type DeleteServerTabProps = {
-    selectedServer: Server;
+    selectedServer?: Server;
     onClose: () => void;
 };
 
@@ -19,36 +19,42 @@ function DeleteServerTab({ selectedServer, onClose }: DeleteServerTabProps) {
     const { servers, deleteServer } = useServer();
     const { channelsByServer, clearServerCache } = useChannel();
 
-    const { contextHolder, showSuccess, showError } = useNotification();
-
     const [ confirmationName, setConfirmationName ] = React.useState("");
+
+    if (!selectedServer) {
+        return null;
+    }
 
     const handleDeleteServer = async () => {
         try {   
             await deleteServer(selectedServer.id!);
             clearServerCache(selectedServer.id);
-
+            toast.success("Server deleted successfully");
+            onClose();
+            
+            const remainingServers = servers.filter((server) => server.id !== selectedServer.id);
+            
             // navigate first before refreshing
-            if (servers.length > 0) {
-                const cached = channelsByServer[servers[0].id];
+            if (remainingServers.length > 0) {
+                const cached = channelsByServer[remainingServers[0].id];
                 if (cached?.[0]) {
-                    router.push(`/servers/${servers[0].id}/channels/${cached[0].id}`);
+                    router.push(`/channels/${remainingServers[0].id}/${cached[0].id}`);
                 } else {
-                    router.push(`/servers/${servers[0].id}/channels`);
+                    router.push(`/channels/${remainingServers[0].id}`);
                 }
             } else {
-                router.push("/servers");
+                router.push("/channels");
             }
-
-            showSuccess("Server deleted successfully");
-            onClose();
+            
         } catch (error) {
-            showError(getErrorMessage(error, "Failed to delete server."));
+            toast.error("Failed to delete server. Please try again.", {
+                description: getErrorMessage(error, "Failed to delete server")
+            });
         }
     };
+
     return (
         <div>
-            {contextHolder}
             <p className="text-xl font-bold capitalize">Delete Server</p>
             <div className="py-4">
                 {/* Description */}

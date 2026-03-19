@@ -2,11 +2,11 @@ import React from 'react';
 import { CloseOutlined } from '@ant-design/icons';
 import { Modal, ModalProps } from 'antd';
 import { Eye, EyeOff } from 'lucide-react';
+import { toast } from "sonner";
 
 import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { parsePasswordValidation } from '@/lib/helper';
-import { useNotification } from '@/hooks/useNotification';
 
 type ChangePasswordModalProps = {
     showPasswordEditingModal: boolean;
@@ -45,17 +45,18 @@ function ChangePasswordModal({ showPasswordEditingModal, setShowPasswordEditingM
     const [ isConfirmPasswordVisible, setIsConfirmPasswordVisible ] = React.useState(false);
     const [ isNewPasswordVisible, setIsNewPasswordVisible ] = React.useState(false);
     const [ isCurrentPasswordVisible, setIsCurrentPasswordVisible ] = React.useState(false);
-    const { contextHolder, showSuccess, showError } = useNotification();
 
     const isPasswordInvalid = !parsePasswordValidation(newPassword) || newPassword !== confirmPassword;
 
     const handleChangePassword = async () => {
         try {
             await updatePassword(newPassword, currentPassword);
-            showSuccess("Password changed successfully!");
+            toast.success("Password changed successfully!");
         } catch (error) {
             console.error('Error updating password:', error);
-            showError("Failed to change password.");
+            toast.error("Failed to change password.", {
+                description: "Please ensure your current password is correct and try again."
+            });
         }
 
         setNewPassword("");
@@ -68,10 +69,12 @@ function ChangePasswordModal({ showPasswordEditingModal, setShowPasswordEditingM
         if (!user) return;
         try {
             await api.post('/auth/request-password-reset', { email: user.email });
-            showSuccess("Password reset email sent successfully!", `Please check your email ${user.email} start with for further instructions.`);
+            toast.success("Password reset email sent successfully!", {
+                description: `Please check your email ${user.email} start with for further instructions.`
+            });
         } catch (error) {
             console.error('Error resetting password:', error);
-            showError("Failed to reset password.");
+            toast.error("Failed to reset password.");
         }
     }
     const handleCancel = () => {
@@ -83,7 +86,6 @@ function ChangePasswordModal({ showPasswordEditingModal, setShowPasswordEditingM
 
     return (
         <div>
-            {contextHolder}
             <Modal
             centered
             footer={null}

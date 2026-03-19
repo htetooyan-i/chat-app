@@ -4,7 +4,7 @@ import { CloseOutlined } from '@ant-design/icons';
 
 import { useAuth } from '@/hooks/useAuth';
 import UserGeneralInfo from '@/components/user/UserGeneralInfo';
-import UserSettingsPassword from './UserSettingsPassword';
+import UserSettingsPassword from './UserSettingsAuth';
 
 const styles: ModalProps['styles'] = {
     mask: {

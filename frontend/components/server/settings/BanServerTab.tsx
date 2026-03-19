@@ -2,6 +2,7 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { Avatar } from 'antd';
 import { Ellipsis } from 'lucide-react';
+import { toast } from "sonner";
 
 import ButtonDropDown, { ButtonDropDownItem } from '@/components/ui/ButtonDropDown';
 import { formatDate, calculateDays } from '@/lib/helper';
@@ -9,8 +10,8 @@ import Spinner from '@/components/ui/Spinner';
 import ReviewBanModal from './ReviewBanModal';
 import { ServerBan } from '@/types/ServerBan';
 import { useServerAdmin } from '@/hooks/useServerAdmin';
-import { useNotification } from '@/hooks/useNotification';
 import type { Server } from '@/types/Server';
+import { getErrorMessage } from '@/lib/api';
 
 type BanServerTabProps = {
     selectedServer: Server
@@ -19,7 +20,6 @@ type BanServerTabProps = {
 function BanServerTab({ selectedServer }: BanServerTabProps) {
 
     const { bans, banLoading, refreshBans, revokeBan, decidePendingBan, deleteBan } = useServerAdmin();
-    const { contextHolder, showSuccess, showError } = useNotification();
 
     const [ filteredUsername, setFilteredUsername ] = useState("");
     const [ showReviewModal, setShowReviewModal ] = useState(false);
@@ -42,10 +42,12 @@ function BanServerTab({ selectedServer }: BanServerTabProps) {
     const handleRevokeBan = async (banId: number) => {
         try {
             await revokeBan(banId);
-            showSuccess("Ban revoked successfully!");
+            toast.success("Ban revoked successfully!");
         } catch (error) {
             console.error("Error revoking ban:", error);
-            showError("Failed to revoke ban. Please try again.");
+            toast.error("Failed to revoke ban. Please try again.", {
+                description: getErrorMessage(error, "Failed to revoke ban")
+            });
         }
     };
 
@@ -53,20 +55,24 @@ function BanServerTab({ selectedServer }: BanServerTabProps) {
         if (!selectedBan) return;
         try {
             await decidePendingBan(decision, selectedBan.id, selectedBan.userId, duration);
-            showSuccess(`Ban appeal ${decision.toLowerCase()} successfully!`);
+            toast.success(`Ban appeal ${decision.toLowerCase()} successfully!`);
         } catch (error) {
             console.error("Error deciding appeal:", error);
-            showError("Failed to decide appeal. Please try again.");
+            toast.error("Failed to decide appeal. Please try again.", {
+                description: getErrorMessage(error, "Failed to decide appeal")
+            });
         }
     };
 
     const handleDeleteBan = async (banId: number) => {
         try {
             await deleteBan(banId);
-            showSuccess("Deleted ban successfully!");
+            toast.success("Deleted ban successfully!");
         } catch (error) {
             console.error("Error deleting ban:", error);
-            showError("Failed to delete ban. Please try again.");
+            toast.error("Failed to delete ban. Please try again.", {
+                description: getErrorMessage(error, "Failed to delete ban")
+            });
         }
     }
 
@@ -107,7 +113,6 @@ function BanServerTab({ selectedServer }: BanServerTabProps) {
 
     return (
         <div className="flex flex-col h-full">
-            {contextHolder}
             <ReviewBanModal
                 show={showReviewModal}
                 onClose={() => setShowReviewModal(false)}

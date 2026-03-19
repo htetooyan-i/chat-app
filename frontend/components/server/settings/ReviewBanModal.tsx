@@ -36,7 +36,7 @@ const styles: ModalProps['styles'] = {
 const selectStyles: SelectProps['styles'] = {
     root: {
         width: "100%", 
-        backgroundColor: "var(--side-bar)", 
+        backgroundColor: "var(--sidebar)", 
         borderColor: "var(--muted-border)", 
         color: "var(--foreground)", 
         fontWeight: "bold",

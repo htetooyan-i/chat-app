@@ -73,23 +73,27 @@ function ServerSettingsModal({ show, serverId, onClose }: ServerSettingsModalPro
     const [modalKey, setModalKey] = useState(0); // FIXME: this is used to track tab changes but want to change this
 
     const renderTab = () => {
+        if (!selectedServer) {
+            return null;
+        }
+
         switch (activeTab) {
             case "profile":
-                return <ProfileServerTab key={modalKey} selectedServer={selectedServer!}/>;
+                return <ProfileServerTab key={modalKey} selectedServer={selectedServer}/>;
 
             case "members":
-                return <ServerMemberTab selectedServer={selectedServer!}/>;
+                return <ServerMemberTab selectedServer={selectedServer}/>;
 
             case "invites":
-                return <InviteServerTab selectedServer={selectedServer!}/>;
+                return <InviteServerTab selectedServer={selectedServer}/>;
 
             case "bans":
-                return <BanServerTab selectedServer={selectedServer!}/>;
+                return <BanServerTab selectedServer={selectedServer}/>;
 
             case "delete":
                 return (
                     <DeleteServerTab
-                        selectedServer={selectedServer!}
+                        selectedServer={selectedServer}
                         onClose={() => {setActiveTab("profile"); onClose()}}
                     />
                 );
@@ -119,7 +123,7 @@ function ServerSettingsModal({ show, serverId, onClose }: ServerSettingsModalPro
             >
                 <Layout style={{ height: "100%" }}>
                     <Sider style={{
-                        backgroundColor: "var(--sidebar)",
+                        backgroundColor: "var(--normal-sidebar)",
                         height: "100%",
                         paddingBlock: "20px",
                         paddingInline: "10px",

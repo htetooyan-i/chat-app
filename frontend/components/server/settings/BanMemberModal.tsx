@@ -1,9 +1,9 @@
 import React from 'react';
 import { Modal, ModalProps, Select, SelectProps, ConfigProvider } from 'antd';
 import { Input } from 'antd';
+import { toast } from "sonner";
 
 import { useServerMember } from '@/hooks/useServerMember';
-import { useNotification } from '@/hooks/useNotification';
 import { getErrorMessage } from "@/lib/api";
 
 const { TextArea } = Input;
@@ -85,8 +85,6 @@ function BanMemberModal({ show, onClose, byAuthority }: BanMemberProps) {
 
     const { requestBanMember } = useServerMember();
 
-    const { contextHolder, showSuccess, showError } = useNotification();
-
     const [reason, setReason] = React.useState<string[]>([]);
     const [duration, setDuration] = React.useState<string>("7");
     const [customReason, setCustomReason] = React.useState("");
@@ -98,15 +96,16 @@ function BanMemberModal({ show, onClose, byAuthority }: BanMemberProps) {
         try {
             const finalDuration = duration === "permanent" ? null : Number(duration)
             await requestBanMember(finalReason, finalDuration ?? undefined);
-            showSuccess("Member banned successfully");
+            toast.success("Member banned successfully");
         } catch (error) {
-            showError(getErrorMessage(error,"Failed to ban member."));
+            toast.error("Failed to ban member.", {
+                description: getErrorMessage(error, "Failed to ban member")
+            });
         }
     };
 
     return (
         <div>
-            {contextHolder}
             <Modal
             centered
             footer={null}

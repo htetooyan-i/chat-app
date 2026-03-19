@@ -11,7 +11,7 @@ function UserGeneralInfo() {
     const { setShowUsernameEditingModal, setShowEmailEditingModal } = useUserSettingLayout();
 
     return (
-        <div className="flex flex-col items-center gap-4 mx-auto bg-sidebar mt-10 p-5 rounded-lg">
+        <div className="flex flex-col items-center gap-4 mx-auto bg-normal-sidebar mt-10 p-5 rounded-lg">
 
             {/* Profile Img */}
             <UserProfile />

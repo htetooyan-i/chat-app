@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { CameraOutlined } from '@ant-design/icons';
+import { toast } from "sonner";
+
 import { isImage } from "@/lib/helper";
 import { useMediaUpload } from "@/hooks/useMediaUpload";
 import ProfilePreviewModal from "@/components/ui/ProfilePreviewModal";
@@ -7,7 +9,6 @@ import { Avatar } from "antd";
 import { Camera, Plus } from "lucide-react";
 import { useServer } from '@/hooks/useServer';
 import { getErrorMessage } from '@/lib/api';
-import { useNotification } from '@/hooks/useNotification';
 
 type CreateServerProps = {
     onClose: () => void;
@@ -16,7 +17,6 @@ type CreateServerProps = {
 
 function CreateServer({ onClose, changeView }: CreateServerProps) {
     const { createServer } = useServer();
-    const { contextHolder, showSuccess, showError } = useNotification();
 
     const [serverName, setServerName] = useState("");
     const [avatarUrl, setAvatarUrl] = useState("");
@@ -70,15 +70,16 @@ function CreateServer({ onClose, changeView }: CreateServerProps) {
             if (!invite) throw new Error("No invite code returned");
             setInviteCode(invite);
             setIsSucceed(true);
-            showSuccess("Server created successfully!");
+            toast.success("Server created successfully!");
         } catch (error) {
-            showError(getErrorMessage(error, "Failed to create server"));
+            toast.error("Failed to create server.", {
+                description: getErrorMessage(error, "An unexpected error occurred.")
+            });
         }
     };
 
     return (
         <div>
-            {contextHolder}
             <ProfilePreviewModal
                 open={modalOpen}
                 previewUrl={previewUrl}

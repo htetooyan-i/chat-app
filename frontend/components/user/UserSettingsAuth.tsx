@@ -1,30 +1,31 @@
-import React from 'react';
+import { toast } from "sonner";
 
 import { api } from "@/lib/api";
 import { handleMaintenanceRoute } from '@/lib/helper';
 import { useUserSettingLayout } from '@/hooks/useUserSettingsLayout';
 import { useAuth } from "@/hooks/useAuth";
-import {useNotification} from "@/hooks/useNotification";
 
 
 function UserSettingsPassword() {
 
     const { setShowPasswordEditingModal } = useUserSettingLayout();
-    const { contextHolder, showSuccess, showError } = useNotification();
     const { user } = useAuth();
 
     const handleVerifyEmail = async () => {
         try {
             api.post("/auth/send-verification-email");
-            showSuccess("Verification email sent successfully", "Please check your email for further instructions.");
+            toast.success("Verification email sent successfully", {
+                description: `Please check your email ${user?.email} for further instructions.`
+            });
         } catch (error) {
-            showError("Failed to send verification email", "An unexpected error occurred.");
+            toast.error("Failed to send verification email", {
+                description: "An unexpected error occurred."
+            });
         }
     }
 
     return (
         <>
-            {contextHolder}
             <div className='flex flex-col justify-start items-start gap-4 mx-auto my-2 py-5'>
                 <p className='text-lg font-semibold mb-4'>Password and Authentication</p>
 

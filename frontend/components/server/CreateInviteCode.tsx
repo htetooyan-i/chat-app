@@ -9,7 +9,7 @@ import { useServer } from '@/hooks/useServer';
 const selectStyles: SelectProps['styles'] = {
     root: {
         width: "100%", 
-        backgroundColor: "var(--side-bar)", 
+        backgroundColor: "var(--normal-sidebar)", 
         borderColor: "var(--muted-border)", 
         color: "var(--foreground)", 
         fontWeight: "bold",

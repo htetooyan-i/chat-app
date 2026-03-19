@@ -2,14 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { Avatar } from 'antd';
 import { Ellipsis } from 'lucide-react';
+import { toast } from "sonner";
 
 import ButtonDropDown, { ButtonDropDownItem } from '@/components/ui/ButtonDropDown';
 import InviteServerModal from '../InviteServerModal';
 import Spinner from '@/components/ui/Spinner';
 import { formatDate } from '@/lib/helper';
 import { useServerAdmin } from '@/hooks/useServerAdmin';
-import { useNotification } from '@/hooks/useNotification';
 import { Server } from '@/types/Server';
+import { getErrorMessage } from '@/lib/api';
 
 type InviteServerTabProps = {
     selectedServer: Server
@@ -19,8 +20,6 @@ function InviteServerTab({ selectedServer }: InviteServerTabProps) {
     const { invites, inviteLoading, fetchInvites, revokeInvite } = useServerAdmin();
     const [showInviteModal, setShowInviteModal] = useState(false);
 
-    const { contextHolder, showSuccess, showError } = useNotification();
-
     useEffect(() => {
         if (!selectedServer?.id) return;
         fetchInvites(selectedServer.id);
@@ -29,10 +28,12 @@ function InviteServerTab({ selectedServer }: InviteServerTabProps) {
     const handleRevokeInvite = async (inviteId: number) => {
         try {
             await revokeInvite(inviteId);
-            showSuccess("Invite revoked successfully.");
+            toast.success("Invite revoked successfully.");
         } catch (error) {
             console.error("Failed to revoke invite:", error);
-            showError("Failed to revoke invite.");
+            toast.error("Failed to revoke invite. Please try again.", {
+                description: getErrorMessage(error, "Failed to revoke invite")
+            });
         }
     };
 
@@ -46,7 +47,6 @@ function InviteServerTab({ selectedServer }: InviteServerTabProps) {
 
     return (
         <div className="flex flex-col h-full">
-            {contextHolder}
             <InviteServerModal
                 show={showInviteModal}
                 onClose={() => setShowInviteModal(false)}

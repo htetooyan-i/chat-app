@@ -1,10 +1,7 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { useParams } from 'next/navigation';
-import { ConfigProvider, Modal, ModalProps, Select, SelectProps } from 'antd';
+import { useEffect, useState } from 'react';
+import { Modal, ModalProps, SelectProps } from 'antd';
+import { toast } from "sonner";
 
-import { useNotification } from '@/hooks/useNotification';
-import { api } from '@/lib/api';
-import { useServer } from '@/hooks/useServer';
 import { useServerAdmin } from '@/hooks/useServerAdmin'; 
 import CreateInviteCode from './CreateInviteCode';
 import type { ServerInvite } from '@/types/ServerInvite';
@@ -36,7 +33,7 @@ const styles: ModalProps['styles'] = {
 const selectStyles: SelectProps['styles'] = {
     root: {
         width: "100%", 
-        backgroundColor: "var(--side-bar)", 
+        backgroundColor: "var(--normal-sidebar)", 
         borderColor: "var(--muted-border)", 
         color: "var(--foreground)", 
         fontWeight: "bold",
@@ -71,8 +68,6 @@ type InviteServerModalProps = {
 function InviteServerModal({ show, onClose, fromSettings }: InviteServerModalProps) {
 
     const { invites, createInvite } = useServerAdmin();
-
-    const { contextHolder, showSuccess, showError } = useNotification();
     
     const [ copied, setCopied ] = useState(false);
     const [ inviteCode, setInviteCode ] = useState<ServerInvite | null>(null);
@@ -82,7 +77,7 @@ function InviteServerModal({ show, onClose, fromSettings }: InviteServerModalPro
     const [ maxUses, setMaxUses ] = useState("No Limit");
 
     useEffect(() => {
-        if (show) {
+        if (show && invites) {
             setCreateNewCode(!!fromSettings);
             setInviteCode(invites.length > 0 ? invites[0] : null);
         }
@@ -98,7 +93,7 @@ function InviteServerModal({ show, onClose, fromSettings }: InviteServerModalPro
             })
             .catch((err) => {
                 console.error("Failed to copy invite link:", err);
-                showError("Failed to copy invite link. Please try again.");
+                toast.error("Failed to copy invite link. Please try again.");
             });
     }
 
@@ -106,7 +101,7 @@ function InviteServerModal({ show, onClose, fromSettings }: InviteServerModalPro
         try {
             const invite = await createInvite(expireAfter, maxUses);
             setInviteCode(invite);
-            showSuccess("New invite link generated successfully!");
+            toast.success("New invite link generated successfully!");
             setExpireAfter("7");
             setMaxUses("No Limit");
             if (fromSettings) {
@@ -116,13 +111,14 @@ function InviteServerModal({ show, onClose, fromSettings }: InviteServerModalPro
             }
         } catch (error) {
             console.error("Error generating new invite link:", error);
-            showError("Failed to generate new invite link. Please try again.");
+            toast.error("Failed to create new invite link.", {
+                description: "Please try again later."
+            });
         }
     }
 
     return (
         <div>
-            {contextHolder}
             <Modal
             centered
             title={ createNewCode ? "Server invite link settings" : "Invite People to Your Server" }

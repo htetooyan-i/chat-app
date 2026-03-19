@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Modal, ModalProps } from 'antd';
 import { useRouter, useParams } from 'next/navigation';
+import { toast } from "sonner";
 
-import { useNotification } from '@/hooks/useNotification';
 import { useChannel } from '@/hooks/useChannel';
 import { getErrorMessage } from "@/lib/api";
 
@@ -44,25 +44,25 @@ function CreateNewChannelModal({ showCreateChannelModal, setShowCreateChannelMod
                     : params.serverId;
     const [channelName, setChannelName] = useState("");
     const { createChannel } = useChannel();
-    const { contextHolder, showError, showSuccess } = useNotification();
 
     const handleSubmit = async () => {
        try {
             const newChannel = await createChannel(channelName);
             if (newChannel) {
-                router.push(`/servers/${serverId}/channels/${newChannel.id}`);
-                showSuccess("Channel created successfully!");
+                router.push(`/channels/${serverId}/${newChannel.id}`);
+                toast.success("Channel created successfully!");
                 setChannelName("");
                 setShowCreateChannelModal(false);
             }
         } catch (err) {
-            showError(getErrorMessage(err, "Failed to create channel."));
+            toast.error("Failed to create channel.", {
+                description: getErrorMessage(err, "An unexpected error occurred.")
+            });
         }
     };
 
     return (
         <div>
-            {contextHolder}
             <Modal
             centered
             title={ "Customize Your New Channel" }

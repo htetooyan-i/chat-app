@@ -57,7 +57,7 @@ function ServerFileInfo() {
                         <div className={`px-2 grid grid-flow-row grid-cols-3 gap-1 items-center transition-all duration-200 overflow-hidden ${expendedGroup === "images" ? "h-auto my-2 opacity-100": "h-0 opacity-0"}`}    >
                             {
                                 images.map((image, idx) => (
-                                    <div key={image.id} className="w-full h-full rounded-md bg-sidebar flex items-center overflow-hidden">
+                                    <div key={image.id} className="w-full h-full rounded-md bg-normal-sidebar flex items-center overflow-hidden">
                                         <Image src={image.url} alt="image" width={100} height={100} className="w-full h-auto " onClick={() => {
                                             setIndex(idx);
                                             setOpen(true);

@@ -2,16 +2,16 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Layout } from 'antd';
+import { toast } from "sonner";
 
-import { api } from '@/lib/api';
 import CreateNewChannelModal from "@/components/channel/CreateNewChannelModal";
 import ContextDropdownComponent, { ContextDropdownItem } from '../ui/ContextDropdown';
 import DeleteChannelModal from '../channel/settings/DeleteChannelModal';
 import EditChannelModal from '../channel/EditChannelModal';
 import { useChannel } from '@/hooks/useChannel';
-import { useNotification } from '@/hooks/useNotification';
 import { useServerLayout } from '@/hooks/useServerLayout';
 import type { Channel } from '@/types/Channel';
+import { getErrorMessage } from '@/lib/api';
 
 const { Sider } = Layout;
 
@@ -25,7 +25,7 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
     const { serverId, channelId } = useParams();
     const { channels, deleteChannel } = useChannel();
     const selectedChannel = channels.find(c => String(c.id) === String(channelId));
-    const { contextHolder, showError, showSuccess } = useNotification();
+
     const { collapsed, setCollapsed } = useServerLayout();
     const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
     const [showDeleteChannelModal, setShowDeleteChannelModal] = useState(false);
@@ -65,16 +65,17 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
                 router.push(`/servers/${serverId}`);
             }
 
-            showSuccess("Channel deleted successfully!");
+            toast.success("Channel deleted successfully!");
             setShowDeleteChannelModal(false);
         } catch (err) {
-            showError("Failed to delete channel.");
+            toast.error("Failed to delete channel.", {
+                description: getErrorMessage(err, "An unexpected error occurred.")
+            });
         }
     };
 
     return (
         <div>
-            {contextHolder}
             <CreateNewChannelModal showCreateChannelModal={showCreateChannelModal} setShowCreateChannelModal={setShowCreateChannelModal} />
             <DeleteChannelModal 
             show={showDeleteChannelModal} 

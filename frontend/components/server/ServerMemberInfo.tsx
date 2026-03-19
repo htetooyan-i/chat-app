@@ -1,20 +1,18 @@
 "use client";
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { UserRoundPlus } from "lucide-react";
 import { Avatar, Badge } from 'antd';
+import { toast } from "sonner";
 
 import BanMemberModal from './settings/BanMemberModal';
 import ContextDropdownComponent, { ContextDropdownItem } from "@/components/ui/ContextDropdown";
 import InviteServerModal from './InviteServerModal';
-import { useNotification } from '@/hooks/useNotification';
 import { useServerMember } from '@/hooks/useServerMember';
 import { getErrorMessage } from "@/lib/api";
 
 
 
 function ServerMemberInfo() {
-
-    const { contextHolder, showSuccess, showError } = useNotification();
 
     const { members, kickMember, setSelectedUserId } = useServerMember();
 
@@ -58,15 +56,16 @@ function ServerMemberInfo() {
     const handleKickMember = async (userId: number) => {
         try {
             await kickMember(userId);
-            showSuccess("Member kicked successfully");
+            toast.success("Member kicked successfully");
         } catch (error) {
-            showError(getErrorMessage(error, "Failed to kick"));
+            toast.error("Failed to kick member.", {
+                description: getErrorMessage(error, "Failed to kick member")
+            });
         }
     };
 
     return (
         <div>
-            {contextHolder}
             <InviteServerModal show={showInviteServerModal} onClose={() => setShowInviteServerModal(false)} />
             <BanMemberModal show={showBanMemberModal} onClose={() => setShowBanMemberModal(false)} />
             <header className="p-4 flex justify-between items-center">

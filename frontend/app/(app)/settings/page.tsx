@@ -3,7 +3,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { X } from 'lucide-react';
 
 import UserGeneralInfo from '@/components/user/UserGeneralInfo';
-import UserSettingsPassword from '@/components/user/UserSettingsPassword';
+import UserSettingsPassword from '@/components/user/UserSettingsAuth';
 import ChangeUsernameModal from '@/components/user/ChangeUsernameModal';
 import ChangeEmailModal from '@/components/user/ChangeEmailModal';
 import ChangePasswordModal from '@/components/user/ChangePasswordModal';

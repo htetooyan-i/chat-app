@@ -3,7 +3,7 @@ import { Skeleton } from "antd";
 
 function SidebarSkeleton() {
     return (
-        <div className="w-20 h-screen bg-sidebar flex flex-col">
+        <div className="w-20 h-screen bg-normal-sidebar flex flex-col">
 
             {/* Header — user avatar */}
             <header className="h-16 flex justify-center items-center border-b border-muted-border shrink-0">

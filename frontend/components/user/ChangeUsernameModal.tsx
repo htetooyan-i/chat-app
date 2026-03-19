@@ -1,11 +1,9 @@
 import React from 'react';
-import { CloseOutlined } from '@ant-design/icons';
 import { Modal, ModalProps } from 'antd';
+import { toast } from "sonner";
 
 
-import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
-import { useNotification } from '@/hooks/useNotification';
 import {User} from "@/types/User";
 
 type ChangeUsernameModalProps = {
@@ -41,17 +39,18 @@ function ChangeUsernameModal({ showUsernameEditingModal, setShowUsernameEditingM
     const { updateUserInfo } = useAuth();
     const [ newUsername, setNewUsername ] = React.useState("");
     const [ password, setPassword ] = React.useState("");
-    const { contextHolder, showSuccess, showError } = useNotification();
 
     const handleChangeUsername = async () => {
         try {
             const updatedUserData:Partial<User> = {username: newUsername};
             await updateUserInfo(updatedUserData, password);
 
-            showSuccess("Username changed successfully!");
+            toast.success("Username changed successfully!");
         } catch (error) {
             console.error('Error updating username:', error);
-            showError("Failed to change username.");
+            toast.error("Failed to change username.", {
+                description: "Please ensure your password is correct and try again."
+            });
         }
 
         setNewUsername("");
@@ -67,7 +66,6 @@ function ChangeUsernameModal({ showUsernameEditingModal, setShowUsernameEditingM
 
     return (
         <div>
-            {contextHolder}
             <Modal
             centered
             footer={null}

@@ -1,8 +1,9 @@
 import React from 'react';
 import { Modal, ModalProps } from 'antd';
+import { toast } from "sonner";
 
-import { useNotification } from '@/hooks/useNotification';
 import { useChannel } from '@/hooks/useChannel';
+import { getErrorMessage } from '@/lib/api';
 
 type EditChannelModalProps = {
     show: boolean;
@@ -37,27 +38,29 @@ function EditChannelModal({ show, onClose }: EditChannelModalProps) {
 
     const [ newChannelName, setNewChannelName ] = React.useState("");
     const { editChannelName } = useChannel();
-    const { contextHolder, showError, showSuccess } = useNotification();
 
     const changeChannelName = async (name: string) => {
         if (name.trim() === "") {
-            showError("Channel name cannot be empty.");
+            toast.error("Channel name cannot be empty.", {
+                description: "Please enter a valid channel name."
+            });
             return;
         }
 
         try {
             await editChannelName(name);
-            showSuccess("Channel name updated successfully!");
+            toast.success("Channel name updated successfully!");
             setNewChannelName("");
             onClose();
         } catch (err) {
-            showError("Failed to update channel name.");
+            toast.error("Failed to update channel name.", {
+                description: getErrorMessage(err, "An unexpected error occurred.")
+            });
         }
     }
 
     return (
         <div>
-            {contextHolder}
             <Modal
             centered
             footer={null}

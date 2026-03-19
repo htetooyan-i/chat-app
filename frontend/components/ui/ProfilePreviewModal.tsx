@@ -1,8 +1,8 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import {Modal, ModalProps, Slider} from "antd";
 import {X} from "lucide-react";
 import Cropper, { Area } from "react-easy-crop";
-import {useNotification} from "@/hooks/useNotification";
+import { toast } from "sonner";
 
 // Converts crop area to a blob using canvas
 async function getCroppedBlob(imageSrc: string, croppedAreaPixels: Area): Promise<Blob> {
@@ -72,8 +72,6 @@ export type ProfilePreviewModalProps = {
 
 function ProfilePreviewModal({ open, previewUrl, onConfirm, onCancel }: ProfilePreviewModalProps) {
 
-    const { contextHolder, showError, showSuccess } = useNotification();
-
     const [crop, setCrop] = useState({ x: 0, y: 0 });
     const [zoom, setZoom] = useState(1);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
@@ -89,10 +87,10 @@ function ProfilePreviewModal({ open, previewUrl, onConfirm, onCancel }: ProfileP
         try {
             const blob = await getCroppedBlob(previewUrl, croppedAreaPixels);
             onConfirm(blob); // just return the blob, caller decides what to do
-            showSuccess("Profile picture updated successfully!");
+            toast.success("Profile picture updated successfully!");
         } catch (error) {
             console.error("Error cropping image:", error);
-            showError("Failed to crop image. Please try again.");
+            toast.error("Failed to crop image. Please try again.");
         } finally {
             setUploading(false);
         }
@@ -117,7 +115,6 @@ function ProfilePreviewModal({ open, previewUrl, onConfirm, onCancel }: ProfileP
             cancelButtonProps={cancelButtonProps}
             closeIcon={<X size={18} style={{ color: 'var(--muted-text)' }} />}
         >
-            {contextHolder}
             <div className="relative w-full h-72 bg-gray-900">
                 {previewUrl && (
                     <Cropper
