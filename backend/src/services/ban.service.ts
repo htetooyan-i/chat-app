@@ -36,7 +36,6 @@ class BanService {
                     user: true,
                 }
             });
-            console.log(bans);
             return bans;
         } catch (error: any) {
             throw error;
@@ -59,7 +58,6 @@ class BanService {
             if (server.ownerId === userId) throw new Error("Cannot ban the server owner");
 
             const activeBan = await this.findExistingBan(serverId, userId);
-            console.log("Active ban check:", activeBan);
             if (!!activeBan) throw new Error("User is already banned");
 
             const expiresAt = duration

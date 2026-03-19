@@ -21,7 +21,6 @@ export async function handleBanRequest(req: Request, res: Response) {
                 }
             });
         }
-        console.log("Requester role:", requester);
         const isPrivileged =
             requester.role === MemberRole.OWNER ||
             requester.role === MemberRole.MODERATOR;

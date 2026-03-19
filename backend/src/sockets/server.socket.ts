@@ -15,7 +15,6 @@ export const registerServerEvents = async (io: Server, socket: Socket) => {
     socket.on("joinServer", (serverId: number) => {
         const room = `server-${serverId}`;
         socket.join(room);
-        console.log(`User ${socket.id} joined server ${serverId}`);
     });
 
     socket.on('leaveServer', (serverId: number) => {

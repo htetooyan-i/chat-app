@@ -11,7 +11,6 @@ export async function addMemberToServer(req: Request, res: Response) {
     }
     try {
         const data = await ServerMemberService.addMember(Number(serverId), userId);
-        console.log("Server Id", serverId);
         io.to(`server-${serverId}`).emit("receivedNewMember", data);
         res.status(200).json({ message: 'Member added to server successfully', data });
     } catch (error: any) {

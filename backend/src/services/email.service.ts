@@ -13,7 +13,6 @@ export class EmailService {
             subject,
             react,
             });
-            console.log("Email sent:", response);
             return response;
         } catch (err) {
             console.error("Error sending email:", err);

@@ -44,7 +44,6 @@ export async function toggleReaction(req: Request, res: Response) {
         }
 
     } catch (error: any) {
-        console.log(error);
         return res.status(500).send({message: "Failed to react", detail: error});
     }
 

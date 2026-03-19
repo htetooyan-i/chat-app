@@ -14,7 +14,6 @@ export class OTPService {
                     to,
                     channel: 'whatsapp',
                 });
-            console.log("OTP sent:", message.sid);
         } catch (err) {
             console.error("Failed to send OTP:", err);
             throw new Error("Failed to send OTP");

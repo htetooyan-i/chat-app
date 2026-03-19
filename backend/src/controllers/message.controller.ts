@@ -69,7 +69,6 @@ export async function DeleteMessage(req: Request, res: Response) {
 
     try {
         await MessageService.deleteMessage(Number(messageId), userId);
-        console.log("Emitting messageDeleted to channel:", `channel-${channelId}`);
         io.to(`channel-${channelId}`).emit("messageDeleted", { messageId: Number(messageId) });
         res.status(204).send();
     } catch (error: any) {

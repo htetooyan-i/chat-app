@@ -22,7 +22,6 @@ const setupSocket = (io: Server) => {
 
     try {
       const payload = await verifyToken< { userId: number }>(token);
-      console.log("Current user has been verified", payload.userId);
       socket.data.userId = payload.userId;
       next();
     } catch (err) {
