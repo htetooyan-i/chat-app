@@ -60,7 +60,7 @@ export async function LoginUser(req: Request, res: Response) {
             httpOnly: true,
             secure: isProd,
             sameSite: isProd ? "none" : "lax",
-            domain: isProd ? ".konyat.com" : undefined, // ← shared across subdomains
+            domain: isProd ? ".konyat.chat" : undefined, // ← shared across subdomains
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
@@ -68,7 +68,7 @@ export async function LoginUser(req: Request, res: Response) {
             httpOnly: false,
             secure: isProd,
             sameSite: isProd ? "none" : "lax",
-            domain: isProd ? ".konyat.com" : undefined, // ← shared across subdomains
+            domain: isProd ? ".konyat.chat" : undefined, // ← shared across subdomains
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
