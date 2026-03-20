@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import router from './routes/index';
 
 const app = express();
+app.set('trust proxy', 1); 
 
 const allowedOrigins = [
     "https://www.konyat.chat",

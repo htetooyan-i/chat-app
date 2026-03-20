@@ -54,16 +54,21 @@ export async function LoginUser(req: Request, res: Response) {
     try {
         const { accessToken, refreshToken} = await AuthService.login(email, password);
 
+        const isProd = process.env.NODE_ENV === "production";
+
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            secure: isProd,
+            sameSite: isProd ? "none" : "lax",
+            domain: isProd ? ".konyat.com" : undefined, // ← shared across subdomains
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
+
         res.cookie("accessToken", accessToken, {
             httpOnly: false,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", 
+            secure: isProd,
+            sameSite: isProd ? "none" : "lax",
+            domain: isProd ? ".konyat.com" : undefined, // ← shared across subdomains
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 

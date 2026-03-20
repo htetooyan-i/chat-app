@@ -9,7 +9,11 @@ const server = createServer(app);
 
 export const io = new Server(server, {
     cors: {
-        origin: "https://www.konyat.chat",
+        origin: [
+            "https://www.konyat.com",
+            "https://konyat.com",
+            "http://localhost:3000",
+        ],
         credentials: true,
         methods: ["GET", "POST", "PUT", "DELETE"]
     }
