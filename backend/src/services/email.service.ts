@@ -21,7 +21,7 @@ export class EmailService {
     }
 
     private static createLink(path: string, token: string) {
-        const base = process.env.FRONTEND_URL; // Change to your frontend URL in production
+        const base = process.env.BACKEND_URL; // Change to your frontend URL in production
         return `${base}${path}?token=${token}`;
     }
 
