@@ -19,14 +19,14 @@ export async function RegisterUser(req: Request, res: Response) {
         res.cookie("refreshToken", newUser.refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+            sameSite: "lax",
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
 
         res.cookie("accessToken", newUser.accessToken, {
             httpOnly: false, // We need access token to be accessible by client-side JavaScript to include in Authorization header for API requests
             secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+            sameSite: "lax",
             maxAge: 7 * 24 * 60 * 1000, // 7 days
         });
 
@@ -57,14 +57,14 @@ export async function LoginUser(req: Request, res: Response) {
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+            sameSite: "lax",
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
 
         res.cookie("accessToken", accessToken, {
             httpOnly: false, // I need access token to be accessible by client-side JavaScript to include in Authorization header for API requests
             secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+            sameSite: "lax",
             maxAge: 7 * 24 * 60 * 60 * 1000, // Currently set for 7 days for testing, but in production it should be much shorter like 15 minutes
         });
 
@@ -146,7 +146,7 @@ export async function RefreshAccessToken(req: Request, res: Response) {
         res.cookie("accessToken", accessToken, {
             httpOnly: false, // We need access token to be accessible by client-side JavaScript to include in Authorization header for API requests
             secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+            sameSite: "lax",
             maxAge: 15 * 60 * 1000, // 15 minutes
         });
 
@@ -327,7 +327,7 @@ export async function VerifyEmail(req: Request, res: Response) {
             httpOnly: true,
             maxAge: 60 * 1000,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: "lax",
         });
 
         res.redirect(`${process.env.FRONTEND_URL}/verify-email?status=success`);
@@ -556,7 +556,7 @@ export async function ResetPassword(req: Request, res: Response) {
             httpOnly: true,
             maxAge: 60 * 1000,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: "lax",
         });
 
         res.status(200).json({
