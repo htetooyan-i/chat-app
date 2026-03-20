@@ -28,18 +28,14 @@ function AuthPage() {
             toast.success(`${isLogin ? "Login" : "Registration"} successful!`, {
                 description: isLogin ? "Redirecting to dashboard..." : "Please check your email to verify."
             });
-
-            router.push("/");
-
         } catch (error) {
-            toast.error(
-                `${isLogin ? "Login" : "Registration"} failed`,
-                {
-                    description: getErrorMessage(error, `Failed to ${isLogin ? "login" : "register"}.`)
-                }
-            );
+            console.error(`${isLogin ? "Login" : "Registration"} failed:`, error);
+            toast.error(getErrorMessage(error, `${isLogin ? "Login" : "Registration"} failed. Please try again.`));
+        } finally {
+            setIsSubmitting(false);
         }
-        setIsSubmitting(false);
+
+        router.push(isLogin ? "/channels" : "/");
     };
 
     const handleSocialMediaLogin = () => {

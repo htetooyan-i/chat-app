@@ -19,6 +19,7 @@ export async function RegisterUser(req: Request, res: Response) {
         res.cookie("refreshToken", newUser.refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
 
@@ -66,6 +67,8 @@ export async function LoginUser(req: Request, res: Response) {
             sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
             maxAge: 7 * 24 * 60 * 60 * 1000, // Currently set for 7 days for testing, but in production it should be much shorter like 15 minutes
         });
+
+        console.log('cookies set: ', res.getHeader('Set-Cookie')); // Debugging line to check cookies in response header
 
         res.status(200).json({
             success: true,
