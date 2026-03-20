@@ -10,7 +10,7 @@ const app = express();
 app.set('trust proxy', 1); 
 
 const allowedOrigins = [
-    "https://www.konyat.chat",
+    process.env.FRONTEND_URL,
     "http://localhost:3000",  // Next.js dev
 ];
 
