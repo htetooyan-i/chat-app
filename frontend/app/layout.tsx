@@ -24,8 +24,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Chat App",
-    template: "%s | Chat App",
+    default: "Konyat",
+    template: "%s | Konyat",
   },
   description: "Konyat.chat — a fast modern chat app. Sign up and start chatting today.",
 };

@@ -5,7 +5,7 @@ import { Metadata } from 'next';
 export const metadata: Metadata = {
   title: {
     default: "Settings",
-    template: "%s | Settings | Chat App",
+    template: "%s | Settings | Konyat",
   },
   description: "Layout wrapper for settings pages",
 };

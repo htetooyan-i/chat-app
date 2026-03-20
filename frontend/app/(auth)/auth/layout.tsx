@@ -4,7 +4,7 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: {
     default: "Auth",
-    template: "%s | Auth | Chat App",
+    template: "%s | Auth | Konyat",
   },
   description: "Layout wrapper for auth pages",
 };
