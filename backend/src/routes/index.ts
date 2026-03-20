@@ -1,5 +1,5 @@
-import express from 'express';
 import 'dotenv/config';
+import express from 'express';
 
 import authRoutes from './auth.routes';
 import usersRoutes from './users.routes';

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
+import { Spinner } from "@/components/ui/spinner"
 
 import { parsePasswordValidation } from '@/lib/helper';
 
@@ -80,7 +81,10 @@ function RegisterForm({ onSubmit, isSubmitting }: RegisterFormProps) {
                     <p className={`text-red-500 text-[12px] mt-1`} style={{ visibility: !parsePasswordValidation(password) && password ? "visible" : "hidden" }}>Password must be at least 8 characters with uppercase, lowercase, and a number</p>
                     <p className={` text-red-500 text-[12px] mt-1`} style={{ visibility: parsePasswordValidation(password) && isPasswordInvalid ? "visible" : "hidden" }}>Passwords do not match</p>
                 </div>
-                <button type="submit" disabled={isPasswordInvalid || isSubmitting} className={`${isPasswordInvalid || isSubmitting ? "bg-muted-background cursor-not-allowed" : "bg-accent cursor-pointer hover:opacity-80"} text-primary rounded-md py-2 mt-5 font-[14px] font-semibold transition-all`}>Sign Up</button>
+                <button type="submit" disabled={isPasswordInvalid || isSubmitting} className={`${isPasswordInvalid || isSubmitting ? "bg-muted-background cursor-not-allowed" : "bg-accent cursor-pointer hover:opacity-80"} flex items-center justify-center gap-2 text-primary rounded-md py-2 mt-5 font-[14px] font-semibold transition-all`}>
+                    {isSubmitting && <Spinner />}
+                    <span>{isSubmitting ? "Registering..." : "Register"}</span>
+                </button>
             </form>
         </div>
     );

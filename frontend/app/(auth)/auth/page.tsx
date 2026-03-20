@@ -45,7 +45,7 @@ function AuthPage() {
     };
   
     return (
-        <div className="flex items-center justify-center h-screen py-10 gap-25">
+        <div className="flex flex-col sm:flex-row items-center justify-center h-screen py-10 gap-25">
             {showForgetPassword && (
                 <ForgetPasswordModal 
                     open={showForgetPassword} 
@@ -109,6 +109,7 @@ function AuthPage() {
             </div>
             {/* Decorative image or illustration */}
             <div className="relative w-1/3 h-full bg-accent rounded-3xl shadow-lg overflow-hidden">
+                <Image src="/background-portrait.png" alt="Authentication Illustration" fill className="object-cover"/>
             </div>
         </div>
     );

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import ButtonDropDown, { ButtonDropDownItem } from '@/components/ui/ButtonDropDown';
 import BanMemberModal from './BanMemberModal';
 import ChangeMemberRoleModal from './ChangeMemberRoleModal';
-import Spinner from '@/components/ui/Spinner';
+import Spinner from '@/components/ui/Loader';
 import { formatDate } from '@/lib/helper';
 import { useServerMember } from '@/hooks/useServerMember';
 import { getErrorMessage } from '@/lib/api';

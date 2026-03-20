@@ -1,26 +1,11 @@
-import React from 'react';
-import { Spin } from 'antd';
-import type { SpinProps } from 'antd';
-
-type SpinnerProps = {
-    description?: string;
-    size?: SpinProps['size'];
-};
+import { cn } from "@/lib/utils"
+import { Loader2Icon } from "lucide-react"
 
 
-const styles: SpinProps['styles'] = {
-    indicator: {
-        color: 'var(--accent)',
-    },
-}
-function Spinner({ description, size }: SpinnerProps) {
-    return (
-        <div>
-            <Spin description={description || null} size={size || "default"} styles={styles}>
-                <div className='p-5' />
-            </Spin>
-        </div>
-    );
+function Spinner({ className, ...props }: React.ComponentProps<"svg">) {
+  return (
+    <Loader2Icon role="status" aria-label="Loading" className={cn("size-4 animate-spin", className)} {...props} />
+  )
 }
 
-export default Spinner;
+export { Spinner }

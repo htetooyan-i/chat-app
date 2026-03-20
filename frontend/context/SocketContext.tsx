@@ -9,21 +9,27 @@ type SocketContextType = {
 export const SocketContext = createContext<SocketContextType | null>(null);
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
-
   const [socket, setSocket] = useState<Socket | null>(null);
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
 
-    if (socketRef.current) return;
-
     const newSocket = io(process.env.NEXT_PUBLIC_SOCKET_URL, {
       withCredentials: true,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+
     });
+
     socketRef.current = newSocket;
 
     newSocket.on("connect", () => {
-        setSocket(newSocket); // ← only set socket in state AFTER connected
+      setSocket(newSocket);
+    });
+
+    newSocket.on("disconnect", (reason) => {
+      setSocket(null);
     });
 
     return () => {
@@ -38,4 +44,3 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     </SocketContext.Provider>
   );
 }
-
