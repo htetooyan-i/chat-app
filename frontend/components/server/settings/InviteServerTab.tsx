@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import ButtonDropDown, { ButtonDropDownItem } from '@/components/ui/ButtonDropDown';
 import InviteServerModal from '../InviteServerModal';
-import Spinner from '@/components/ui/Spinner';
+import Spinner from '@/components/ui/Loader';
 import { formatDate } from '@/lib/helper';
 import { useServerAdmin } from '@/hooks/useServerAdmin';
 import { Server } from '@/types/Server';

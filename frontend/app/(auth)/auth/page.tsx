@@ -28,21 +28,14 @@ function AuthPage() {
             toast.success(`${isLogin ? "Login" : "Registration"} successful!`, {
                 description: isLogin ? "Redirecting to dashboard..." : "Please check your email to verify."
             });
-
-            // Add a short delay to allow users to read the success message before redirecting, OPTIONAL: can be removed if immediate redirect is preferred
-            setTimeout(() => {
-                router.push("/");
-            }, 1000);
-
         } catch (error) {
-            toast.error(
-                `${isLogin ? "Login" : "Registration"} failed`,
-                {
-                    description: getErrorMessage(error, `Failed to ${isLogin ? "login" : "register"}.`)
-                }
-            );
+            console.error(`${isLogin ? "Login" : "Registration"} failed:`, error);
+            toast.error(getErrorMessage(error, `${isLogin ? "Login" : "Registration"} failed. Please try again.`));
+        } finally {
+            setIsSubmitting(false);
         }
-        setIsSubmitting(false);
+
+        router.push(isLogin ? "/channels" : "/");
     };
 
     const handleSocialMediaLogin = () => {
@@ -52,7 +45,7 @@ function AuthPage() {
     };
   
     return (
-        <div className="flex items-center justify-center h-screen py-10 gap-25">
+        <div className="flex flex-col sm:flex-row items-center justify-center h-screen py-10 gap-25">
             {showForgetPassword && (
                 <ForgetPasswordModal 
                     open={showForgetPassword} 
@@ -116,6 +109,7 @@ function AuthPage() {
             </div>
             {/* Decorative image or illustration */}
             <div className="relative w-1/3 h-full bg-accent rounded-3xl shadow-lg overflow-hidden">
+                <Image src="/background-portrait.png" alt="Authentication Illustration" fill className="object-cover"/>
             </div>
         </div>
     );

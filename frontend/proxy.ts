@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const token = req.cookies.get("refreshToken")?.value;
   const { pathname } = req.nextUrl;
 
@@ -16,8 +16,6 @@ export function middleware(req: NextRequest) {
 
   if (isMaintenanceRoute) return NextResponse.next();
 
-  if (isRootRoute && token) return NextResponse.next();
-
   if (isRootRoute && !token) {
     return NextResponse.redirect(new URL("/auth", req.url));
   }
@@ -28,10 +26,6 @@ export function middleware(req: NextRequest) {
 
   if (token && isAuthRoute) {
     return NextResponse.redirect(new URL("/channels", req.url));
-  }
-
-  if (!token && isAuthRoute) {
-    return NextResponse.next();
   }
 
   return NextResponse.next();

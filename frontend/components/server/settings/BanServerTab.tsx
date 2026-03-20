@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import ButtonDropDown, { ButtonDropDownItem } from '@/components/ui/ButtonDropDown';
 import { formatDate, calculateDays } from '@/lib/helper';
-import Spinner from '@/components/ui/Spinner';
+import Spinner from '@/components/ui/Loader';
 import ReviewBanModal from './ReviewBanModal';
 import { ServerBan } from '@/types/ServerBan';
 import { useServerAdmin } from '@/hooks/useServerAdmin';

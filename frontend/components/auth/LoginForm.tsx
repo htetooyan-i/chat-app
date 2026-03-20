@@ -1,5 +1,6 @@
 import React from 'react';
 import { Eye, EyeOff } from 'lucide-react';
+import { Spinner } from "@/components/ui/spinner"
 
 type LoginFormProps = {
     isSubmitting: boolean;
@@ -51,7 +52,10 @@ function LoginForm({ onSubmit, showForgetPassword, isSubmitting }: LoginFormProp
                 <div>
                     <button type="button" onClick={showForgetPassword} className="underline text-accent font-[11px]">Forget password?</button>
                 </div>
-                <button type="submit" disabled={isSubmitting} className={`bg-accent text-primary rounded-md py-2 mt-5 font-[14px] font-semibold cursor-pointer hover:opacity-80 transition-all ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}>Login</button>
+                <button type="submit" disabled={isSubmitting} className={`flex items-center justify-center gap-2 bg-accent text-black rounded-md py-2 mt-5 font-[14px] font-semibold transition-all ${isSubmitting ? "opacity-50 cursor-progress" : "hover:opacity-80 cursor-pointer"}`}>
+                    {isSubmitting && <Spinner />}
+                    <span>{isSubmitting ? "Logging in..." : "Login"}</span>
+                </button>
             </form>
         </div>
     );

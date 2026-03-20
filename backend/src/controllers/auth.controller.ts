@@ -6,6 +6,20 @@ import { EmailService } from '../services/email.service';
 import { TokenService } from '../services/token.service';
 import { OTPService } from '../services/otp.service';
 
+const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" as const : "lax" as const,
+    domain: process.env.NODE_ENV === "production" ? ".konyat.chat" : undefined,
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+};
+
+const accessTokenOptions = {
+    ...cookieOptions,
+    httpOnly: false, // needs to be accessible by client-side JS
+    maxAge: 15 * 24 * 60 * 60 * 1000, // 15 minutes
+};
+
 export async function RegisterUser(req: Request, res: Response) {
     const { username, email, password } = req.body;
 
@@ -16,17 +30,8 @@ export async function RegisterUser(req: Request, res: Response) {
         const rawToken = await TokenService.generate(newUser.id, "EMAIL_VERIFICATION", 60); // Generate token with 1 hour expiration
         await EmailService.sendWelcomEmail(email, rawToken).catch(console.error);
 
-        res.cookie("refreshToken", newUser.refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-        });
-
-        res.cookie("accessToken", newUser.accessToken, {
-            httpOnly: false, // We need access token to be accessible by client-side JavaScript to include in Authorization header for API requests
-            secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
-            maxAge: 7 * 60 * 1000, // 15 minutes
-        });
+        res.cookie("refreshToken", newUser.refreshToken, cookieOptions);
+        res.cookie("accessToken", newUser.accessToken, accessTokenOptions);
 
         res.status(200).json({
             success: true,
@@ -52,19 +57,8 @@ export async function LoginUser(req: Request, res: Response) {
     try {
         const { accessToken, refreshToken} = await AuthService.login(email, password);
 
-        res.cookie("refreshToken", refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        });
-
-        res.cookie("accessToken", accessToken, {
-            httpOnly: false, // I need access token to be accessible by client-side JavaScript to include in Authorization header for API requests
-            secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
-            maxAge: 7 * 24 * 60 * 60 * 1000, // Currently set for 7 days for testing, but in production it should be much shorter like 15 minutes
-        });
+        res.cookie("refreshToken", refreshToken, cookieOptions);
+        res.cookie("accessToken", accessToken, accessTokenOptions);
 
         res.status(200).json({
             success: true,
@@ -139,12 +133,7 @@ export async function RefreshAccessToken(req: Request, res: Response) {
     try {
         const { accessToken } = await AuthService.refreshAccessToken(refreshToken); // Verify the refresh token and generate new access token (and optionally a new refresh token)
         
-        res.cookie("accessToken", accessToken, {
-            httpOnly: false, // We need access token to be accessible by client-side JavaScript to include in Authorization header for API requests
-            secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
-            maxAge: 15 * 60 * 1000, // 15 minutes
-        });
+        res.cookie("accessToken", accessToken, accessTokenOptions); // Set the new access token in cookie
 
         res.status(200).json({
             success: true,
@@ -182,8 +171,8 @@ export async function LogoutUser(req: Request, res: Response) {
 
     try {
         await AuthService.logout(refreshToken); // FIX: currently this function doesn't do anything, but you can implement token revocation logic here if needed
-        res.clearCookie("refreshToken");
-        res.clearCookie("accessToken");
+        res.clearCookie("refreshToken", cookieOptions);
+        res.clearCookie("accessToken", accessTokenOptions);
 
         res.status(200).json({
             success: true,
@@ -222,8 +211,8 @@ export async function DeleteUser(req: Request, res: Response) {
 
     try {
         await AuthService.deleteUser(userId);
-        res.clearCookie("refreshToken");
-        res.clearCookie("accessToken");
+        res.clearCookie("refreshToken", cookieOptions);
+        res.clearCookie("accessToken", accessTokenOptions);
         res.status(200).json({
             success: true,
             data: null,
@@ -318,13 +307,13 @@ export async function VerifyEmail(req: Request, res: Response) {
         await AuthService.changeUserVerificationStatus(tokenRecord.userId, true); // Update user's verification status to true
         await TokenService.markTokenUsed(tokenRecord.id); // Mark the token as used so it can't be used again
 
-
-        res.cookie("emailVerified", "true", { // This cookie is just used to show the success message on the frontend after redirect, it will be cleared immediately after the frontend reads it
+        res.cookie("emailVerified", "true", { 
             httpOnly: true,
             maxAge: 60 * 1000,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-        });
+            sameSite: process.env.NODE_ENV === "production" ? "none" as const : "lax" as const,
+            domain: process.env.NODE_ENV === "production" ? ".konyat.chat" : undefined,
+        });// This cookie is just used to show the success message on the frontend after redirect, it will be cleared immediately after the frontend reads it
 
         res.redirect(`http://localhost:3000/verify-email?status=success`);
     } catch (error) {
@@ -337,7 +326,12 @@ export async function VerifyRedirectCookie(req: Request, res: Response) {
   const cookieValue = req.cookies?.emailVerified;
 
   if (cookieValue) {
-    res.clearCookie("emailVerified"); // consume once
+    res.clearCookie("emailVerified", { // consume once read
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" as const : "lax" as const,
+        domain: process.env.NODE_ENV === "production" ? ".konyat.chat" : undefined,
+    });
     return res.sendStatus(200);   // OK
   }
 
@@ -544,15 +538,16 @@ export async function ResetPassword(req: Request, res: Response) {
         
         if (refreshToken) {
             await AuthService.logout(refreshToken);
-            res.clearCookie("refreshToken");
-            res.clearCookie("accessToken");
+            res.clearCookie("refreshToken", cookieOptions);
+            res.clearCookie("accessToken", accessTokenOptions);
         }
 
         res.cookie("passwordReset", "true", { // This cookie is just used to show the success message on the frontend after redirect, it will be cleared immediately after the frontend reads it
             httpOnly: true,
             maxAge: 60 * 1000,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            domain: process.env.NODE_ENV === "production" ? ".konyat.chat" : undefined,
+            sameSite: process.env.NODE_ENV === "production" ? "none" as const : "lax" as const,
         });
 
         res.status(200).json({

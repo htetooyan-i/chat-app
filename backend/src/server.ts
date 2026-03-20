@@ -1,6 +1,6 @@
+import 'dotenv/config';
 import { Server } from "socket.io";
 import { createServer } from 'http';
-import 'dotenv/config';
 
 import app from './app';
 import setupSocket from "./sockets";
@@ -9,7 +9,15 @@ const server = createServer(app);
 
 export const io = new Server(server, {
     cors: {
-        origin: "http://localhost:3000",
+        // origin: [
+        //     "https://www.konyat.chat",
+        //     "https://konyat.chat",
+        //     "http://localhost:3000",
+        // ],
+        origin: [
+        process.env.FRONTEND_URL || "http://localhost:3000",
+        "http://localhost:3000"
+        ],
         credentials: true,
         methods: ["GET", "POST", "PUT", "DELETE"]
     }

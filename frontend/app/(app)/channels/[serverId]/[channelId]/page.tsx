@@ -2,12 +2,12 @@
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-import { useAuth } from "@/hooks/useAuth";
+import DraggableButton from "@/components/ui/DraggableButton";
+import MessagesPanel from "@/components/layout/ChatPanel";
+import Skeletons from "@/components/layout/Skeletons";
 import { useServer } from "@/hooks/useServer";
 import { useChannel } from "@/hooks/useChannel";
 import { useMessage } from "@/hooks/useMessage";
-import MessagesPanel from "@/components/layout/ChatPanel";
-import Skeletons from "@/components/layout/Skeletons";
 
 export default function MessagePage() {
 
@@ -58,5 +58,5 @@ export default function MessagePage() {
         }
     }, [channelsLoading, channels, parsedChannelId, parsedServerId, router, servers]);
 
-    return messagesLoading ? <Skeletons.ChatPanelSkeleton /> : <MessagesPanel />;
+    return messagesLoading ? <Skeletons.ChatPanelSkeleton /> : (<><MessagesPanel /><DraggableButton /></>);
 }
