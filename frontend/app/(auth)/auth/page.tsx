@@ -29,10 +29,7 @@ function AuthPage() {
                 description: isLogin ? "Redirecting to dashboard..." : "Please check your email to verify."
             });
 
-            // Add a short delay to allow users to read the success message before redirecting, OPTIONAL: can be removed if immediate redirect is preferred
-            setTimeout(() => {
-                router.push("/");
-            }, 1000);
+            router.push("/");
 
         } catch (error) {
             toast.error(

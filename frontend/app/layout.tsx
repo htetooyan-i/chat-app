@@ -26,6 +26,9 @@ export const metadata: Metadata = {
     template: "%s | Chat App",
   },
   description: "Root layout wrapper for the application",
+  icons: {
+    icon: "/icon.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

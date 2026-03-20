@@ -58,7 +58,7 @@ function JoinServer({ onClose, changeView }: JoinServerProps) {
                         <p className="text-[12px] text-muted-text">Invite code should like</p>
                         <div className="flex gap-1">
                             <span className="text-[9px] text-muted-text px-1 py-2 rounded-md bg-muted-background">h2Tvh3jk</span>
-                            <span className="text-[9px] text-muted-text px-1 py-2 rounded-md bg-muted-background">https://localhost:4000/invites/h2Tvh3jk</span>
+                            <span className="text-[9px] text-muted-text px-1 py-2 rounded-md bg-muted-background">https://{process.env.NEXT_PUBLIC_BASE_URL}/invites/h2Tvh3jk</span>
                         </div>
                     </div>
                 </div>

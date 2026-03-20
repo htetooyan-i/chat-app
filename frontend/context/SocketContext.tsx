@@ -17,7 +17,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     if (socketRef.current) return;
 
-    const newSocket = io("http://localhost:4000", {
+    const newSocket = io(process.env.NEXT_PUBLIC_BASE_URL, {
       withCredentials: true
     });
     socketRef.current = newSocket;
