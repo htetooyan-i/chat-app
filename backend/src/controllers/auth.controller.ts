@@ -57,14 +57,14 @@ export async function LoginUser(req: Request, res: Response) {
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
+            sameSite: "none",
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
 
         res.cookie("accessToken", accessToken, {
             httpOnly: false, // I need access token to be accessible by client-side JavaScript to include in Authorization header for API requests
             secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
+            sameSite: "none",
             maxAge: 7 * 24 * 60 * 60 * 1000, // Currently set for 7 days for testing, but in production it should be much shorter like 15 minutes
         });
 
