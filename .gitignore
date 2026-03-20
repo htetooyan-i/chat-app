@@ -1,1 +1,3 @@
 documents/
+.vercel
+.env*.local
