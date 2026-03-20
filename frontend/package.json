@@ -14,6 +14,8 @@
     "@mui/joy": "^5.0.0-beta.52",
     "@mui/material": "^7.3.8",
     "@mui/styled-engine-sc": "^7.3.8",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "antd": "^6.3.0",
     "antd-style": "^4.1.0",
     "axios": "^1.13.5",

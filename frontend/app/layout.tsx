@@ -2,6 +2,8 @@ import { Metadata } from "next";
 import "../app/globals.css";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 
 const geistSans = Geist({
@@ -25,13 +27,7 @@ export const metadata: Metadata = {
     default: "Chat App",
     template: "%s | Chat App",
   },
-  description: "Root layout wrapper for the application",
-  icons: {
-    icon: [
-      { url: "/icon.png" },
-    ],
-    apple: "/icon.png",
-  },
+  description: "Konyat.chat — a fast modern chat app. Sign up and start chatting today.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -40,6 +36,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${inter.variable} antialiased font-sans`}>
         <Toaster richColors position="top-right" />
         {children}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
