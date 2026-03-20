@@ -28,9 +28,9 @@ export const metadata: Metadata = {
   description: "Root layout wrapper for the application",
   icons: {
     icon: [
-      { url: "/logo.png" },
+      { url: "/icon.png" },
     ],
-    apple: "/logo.png",
+    apple: "/icon.png",
   },
 };
 
