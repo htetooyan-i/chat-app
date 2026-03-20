@@ -19,14 +19,16 @@ export async function RegisterUser(req: Request, res: Response) {
         res.cookie("refreshToken", newUser.refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            domain: process.env.NODE_ENV === "production" ? ".konyat.chat" : undefined,
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
 
         res.cookie("accessToken", newUser.accessToken, {
             httpOnly: false, // We need access token to be accessible by client-side JavaScript to include in Authorization header for API requests
             secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            domain: process.env.NODE_ENV === "production" ? ".konyat.chat" : undefined,
             maxAge: 7 * 24 * 60 * 1000, // 7 days
         });
 
@@ -60,7 +62,7 @@ export async function LoginUser(req: Request, res: Response) {
             httpOnly: true,
             secure: isProd,
             sameSite: isProd ? "none" : "lax",
-            domain: isProd ? ".konyat.chat" : undefined, // ← shared across subdomains
+            domain: isProd ? ".konyat.chat" : undefined,
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
@@ -68,7 +70,7 @@ export async function LoginUser(req: Request, res: Response) {
             httpOnly: false,
             secure: isProd,
             sameSite: isProd ? "none" : "lax",
-            domain: isProd ? ".konyat.chat" : undefined, // ← shared across subdomains
+            domain: isProd ? ".konyat.chat" : undefined,
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
@@ -150,7 +152,8 @@ export async function RefreshAccessToken(req: Request, res: Response) {
         res.cookie("accessToken", accessToken, {
             httpOnly: false, // We need access token to be accessible by client-side JavaScript to include in Authorization header for API requests
             secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            domain: process.env.NODE_ENV === "production" ? ".konyat.chat" : undefined,
             maxAge: 15 * 60 * 1000, // 15 minutes
         });
 
@@ -190,8 +193,16 @@ export async function LogoutUser(req: Request, res: Response) {
 
     try {
         await AuthService.logout(refreshToken); // FIX: currently this function doesn't do anything, but you can implement token revocation logic here if needed
-        res.clearCookie("refreshToken");
-        res.clearCookie("accessToken");
+        const cookieOptions = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: (process.env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
+            domain: process.env.NODE_ENV === "production" ? ".konyat.chat" : undefined,
+            path: "/",
+        };
+
+        res.clearCookie("refreshToken", cookieOptions);
+        res.clearCookie("accessToken", { ...cookieOptions, httpOnly: false });
 
         res.status(200).json({
             success: true,
@@ -230,8 +241,17 @@ export async function DeleteUser(req: Request, res: Response) {
 
     try {
         await AuthService.deleteUser(userId);
-        res.clearCookie("refreshToken");
-        res.clearCookie("accessToken");
+        const cookieOptions = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: (process.env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
+            domain: process.env.NODE_ENV === "production" ? ".konyat.chat" : undefined,
+            path: "/",
+        };
+
+        res.clearCookie("refreshToken", cookieOptions);
+        res.clearCookie("accessToken", { ...cookieOptions, httpOnly: false });
+
         res.status(200).json({
             success: true,
             data: null,
@@ -331,7 +351,8 @@ export async function VerifyEmail(req: Request, res: Response) {
             httpOnly: true,
             maxAge: 60 * 1000,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            domain: process.env.NODE_ENV === "production" ? ".konyat.chat" : undefined,
         });
 
         res.redirect(`${process.env.FRONTEND_URL}/verify-email?status=success`);
@@ -345,7 +366,14 @@ export async function VerifyRedirectCookie(req: Request, res: Response) {
   const cookieValue = req.cookies?.emailVerified;
 
   if (cookieValue) {
-    res.clearCookie("emailVerified"); // consume once
+    const cookieOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: (process.env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
+        domain: process.env.NODE_ENV === "production" ? ".konyat.chat" : undefined,
+        path: "/",
+    };
+    res.clearCookie("emailVerified", cookieOptions); // consume once
     return res.sendStatus(200);   // OK
   }
 
@@ -552,15 +580,23 @@ export async function ResetPassword(req: Request, res: Response) {
         
         if (refreshToken) {
             await AuthService.logout(refreshToken);
-            res.clearCookie("refreshToken");
-            res.clearCookie("accessToken");
+            const cookieOptions = {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: (process.env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
+                domain: process.env.NODE_ENV === "production" ? ".konyat.chat" : undefined,
+                path: "/",
+            };
+            res.clearCookie("refreshToken", cookieOptions);
+            res.clearCookie("accessToken", { ...cookieOptions, httpOnly: false });
         }
 
         res.cookie("passwordReset", "true", { // This cookie is just used to show the success message on the frontend after redirect, it will be cleared immediately after the frontend reads it
             httpOnly: true,
             maxAge: 60 * 1000,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            domain: process.env.NODE_ENV === "production" ? ".konyat.chat" : undefined,
         });
 
         res.status(200).json({
