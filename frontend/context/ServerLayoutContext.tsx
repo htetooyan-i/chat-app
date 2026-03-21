@@ -14,7 +14,7 @@ export const ServerLayoutProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   return (
     <ServerLayoutContext.Provider value={{ collapsed, setCollapsed }}>

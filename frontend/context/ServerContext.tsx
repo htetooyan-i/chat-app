@@ -35,8 +35,8 @@ export const ServerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
 
   const fetchServers = useCallback(async (): Promise<Server[]> => {
+    setLoading(true);
     try {
-      setLoading(true);
       const res = await api.get("/servers/my-servers");
       const data = res.data.data;
       setServers(data);

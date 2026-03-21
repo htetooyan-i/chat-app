@@ -9,7 +9,6 @@ import ContextDropdownComponent, { ContextDropdownItem } from '@/components/ui/C
 import ServerSettingsModal from '../server/settings/ServerSettingsModal';
 import NewServerModal from '../server/NewServerModal';
 import { useAuth } from '@/hooks/useAuth';
-import { useServerLayout } from '@/hooks/useServerLayout';
 import { useServer } from '@/hooks/useServer';
 import { useChannel } from '@/hooks/useChannel';
 import { useServerMember } from '@/hooks/useServerMember';
@@ -37,8 +36,6 @@ function SideBar({ siderStyle }: SideBarProps) {
     const selectedServer = servers.find(
         s => s.id === serverId
     );
-
-    const { collapsed, setCollapsed } = useServerLayout();
 
     const [ showServerSettingsModal, setShowServerSettingsModal ] = useState(false);
     const [ shownSettingServerId, setShownSettingServerId ] = useState<number | null>(null);
@@ -135,13 +132,7 @@ function SideBar({ siderStyle }: SideBarProps) {
             <NewServerModal showServerCreationModal={showServerCreationModal} setShowServerCreationModal={setShowServerCreationModal} />
             <Sider 
             width={80} 
-            collapsible
-            breakpoint='lg'
-            collapsed={collapsed}
             collapsedWidth={0}
-            onBreakpoint={(broken) => {
-                setCollapsed(broken);
-            }}
             style={{ ...siderStyle, backgroundColor: "var(--normal-sidebar)", scrollbarWidth: "none", display: "flex", flexDirection: "column" }}
             >
                 <div className="flex flex-col h-full">

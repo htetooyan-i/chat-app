@@ -8,7 +8,6 @@ import ChatContent from '../chat/ChatContent';
 import ChatHeader from '../chat/ChatHeader';
 import ChatMessageInput from '../chat/ChatMessageInput';
 import InfoPanel from '@/components/layout/InfoPanel';
-import { useServerLayout } from '@/hooks/useServerLayout';
 import { useServer } from '@/hooks/useServer';
 import { useChannel } from '@/hooks/useChannel';
 import { useMessage } from '@/hooks/useMessage';
@@ -28,8 +27,7 @@ function ChatPanel() {
     const { loadMore  } = useMessage();
     const containerRef = useRef<HTMLDivElement>(null);
     const sentinelRef = useRef<HTMLDivElement>(null);
-    
-    const { collapsed, setCollapsed } = useServerLayout();
+
     const [ activeTab, setActiveTab ] = useState<Tabs>("none");
 
 
@@ -64,8 +62,6 @@ function ChatPanel() {
         <div className="flex flex-1 min-w-0 h-full bg-chat-panel overflow-hidden">
             <Layout className='flex-1 flex flex-col h-full min-h-0 min-w-0'>
                 <ChatHeader 
-                    setCollapsed={setCollapsed} 
-                    collapsed={collapsed}
                     selectedChannel={selectedChannel || null}
                     selectedServer={selectedServer || null}
                     activeTab={activeTab}
@@ -81,7 +77,7 @@ function ChatPanel() {
                 <ChatMessageInput />
             </Layout>
                 
-            <InfoPanel type={activeTab} />
+            <InfoPanel type={activeTab} changeTab={setActiveTab} />
         </div>
     );
 }

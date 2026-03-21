@@ -1,10 +1,14 @@
 import React, { useState, KeyboardEvent, useEffect, useRef } from 'react';
+import dynamic from "next/dynamic";
 import { Layout, Input, GetProps, Progress } from 'antd';
 import type { TextAreaRef } from 'antd/es/input/TextArea';
 import { createStaticStyles } from 'antd-style';
 import {Sticker, X, Paperclip, Image, FileText, Send } from 'lucide-react';
 
-import StickerPopover from "@/components/ui/StickerPopover";
+const StickerPopover = dynamic(
+  () => import("@/components/ui/StickerPopover").then((mod) => mod.default),
+  { ssr: false }
+);
 import { useMessage } from '@/hooks/useMessage';
 import { useChatUI } from '@/hooks/useChatUI';
 import { useMediaUpload } from "@/hooks/useMediaUpload";
@@ -207,7 +211,7 @@ function ChatMessageInput() {
                 )
             }
             <Footer style={{ minHeight: "60px", maxHeight: "340px", width: "100%",background: "var(--chat-panel)", paddingTop: "0", paddingInline: "20px", paddingBottom: "10px", flexShrink: 0, overflow: "hidden" }}>
-                <div className={`flex gap-4 border ${(replyMessage || files.length > 0 || uploading) ? "rounded-b-lg border-t-0" : "rounded-lg"} border-muted-border bg-background px-2 text-foreground min-h-12.5 p-2 items-center shrink-0`}>
+                <div className={`flex gap-4 border ${(replyMessage || files.length > 0 || uploading) ? "rounded-b-lg border-t-0" : "rounded-lg"} border-muted-border bg-background px-2 text-foreground min-h-12.5 px-2 py-0 items-center shrink-0`}>
                     <input
                         type="file"
                         accept="image/*,.pdf,.doc,.docx,.txt,.xlsx,.csv"

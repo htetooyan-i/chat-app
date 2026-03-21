@@ -1,21 +1,20 @@
-import React from 'react';
-import { Layout, Input } from 'antd';
-import { SettingFilled } from '@ant-design/icons';
-import { ChevronRight, FileText, Paperclip, Send, Sticker, UsersRound, Reply, Ellipsis } from 'lucide-react';
+import { Layout } from 'antd';
+import { ChevronRight, FileText, UsersRound } from 'lucide-react';
 
+import { useServerLayout } from '@/hooks/useServerLayout';
 import { Channel } from '@/types/Channel';
 import { Server } from '@/types/Server';
 const { Header } = Layout;
 
 type ChatHeaderProps = {
-    setCollapsed: (collapsed: boolean) => void;
-    collapsed: boolean;
     activeTab: "settings" | "files" | "users" | "none";
     setActiveTab: (tab: "settings" | "files" | "users" | "none") => void;
     selectedChannel:  Channel | null;
     selectedServer: Server | null;
 }
-function ChatHeader({ setCollapsed, collapsed, selectedChannel, selectedServer, activeTab, setActiveTab }: ChatHeaderProps) {
+function ChatHeader({ selectedChannel, selectedServer, activeTab, setActiveTab }: ChatHeaderProps) {
+    const { setCollapsed } = useServerLayout();
+
     return (
         <Header 
             className='flex items-center border-b border-muted-border' 
@@ -26,7 +25,7 @@ function ChatHeader({ setCollapsed, collapsed, selectedChannel, selectedServer, 
         >
             <div className='flex w-full justify-between items-center'>
                 <div className='flex justify-start items-center gap-2 flex-1 min-w-0 overflow-hidden'>
-                    <p onClick={() => setCollapsed(!collapsed)} className='text-white text-lg font-semibold text-[26px] capitalize cursor-pointer'>{selectedServer?.name || "Chat"}</p>
+                    <p onClick={() => setCollapsed(prev => !prev)} className='text-white text-lg font-semibold text-[26px] capitalize cursor-pointer'>{selectedServer?.name || "Chat"}</p>
                     <ChevronRight className='text-foreground flex-shrink-0' size={32}/>
                     {/* FIX: Channel name should be dynamic and width doesn't work for now */}
                     <p className='text-[15px] min-w-0 max-w-[300px] truncate text-muted-text capitalize font-semibold'>

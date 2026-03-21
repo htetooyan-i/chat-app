@@ -3,6 +3,7 @@ import "../app/globals.css";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 
+import DraggableButton from "@/components/ui/DraggableButton";
 
 
 const geistSans = Geist({
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={`${inter.variable} antialiased font-sans`}>
         <Toaster richColors position="top-right" />
+        <DraggableButton />
         {children}
       </body>
     </html>
