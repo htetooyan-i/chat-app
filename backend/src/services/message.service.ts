@@ -2,8 +2,6 @@ import { prisma } from "../lib/prisma";
 import { AttachmentType } from "@prisma/client"
 
 import cloudinary from '../lib/cloudinary';
-import { Result } from "pg";
-import { channel } from "node:diagnostics_channel";
 
 class MessageService {
 
