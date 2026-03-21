@@ -85,7 +85,8 @@ function InviteServerModal({ show, onClose, fromSettings }: InviteServerModalPro
 
     
     const handleCopyInviteLink = () => {
-        const inviteLink = `https://${process.env.NEXT_PUBLIC_BASE_URL}/invites/${inviteCode?.code}`;
+        const inviteLink = `${process.env.NEXT_PUBLIC_API_URL}/invites/${inviteCode?.code}`;
+        
         navigator.clipboard.writeText(inviteLink)
             .then(() => {
                 setCopied(true);

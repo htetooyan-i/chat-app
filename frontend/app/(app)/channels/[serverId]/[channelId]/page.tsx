@@ -2,7 +2,6 @@
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-import DraggableButton from "@/components/ui/DraggableButton";
 import MessagesPanel from "@/components/layout/ChatPanel";
 import Skeletons from "@/components/layout/Skeletons";
 import { useServer } from "@/hooks/useServer";
@@ -58,5 +57,5 @@ export default function MessagePage() {
         }
     }, [channelsLoading, channels, parsedChannelId, parsedServerId, router, servers]);
 
-    return messagesLoading ? <Skeletons.ChatPanelSkeleton /> : (<><MessagesPanel /><DraggableButton /></>);
+    return messagesLoading ? <Skeletons.ChatPanelSkeleton /> : <MessagesPanel />;
 }

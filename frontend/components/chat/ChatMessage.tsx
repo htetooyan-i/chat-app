@@ -104,10 +104,12 @@ function ChatMessage({ messages, messagesMap }: ChatMessageProps) {
                                             {!message.replyToDeleted && (
                                                 <p className="font-semibold text-[11px] shrink-0 text-foreground">
                                                     <span className="text-accent shrink-0">Replied to </span>
-                                                    {message.replyTo 
-                                                        ? message.replyTo.author?.username
-                                                        : messagesMap?.[message.replyToMessageId!]?.author?.username ?? "Unknown"
-                                                    }
+                                                    <span>
+                                                        {message.replyTo 
+                                                            ? message.replyTo.author?.username
+                                                            : messagesMap?.[message.replyToMessageId!]?.author?.username ?? "Unknown"
+                                                        }
+                                                    </span>
                                                 </p>
                                             )}
                                             {/* Show a deleted reply message */}

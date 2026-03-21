@@ -40,7 +40,7 @@ function UserSettingsPassword() {
                 <div>
                     <div className='mb-4'>
                         <p className='text-lg font-semibold mb-1'>Authenticator App</p>
-                        <p className='text-muted-text font-medium text-[12px]'>Protect your Discord account with an extra layer of security. Once configured, you&#39;ll be required to enter your password and complete one additional step in order to sign in.</p>
+                        <p className='text-muted-text font-medium text-[12px]'>Protect your Konyat account with an extra layer of security. Once configured, you&#39;ll be required to enter your password and complete one additional step in order to sign in.</p>
                     </div>
                     <button onClick={handleMaintenanceRoute} className='bg-accent hover:opacity-80 text-foreground px-4 py-2 rounded-md cursor-pointer font-semibold transition-opacity'>Enable Authenticator App</button>
                 </div>

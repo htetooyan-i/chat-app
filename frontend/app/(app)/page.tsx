@@ -14,8 +14,10 @@ function AppIndexPage() {
         if (!loading && !user) {
             // If the user is not authenticated, redirect to the auth page
             router.replace("/auth");
+            console.log("User is not authenticated, redirecting to /auth");
         } else if (!loading && user) {
             // If the user is authenticated, redirect to the servers page
+            console.log("User is authenticated, redirecting to /channels");
             router.replace("/channels");
         }
     }, [user, loading, router]);

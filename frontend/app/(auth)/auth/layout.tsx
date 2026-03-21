@@ -3,10 +3,10 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: {
-    default: "Auth",
-    template: "%s | Auth | Konyat",
+    default: "Konyat",
+    template: "%s | Konyat",
   },
-  description: "Layout wrapper for auth pages",
+  description: "Sign in or create an account to start chatting with your friends and communities in real time.",
 };
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {

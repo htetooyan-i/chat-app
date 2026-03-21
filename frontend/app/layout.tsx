@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 
+import DraggableButton from "@/components/ui/DraggableButton";
 
 
 const geistSans = Geist({
@@ -65,6 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={`${inter.variable} antialiased font-sans`}>
         <Toaster richColors position="top-right" />
+        <DraggableButton />
         {children}
         <Analytics />
         <SpeedInsights />

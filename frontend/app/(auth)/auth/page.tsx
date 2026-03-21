@@ -45,7 +45,7 @@ function AuthPage() {
     };
   
     return (
-        <div className="flex flex-col sm:flex-row items-center justify-center h-screen py-10 gap-25">
+        <div className="flex flex-col md:flex-row items-center justify-center h-screen py-10 gap-25">
             {showForgetPassword && (
                 <ForgetPasswordModal 
                     open={showForgetPassword} 

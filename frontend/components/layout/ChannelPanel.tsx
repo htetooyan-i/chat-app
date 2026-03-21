@@ -9,7 +9,6 @@ import ContextDropdownComponent, { ContextDropdownItem } from '../ui/ContextDrop
 import DeleteChannelModal from '../channel/settings/DeleteChannelModal';
 import EditChannelModal from '../channel/EditChannelModal';
 import { useChannel } from '@/hooks/useChannel';
-import { useServerLayout } from '@/hooks/useServerLayout';
 import type { Channel } from '@/types/Channel';
 import { getErrorMessage } from '@/lib/api';
 
@@ -26,7 +25,6 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
     const { channels, deleteChannel } = useChannel();
     const selectedChannel = channels.find(c => String(c.id) === String(channelId));
 
-    const { collapsed, setCollapsed } = useServerLayout();
     const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
     const [showDeleteChannelModal, setShowDeleteChannelModal] = useState(false);
     const [ showEditChannelModal, setShowEditChannelModal ] = useState(false);
@@ -75,7 +73,7 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
     };
 
     return (
-        <div>
+        <div className='flex-1 md:w-[300px]'>
             <CreateNewChannelModal showCreateChannelModal={showCreateChannelModal} setShowCreateChannelModal={setShowCreateChannelModal} />
             <DeleteChannelModal 
             show={showDeleteChannelModal} 
@@ -87,26 +85,19 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
                 if (selectedChannel) handleDeleteChannel()
             }} />
             <EditChannelModal show={showEditChannelModal} onClose={() => setShowEditChannelModal(false)} />
-            <Sider
-            trigger={null}
-            width={300}
-            breakpoint='lg'
-            collapsed={collapsed}
-            collapsedWidth={0}
-            onBreakpoint={(broken) => {
-                setCollapsed(broken);
-            }}
+            <div
             style={{
                 ...siderStyle,
                 overflow: "hidden",
                 backgroundColor: "var(--background)",
                 display: "flex",
+                maxWidth: "300px",
                 flexDirection: "column",
                 scrollbarColor: "var(--muted-border) transparent",
                 scrollbarWidth: "thin",
             }}
             >
-                <div className={`flex flex-col w-full h-full ${collapsed ? 'hidden' : ''}`}>
+                <div className={`flex-1 flex flex-col w-full h-full`}>
                     {/* Header */}
                     <header className='sticky top-0 z-10 h-[64px] w-full flex justify-center items-end pb-1 px-5 bg-background'>
                         <button
@@ -132,7 +123,7 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
                     </div>
                 </div>
                 
-            </Sider>
+            </div>
         </div>
     );
 }

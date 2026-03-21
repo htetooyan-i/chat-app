@@ -35,12 +35,12 @@ const selectStyles: SelectProps['styles'] = {
     },
 };
 
-type InviteServerModalProps = {
+type CreateInviteCodeProps = {
     setExpireAfter: (value: string) => void;
     setMaxUses: (value: string) => void;
 };
 
-function CreateInviteCode({ setExpireAfter, setMaxUses }: InviteServerModalProps) {
+function CreateInviteCode({ setExpireAfter, setMaxUses }: CreateInviteCodeProps) {
 
     return (
         <div>

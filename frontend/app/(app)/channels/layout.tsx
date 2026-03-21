@@ -1,10 +1,10 @@
 import React from "react";
 import { Layout } from "antd";
 
-import { ServerLayoutProvider } from "@/context/ServerLayoutContext";
 import { ServerMemberProvider } from "@/context/ServerMemberContext";
 import { ServerAdminProvider } from "@/context/ServerAdminContext";
-import SidebarWrapper from "@/components/layout/Wrappers/SidebarWrapper";
+import SidePanelWrapper from "@/components/layout/Wrappers/SidePanelWrapper";
+import { ServerLayoutProvider } from "@/context/ServerLayoutContext";
 
 export default function ChannelsLayout({ children }: { children: React.ReactNode }) {
     return (
@@ -12,7 +12,7 @@ export default function ChannelsLayout({ children }: { children: React.ReactNode
             <ServerMemberProvider>
                 <ServerAdminProvider>
                     <Layout className="h-screen min-w-0 overflow-hidden flex flex-row" style={{ flexDirection: "row" }}>
-                        <SidebarWrapper />
+                        <SidePanelWrapper />
                         {children}
                     </Layout>
                 </ServerAdminProvider>

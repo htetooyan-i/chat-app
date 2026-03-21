@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
             },
         ],
     },
+    experimental: {
+        // helps stabilize RSC fetch during fast navigations
+        staleTimes: {
+        dynamic: 30,
+        },
+    },
 };
 
 export default nextConfig;
