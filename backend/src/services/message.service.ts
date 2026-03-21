@@ -160,7 +160,9 @@ class MessageService {
                     include: {
                         attachments: true,
                         author: true,
-                        replyTo: true,
+                        replyTo: {
+                            include: { author: { select: { id: true, username: true, avatarUrl: true } } }
+                        },
                     },
                 });
             });
@@ -218,7 +220,7 @@ class MessageService {
                 return await tx.message.update({
                     where: { id: messageId },
                     data: { content: newContent, editedAt: new Date() },
-                    include: { attachments: true, author: true, replyTo: true }
+                    include: { attachments: true, author: true, replyTo: { include: { author: { select: { id: true, username: true, avatarUrl: true } } } } }
                 });
             });
 

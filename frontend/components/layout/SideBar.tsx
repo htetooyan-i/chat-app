@@ -6,6 +6,7 @@ import { useRouter, useParams, usePathname } from 'next/navigation';
 import { toast } from "sonner";
 
 import ContextDropdownComponent, { ContextDropdownItem } from '@/components/ui/ContextDropdown';
+import FormModal from '../ui/FormModal';
 import ServerSettingsModal from '../server/settings/ServerSettingsModal';
 import NewServerModal from '../server/NewServerModal';
 import { useAuth } from '@/hooks/useAuth';
@@ -197,6 +198,10 @@ function SideBar({ siderStyle }: SideBarProps) {
                             </Avatar>
                         </Badge>
                     </div>
+                    
+                    {/* <FormModal title="Create Server" >
+                        <button type="button">Create Server</button>
+                    </FormModal> */}
 
                     {/* Logout Button */}
                     <div onClick={handleLogout} className="server-item flex items-center justify-center relative my-2 cursor-pointer">

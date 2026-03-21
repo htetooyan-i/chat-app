@@ -72,7 +72,7 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const handleNewMessage = (message: Message) => {
             setMessages(prev => {
                 const tempIndex = prev.findIndex(m => m.clientMsgId === message.clientMsgId);
-
+                console.log(message);
                 if (tempIndex !== -1) {
                     const updated = [...prev];
                     updated[tempIndex] = message;
@@ -235,8 +235,6 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const deleteMessage = async (messageId: number) => {
         if (!socket) return;
 
-        await api.delete(`channels/${channelId}/messages/${messageId}`);
-
         // update UI
         setMessages(prev => {
             return prev
@@ -247,6 +245,13 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
                         : msg
                 );
         });
+
+        try {
+            await api.delete(`channels/${channelId}/messages/${messageId}`);
+        } catch (error) {
+            await fetchMessages();
+            throw getErrorMessage(error, "Failed to delete message. Please try again later.");
+        }
     };
 
     const loadMore = async () => {

@@ -13,7 +13,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    const newSocket = io("http://localhost:4000", {
+    const newSocket = io(process.env.NEXT_PUBLIC_SOCKET_URL, {
       withCredentials: true,
       reconnection: true,
       reconnectionAttempts: 5,

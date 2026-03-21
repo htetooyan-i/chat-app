@@ -14,9 +14,6 @@ const allowedOrigins = [
     "http://localhost:3000",  // Next.js dev
 ];
 
-console.log('FRONTEND_URL:', process.env.FRONTEND_URL);
-console.log('allowedOrigins:', allowedOrigins);
-
 app.use(cors({
     origin: (origin, callback) => {
         // allow requests with no origin (mobile apps, curl, Postman)
