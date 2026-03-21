@@ -24,6 +24,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.konyat.chat"),
   title: {
     default: "Konyat",
     template: "%s | Konyat",
@@ -34,6 +35,34 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "Konyat",
+              url: "https://www.konyat.chat",
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              name: "Konyat",
+              operatingSystem: "Web",
+              applicationCategory: "SocialNetworkingApplication",
+              url: "https://www.konyat.chat",
+              description:
+                "A community chat app for Myanmar people in Thailand to connect and discover businesses.",
+            }),
+          }}
+        />
+      </head>
       <body className={`${inter.variable} antialiased font-sans`}>
         <Toaster richColors position="top-right" />
         {children}
