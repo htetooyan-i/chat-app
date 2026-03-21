@@ -4,7 +4,7 @@ import type { TextAreaRef } from 'antd/es/input/TextArea';
 import { createStaticStyles } from 'antd-style';
 import {Sticker, X, Paperclip, Image, FileText, Send } from 'lucide-react';
 
-import { handleMaintenanceRoute } from '@/lib/helper';
+import StickerPopover from "@/components/ui/StickerPopover";
 import { useMessage } from '@/hooks/useMessage';
 import { useChatUI } from '@/hooks/useChatUI';
 import { useMediaUpload } from "@/hooks/useMediaUpload";
@@ -116,7 +116,6 @@ function ChatMessageInput() {
             }
         }
     };
-
 
     return (
         <div className="flex flex-col shrink-0 bg-chat-panel">
@@ -238,7 +237,9 @@ function ChatMessageInput() {
 
                     <div className='flex gap-2 items-center'>
                         <X className={`cursor-pointer ${editMessage ? "block" : "hidden"} outline outline-offset-2 rounded-sm me-5 cursor-pointer outline-error/50 text-error`} size={16} onClick={() => {setEditMessage(null); setText(""); setFiles([])}}/>
-                        <Sticker className="cursor-pointer" onClick={handleMaintenanceRoute}/>
+                        <StickerPopover>
+                            <Sticker className="cursor-pointer" />
+                        </StickerPopover>
                         {/*<Send className="cursor-pointer" onClick={() => {sendMessage(text, replyMessage, files); setText("");}}/>*/}
                     </div>
 

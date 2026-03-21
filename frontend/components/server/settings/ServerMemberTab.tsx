@@ -165,7 +165,7 @@ function ServerMemberTab({ selectedServer }: ServerMemberTabProps) {
                             <tr>
                                 <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Name</th>
                                 <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Member Since</th>
-                                <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Joined Discord</th>
+                                <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Joined Konyat</th>
                                 {/* // FUTURE: show how user joined the server, via invite link, or from server discovery, etc <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Joined Method</th> */}
                                 <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Roles</th>
                                 <th className="px-4 py-2" />
