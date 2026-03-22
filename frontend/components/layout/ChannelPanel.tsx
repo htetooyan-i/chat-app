@@ -107,8 +107,6 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
                         Create New Channel
                         </button>
                     </header>
-                
-
                     {/* Channel List */}
                     <div className="flex flex-col w-full gap-3 items-center justify-start flex-1 overflow-y-auto p-5 thin-scrollbar" >
                         {

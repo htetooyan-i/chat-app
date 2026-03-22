@@ -6,6 +6,7 @@ import { useServer } from '@/hooks/useServer';
 import { useChannel } from '@/hooks/useChannel';
 import {getErrorMessage} from "@/lib/api";
 import { Server } from '@/types/Server';
+import { useServerLayout } from '@/hooks/useServerLayout';
 
 type DeleteServerTabProps = {
     selectedServer?: Server;
@@ -16,6 +17,7 @@ function DeleteServerTab({ selectedServer, onClose }: DeleteServerTabProps) {
 
     const router = useRouter();
     
+    const { setSettingTabCollapsed } = useServerLayout();
     const { servers, deleteServer } = useServer();
     const { channelsByServer, clearServerCache } = useChannel();
 
@@ -55,7 +57,7 @@ function DeleteServerTab({ selectedServer, onClose }: DeleteServerTabProps) {
 
     return (
         <div>
-            <p className="text-xl font-bold capitalize">Delete Server</p>
+            <p className="text-xl font-bold capitalize my-4" onClick={() => setSettingTabCollapsed(prev => !prev)}>Delete Server</p>
             <div className="py-4">
                 {/* Description */}
                 <div>

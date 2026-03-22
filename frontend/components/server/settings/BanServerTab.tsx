@@ -1,17 +1,20 @@
 "use client";
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Avatar } from 'antd';
 import { Ellipsis } from 'lucide-react';
 import { toast } from "sonner";
+import { ColumnDef } from '@tanstack/react-table';
 
 import ButtonDropDown, { ButtonDropDownItem } from '@/components/ui/ButtonDropDown';
 import { formatDate, calculateDays } from '@/lib/helper';
-import Spinner from '@/components/ui/Loader';
 import ReviewBanModal from './ReviewBanModal';
 import { ServerBan } from '@/types/ServerBan';
 import { useServerAdmin } from '@/hooks/useServerAdmin';
 import type { Server } from '@/types/Server';
 import { getErrorMessage } from '@/lib/api';
+import { useServerLayout } from '@/hooks/useServerLayout';
+import { BanDataTable } from './BanTable';
+import { Checkbox } from "@/components/ui/checkbox"
 
 type BanServerTabProps = {
     selectedServer: Server
@@ -19,9 +22,10 @@ type BanServerTabProps = {
 
 function BanServerTab({ selectedServer }: BanServerTabProps) {
 
+
+    const { setSettingTabCollapsed } = useServerLayout();
     const { bans, banLoading, refreshBans, revokeBan, decidePendingBan, deleteBan } = useServerAdmin();
 
-    const [ filteredUsername, setFilteredUsername ] = useState("");
     const [ showReviewModal, setShowReviewModal ] = useState(false);
     const [ selectedBan, setSelectedBan ] = useState<ServerBan | null>(null);
 
@@ -30,14 +34,6 @@ function BanServerTab({ selectedServer }: BanServerTabProps) {
         if (!selectedServer?.id) return;
         refreshBans(selectedServer.id);
     }, [selectedServer.id, refreshBans]);
-
-    const filteredBans = useMemo(() => {
-        if (!bans) return [];
-        if (!filteredUsername.trim()) return bans;
-        return bans.filter(ban =>
-            ban.user.username.toLowerCase().includes(filteredUsername.toLowerCase())
-        );
-    }, [bans, filteredUsername]);
 
     const handleRevokeBan = async (banId: number) => {
         try {
@@ -111,6 +107,97 @@ function BanServerTab({ selectedServer }: BanServerTabProps) {
         return actions;
     };
 
+    const columns: ColumnDef<ServerBan>[] = [
+        {
+            id: "select",
+            header: ({ table }) => (
+                <Checkbox
+                    checked={
+                        table.getIsAllPageRowsSelected() ||
+                        (table.getIsSomePageRowsSelected() && "indeterminate")
+                    }
+                    onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                    aria-label="Select all"
+                />
+            ),
+            cell: ({ row }) => (
+                <Checkbox
+                    checked={row.getIsSelected()}
+                    onCheckedChange={(value) => row.toggleSelected(!!value)}
+                    aria-label="Select row"
+                />
+            ),
+            enableSorting: false,
+            enableHiding: false,
+        },
+        {
+            header: "Name",
+            accessorFn: (row) => row.user.username,
+            id: "user",
+            cell: ({ row }) => {
+                const ban = row.original;
+                return (
+                    <div className="flex items-center gap-2 font-semibold">
+                        <Avatar
+                            size={40}
+                            src={ban.user.avatar || "/logo.png"}
+                            className="border-background"
+                        />
+                        <span>{ban.user.username}</span>
+                    </div>
+                );
+            }
+        },
+        {
+            header: "Banned By",
+            accessorKey: "bannedByRole",
+            cell: ({ row }) => <span className="font-semibold">{row.original.bannedByRole}</span>
+        },
+        {
+            header: "Banned Date",
+            accessorKey: "createdAt",
+            cell: ({ row }) => <span className="font-semibold">{formatDate(row.original.createdAt, true)}</span>
+        },
+        {
+            header: "Ban Reason",
+            accessorKey: "reason",
+            cell: ({ row }) => <span className="font-semibold">{row.original.reason || "No reason provided"}</span>
+        },
+        {
+            header: "Duration",
+            accessorKey: "expiresAt",
+            cell: ({ row }) => {
+                const ban = row.original;
+                return (
+                    <span className="font-semibold">
+                        {ban.expiresAt ? `${calculateDays(ban.createdAt, ban.expiresAt)} days` : "Permanent"}
+                    </span>
+                );
+            }
+        },
+        {
+            header: "Appeal Status",
+            accessorKey: "appealStatus",
+            cell: ({ row }) => {
+                const status = row.original.appealStatus;
+                if (status === "REVOKED") return <span className="text-success bg-success/20 px-2 py-1 rounded text-xs">Revoked</span>;
+                if (status === "PENDING") return <span className="text-warning bg-warning/20 px-2 py-1 rounded text-xs">Pending</span>;
+                if (status === "ACCEPTED") return <span className="text-error bg-error/20 px-2 py-1 rounded text-xs">Accepted</span>;
+                if (status === "SUPERSEDED") return <span className="text-warning bg-warning/20 px-2 py-1 rounded text-xs">Superseded</span>;
+                return <span className="text-success bg-success/20 px-2 py-1 rounded text-xs">Rejected</span>;
+            }
+        },
+        {
+            id: "actions",
+            header: "",
+            cell: ({ row }) => (
+                <ButtonDropDown items={items(row.original)} removeStyles>
+                    <Ellipsis />
+                </ButtonDropDown>
+            )
+        }
+    ];
+
     return (
         <div className="flex flex-col h-full">
             <ReviewBanModal
@@ -119,81 +206,18 @@ function BanServerTab({ selectedServer }: BanServerTabProps) {
                 makeDecision={handleDecideAppeal}
             />
 
-            <p className="text-xl font-bold capitalize mb-2">Server Ban List</p>
+            <p className="text-xl font-bold capitalize my-4" onClick={() => setSettingTabCollapsed(prev => !prev)}>Server Ban List</p>
             <p className='text-[11px] text-muted-text mb-4'>
                 Bans are by account and IP. Users can circumvent an IP ban using a proxy.
                 Enable phone verification to make ban circumvention harder.
             </p>
 
-            <div className='w-full flex items-center justify-between gap-4 mb-4'>
-                <input
-                    type="text"
-                    className="flex-1 bg-chat-panel border border-muted-border rounded-md px-2 py-1 text-sm outline-none focus:ring-0 focus:border-accent"
-                    placeholder="Search Bans by Username"
-                    value={filteredUsername}
-                    onChange={(e) => setFilteredUsername(e.target.value)}
-                />
-            </div>
-
-            <div className='flex-1 w-full rounded-lg bg-muted-background overflow-y-auto min-h-0'>
-                <table className="w-full text-left">
-                    <thead className='sticky top-0 bg-muted-background z-10'>
-                    <tr>
-                        <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Name</th>
-                        <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Banned By</th>
-                        <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Banned Date</th>
-                        <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Ban Reason</th>
-                        <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Duration</th>
-                        <th className="text-left text-sm font-semibold text-foreground px-4 py-2">Appeal Status</th>
-                        <th className="px-4 py-2" />
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {
-                        banLoading ? (
-                            <tr>
-                                <td colSpan={7} className="text-center py-10">
-                                    <Spinner size='large' />
-                                </td>
-                            </tr>
-                        ) : (!bans || bans.length === 0) ? (
-                            <tr>
-                                <td colSpan={7} className="text-center text-muted-text py-10">
-                                    No bans found for this server.
-                                </td>
-                            </tr>
-                        ) : (
-                            filteredBans.map(ban => (
-                                <tr key={ban.id} className="hover:bg-chat-panel/50 cursor-pointer border-b border-muted-border text-[12px]">
-                                    <td className="px-4 py-2 flex items-center gap-2 font-semibold">
-                                        <Avatar
-                                            size={40}
-                                            src={ban.user.avatar || "/logo.png"}
-                                            className="border-background"
-                                        />
-                                        <span>{ban.user.username}</span>
-                                    </td>
-                                    <td className="px-4 py-2 font-semibold">{ban.bannedByRole}</td>
-                                    <td className="px-4 py-2 font-semibold">{formatDate(ban.createdAt, true)}</td>
-                                    <td className="px-4 py-2 font-semibold">{ban.reason || "No reason provided"}</td>
-                                    <td className="px-4 py-2 font-semibold">{ban.expiresAt ? `${calculateDays(ban.createdAt, ban.expiresAt)} days` : "Permanent"}</td>
-                                    <td className="px-4 py-2 font-semibold">
-                                        {ban.appealStatus === "REVOKED" && <span className="text-success bg-success/20 px-2 py-1 rounded text-xs">Revoked</span>}
-                                        {ban.appealStatus === "PENDING" && <span className="text-warning bg-warning/20 px-2 py-1 rounded text-xs">Pending</span>}
-                                        {ban.appealStatus === "ACCEPTED" && <span className="text-error bg-error/20 px-2 py-1 rounded text-xs">Accepted</span>}
-                                        {ban.appealStatus === "SUPERSEDED" && <span className="text-warning bg-warning/20 px-2 py-1 rounded text-xs">Superseded</span>}
-                                        {ban.appealStatus === "REJECTED" && <span className="text-success bg-success/20 px-2 py-1 rounded text-xs">Rejected</span>}
-                                    </td>
-                                    <td className='px-4 py-2'>
-                                        <ButtonDropDown items={items(ban)} removeStyles><Ellipsis /></ButtonDropDown>
-                                    </td>
-                                </tr>
-                            ))
-                        )
-                    }
-                    </tbody>
-                </table>
-            </div>
+            <BanDataTable
+                columns={columns}
+                data={bans || []}
+                loading={banLoading}
+                noDataMessage='No bans found for this server.'
+            />
         </div>
     );
 }

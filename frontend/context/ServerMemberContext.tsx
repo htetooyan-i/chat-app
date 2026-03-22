@@ -155,9 +155,9 @@ export const ServerMemberProvider: React.FC<{
                     : m
             )
         );
-
+        
         try {
-            await api.patch(
+            const response = await api.patch(
                 `/servers/${activeServerId}/members/${selectedUserId}`,
                 { newRole }
             );

@@ -20,13 +20,9 @@ type EmptyPageProps = {
 };
 
 function EmptyPage({username, page}: EmptyPageProps) {
-    const { setCollapsed } = useServerLayout();
+    const { setPanelCollapsed } = useServerLayout();
     return (
-        <Layout style={{ height: "100vh", overflow: "hidden", display: "flex", backgroundColor: "red" }}>
-            {
-                page === 'server' && <ChannelSidebar siderStyle={siderStyle} />
-            }
-
+        <Layout style={{ height: "100vh", overflow: "hidden", display: "flex" }}>
             <Layout className="flex items-center justify-center" style={{ flex: 1, backgroundColor: "var(--chat-panel)" }}>
                 <div className="text-center">
                     <h2 className="text-gray-500 text-4xl">
@@ -45,7 +41,7 @@ function EmptyPage({username, page}: EmptyPageProps) {
             </Layout>
 
         <div className='absolute top-4 left-4'>
-            <Button size="icon" className='rounded-full bg-accent cursor-pointer' onClick={() => setCollapsed(prev => !prev)}>
+            <Button size="icon" className='rounded-full bg-accent cursor-pointer' onClick={() => setPanelCollapsed(prev => !prev)}>
                 <CircleFadingArrowUpIcon />
             </Button>
         </div>

@@ -5,59 +5,12 @@ import { toast } from "sonner";
 import { useServerAdmin } from '@/hooks/useServerAdmin'; 
 import CreateInviteCode from './CreateInviteCode';
 import type { ServerInvite } from '@/types/ServerInvite';
-
-
-const styles: ModalProps['styles'] = {
-    mask: {
-        backgroundImage: `linear-gradient(to top, #18181b 0, rgba(21, 21, 22, 0.2) 100%)`,
-    },
-  
-    container: { 
-        backgroundColor: 'var(--background)',
-        color: 'var(--foreground)',
-        borderRadius: '10px',
-        border: '1px solid var(--muted-border)',
-    },
-    title: { 
-        color: 'var(--foreground)',
-        fontSize: '23px', 
-        fontWeight: 'bold',
-    },
-    body: {
-        color: 'var(--foreground)',
-        overflowY: 'auto',
-    },
-
-};
-
-const selectStyles: SelectProps['styles'] = {
-    root: {
-        width: "100%", 
-        backgroundColor: "var(--normal-sidebar)", 
-        borderColor: "var(--muted-border)", 
-        color: "var(--foreground)", 
-        fontWeight: "bold",
-    },
-    prefix: {
-        color: "var(--foreground)",
-    },
-    content: {
-        color: "var(--foreground)",
-        fontWeight: "bold",
-    },
-    suffix: {
-        color: "var(--foreground)",
-    },
-    popup: {
-        root: {
-            backgroundColor: "var(--chat-panel)",
-            borderColor: "var(--muted-border)",
-        },
-        listItem: {
-            color: "var(--foreground)",
-        },
-    },
-};
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 type InviteServerModalProps = {
     show: boolean;
@@ -120,79 +73,78 @@ function InviteServerModal({ show, onClose, fromSettings }: InviteServerModalPro
 
     return (
         <div>
-            <Modal
-            centered
-            title={ createNewCode ? "Server invite link settings" : "Invite People to Your Server" }
-            open={show}
-            onCancel={() => {
-                        onClose();
-                        setCreateNewCode(false);
-                    }}
-            width={"30%"}
-            styles={styles}
-            closable={false}
-            footer={
-                <div className="flex justify-end gap-2">
-                    {
-                        createNewCode ? (
-                            <div className="flex gap-2 w-full">
-                                <button
-                                    className="flex-1 px-4 py-2 bg-muted-background border border-muted-border font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
-                                    onClick={() => {
-                                        if (fromSettings) {
-                                            onClose();
-                                        } else {
-                                            setCreateNewCode(false);
-                                        }
-                                    }}
-                                >
-                                    Back
-                                </button>
-                                <button
-                                    className="flex-1 px-4 py-2 bg-accent border border-accent font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
-                                    onClick={() => {
-                                        handleGenerateNewLink();
-                                        if (fromSettings) {
-                                            onClose();
-                                        } else {
-                                            setCreateNewCode(false);
-                                        }
-                                    }}
-                                >
-                                    Generate New Link
-                                </button>
-                            </div>
-                        ) : (
-                            <button
-                                className="flex-1 px-4 py-2 bg-muted-background border border-muted-border font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
-                                onClick={() => {
-                                    onClose();
-                                }}
-                            >
-                                Close
-                            </button>
-                        )
-                    }
-                </div>
-            }
-            >
-                {
-                    createNewCode ? (
-                        <CreateInviteCode setExpireAfter={setExpireAfter} setMaxUses={setMaxUses} />
-                    ) : (
-                        <main className="flex flex-col gap-10 items-start justify-center">
-                            {/* Need to check the expire date */}
-                            <p className='text-[12px] text-muted-text'>Your Link expire in 7 days. <span className='text-accent hover:underline cursor-pointer' onClick={() => setCreateNewCode(true)}>Edit invite link</span></p>
-                            <div className={`flex gap-1 w-full items-center border rounded-lg p-1 ps-2 ${copied ? "bg-green-300/10 border-success" : "bg-chat-panel border-muted-border"}`}>
-                                <p>{process.env.NEXT_PUBLIC_API_URL}/invites/{inviteCode?.code}</p>
-                                <button className={`ml-auto px-2 py-1 text-white rounded hover:opacity-80 cursor-pointer ${copied ? "bg-success" : "bg-accent"}`} onClick={handleCopyInviteLink}>{copied ? "Copied!" : "Copy"}</button>
-                            </div>
-                        </main>
-                    )
+            <Dialog open={show} onOpenChange={(open) => {
+                if (!open) {
+                    onClose();
+                    setCreateNewCode(false);
                 }
-
-
-            </Modal>
+            }}>
+    
+                <form>
+                    <DialogContent className="sm:max-w-sm z-100">
+                        <DialogHeader>
+                            <DialogTitle>{ createNewCode ? "Server invite link settings" : "Invite People to Your Server" }</DialogTitle>
+                        </DialogHeader>
+                        {
+                            createNewCode ? (
+                                <CreateInviteCode setExpireAfter={setExpireAfter} setMaxUses={setMaxUses} />
+                            ) : (
+                                <main className="flex flex-col gap-10 items-start justify-center">
+                                    {/* Need to check the expire date */}
+                                    <p className='text-[12px] text-muted-text'>Your Link expire in 7 days. <span className='text-accent hover:underline cursor-pointer' onClick={() => setCreateNewCode(true)}>Edit invite link</span></p>
+                                    <div className={`flex gap-1 w-full items-center border rounded-lg p-1 ps-2 ${copied ? "bg-green-300/10 border-success" : "bg-chat-panel border-muted-border"}`}>
+                                        <p>{process.env.NEXT_PUBLIC_API_URL}/invites/{inviteCode?.code}</p>
+                                        <button className={`ml-auto px-2 py-1 text-white rounded hover:opacity-80 cursor-pointer ${copied ? "bg-success" : "bg-accent"}`} onClick={handleCopyInviteLink}>{copied ? "Copied!" : "Copy"}</button>
+                                    </div>
+                                </main>
+                            )
+                        }
+                        {/* Footer */}
+                        <div className="flex justify-end gap-2">
+                            {
+                                createNewCode ? (
+                                    <div className="flex gap-2 w-full">
+                                        <button
+                                            className="text-sm flex-1 px-4 py-2 bg-muted-background border border-muted-border font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
+                                            onClick={() => {
+                                                if (fromSettings) {
+                                                    onClose();
+                                                } else {
+                                                    setCreateNewCode(false);
+                                                }
+                                            }}
+                                        >
+                                            Back
+                                        </button>
+                                        <button
+                                            className="text-sm flex-1 px-4 py-2 bg-accent border border-accent font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
+                                            onClick={() => {
+                                                handleGenerateNewLink();
+                                                if (fromSettings) {
+                                                    onClose();
+                                                } else {
+                                                    setCreateNewCode(false);
+                                                }
+                                            }}
+                                        >
+                                            Generate New Link
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        className="text-sm flex-1 px-4 py-2 bg-muted-background border border-muted-border font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
+                                        onClick={() => {
+                                            onClose();
+                                        }}
+                                    >
+                                        Close
+                                    </button>
+                                )
+                            }
+                        </div>
+                    </DialogContent>
+                </form>
+            </Dialog>
         </div>
     );
 }

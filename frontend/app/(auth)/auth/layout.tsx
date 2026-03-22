@@ -2,10 +2,7 @@ import React from 'react';
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: {
-    default: "Konyat",
-    template: "%s | Konyat",
-  },
+  title: "Register or Sign In",
   description: "Sign in or create an account to start chatting with your friends and communities in real time.",
 };
 

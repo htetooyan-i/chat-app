@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     default: "Konyat",
     template: "%s | Konyat",
   },
-  description: "Konyat.chat — a fast modern chat app. Sign up and start chatting today.",
+  description: "A community app for chatting and connecting with friends and communities in real time.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

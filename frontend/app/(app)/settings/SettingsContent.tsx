@@ -39,13 +39,13 @@ function SettingsContent() {
             <ChangeEmailModal showEmailEditingModal={showEmailEditingModal} setShowEmailEditingModal={setShowEmailEditingModal} />
             <ChangePasswordModal showPasswordEditingModal={showPasswordEditingModal} setShowPasswordEditingModal={setShowPasswordEditingModal} />
 
-            <header className="w-2/3 mx-auto px-4 py-2">
+            <header className="w-full md:w-2/3 mx-auto px-4 py-2">
                 <div className="flex items-center justify-between gap-4">
                     <p className="font-bold" style={{fontSize: "23px"}}>My Account</p>
                     <X size={32} className="text-muted-text hover:text-foreground cursor-pointer transition-colors" onClick={handleGoBack} />
                 </div>
             </header>
-            <main className="w-2/3 mx-auto px-4 py-6">
+            <main className="w-full md:w-2/3 mx-auto px-4 py-6">
                 <UserGeneralInfo />
                 <UserSettingsPassword />
                 <hr className="border-muted-border" />

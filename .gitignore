@@ -1,3 +1,5 @@
 documents/
 .vercel
 .env*.local
+node_modules/
+
