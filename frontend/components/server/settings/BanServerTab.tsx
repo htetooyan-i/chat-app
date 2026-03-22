@@ -12,6 +12,7 @@ import { ServerBan } from '@/types/ServerBan';
 import { useServerAdmin } from '@/hooks/useServerAdmin';
 import type { Server } from '@/types/Server';
 import { getErrorMessage } from '@/lib/api';
+import { useServerLayout } from '@/hooks/useServerLayout';
 
 type BanServerTabProps = {
     selectedServer: Server
@@ -19,6 +20,8 @@ type BanServerTabProps = {
 
 function BanServerTab({ selectedServer }: BanServerTabProps) {
 
+
+    const { setSettingTabCollapsed } = useServerLayout();
     const { bans, banLoading, refreshBans, revokeBan, decidePendingBan, deleteBan } = useServerAdmin();
 
     const [ filteredUsername, setFilteredUsername ] = useState("");
@@ -119,7 +122,7 @@ function BanServerTab({ selectedServer }: BanServerTabProps) {
                 makeDecision={handleDecideAppeal}
             />
 
-            <p className="text-xl font-bold capitalize mb-2">Server Ban List</p>
+            <p className="text-xl font-bold capitalize my-4" onClick={() => setSettingTabCollapsed(prev => !prev)}>Server Ban List</p>
             <p className='text-[11px] text-muted-text mb-4'>
                 Bans are by account and IP. Users can circumvent an IP ban using a proxy.
                 Enable phone verification to make ban circumvention harder.

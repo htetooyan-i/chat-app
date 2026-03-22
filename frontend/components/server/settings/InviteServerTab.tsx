@@ -11,12 +11,15 @@ import { formatDate } from '@/lib/helper';
 import { useServerAdmin } from '@/hooks/useServerAdmin';
 import { Server } from '@/types/Server';
 import { getErrorMessage } from '@/lib/api';
+import { useServerLayout } from '@/hooks/useServerLayout';
 
 type InviteServerTabProps = {
     selectedServer: Server
 };
 
 function InviteServerTab({ selectedServer }: InviteServerTabProps) {
+
+    const { setSettingTabCollapsed } = useServerLayout();
     const { invites, inviteLoading, fetchInvites, revokeInvite } = useServerAdmin();
     const [showInviteModal, setShowInviteModal] = useState(false);
 
@@ -53,7 +56,7 @@ function InviteServerTab({ selectedServer }: InviteServerTabProps) {
                 fromSettings={true}
             />
 
-            <p className="text-xl font-bold capitalize mb-4">Server Invites</p>
+            <p className="text-xl font-bold capitalize my-4" onClick={() => setSettingTabCollapsed(prev => !prev)}>Server Invites</p>
             <div className='w-full flex items-center justify-between mb-4'>
                 <p className='uppercase text-[12px] font-bold'>Active invite codes</p>
                 <div className='flex gap-2'>

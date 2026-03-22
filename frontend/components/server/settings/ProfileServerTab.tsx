@@ -9,6 +9,7 @@ import type { Server } from '@/types/Server';
 import {useMediaUpload} from "@/hooks/useMediaUpload";
 import ProfilePreviewModal from "@/components/ui/ProfilePreviewModal";
 import {getErrorMessage} from "@/lib/api";
+import { useServerLayout } from '@/hooks/useServerLayout';
 
 type ProfileServerTabProps = {
     selectedServer: Server;
@@ -17,6 +18,8 @@ type ProfileServerTabProps = {
 
 function ProfileServerTab({ selectedServer }: ProfileServerTabProps) {
 
+
+    const { setSettingTabCollapsed } = useServerLayout();
     const { updateServer } = useServer();
 
     const [ hasUnsavedChanges, setHasUnsavedChanges ] = useState<boolean>(false);
@@ -99,6 +102,9 @@ function ProfileServerTab({ selectedServer }: ProfileServerTabProps) {
                 onConfirm={handleConfirm}
                 onCancel={handleCancel}
             />
+            <p className="text-xl font-bold capitalize my-4" onClick={() => setSettingTabCollapsed(prev => !prev)}>
+                Server Profile
+            </p>
             <div className='flex flex-col-reverse lg:flex-row items-start gap-8 w-full'>
                 {/* Server Profile Data*/}
                 <div className='flex flex-col gap-4 w-full lg:w-2/3'>

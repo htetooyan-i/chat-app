@@ -1,11 +1,21 @@
+'use client';
+
 import React from 'react';
-import { Modal, ModalProps } from 'antd';
-import InputLabel from '@mui/material/InputLabel';
-import MenuList from '@mui/material/MenuList';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import Select from '@mui/material/Select';
 import { MemberRole } from '@/types/ServerMember';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox"
 
 type ChangeMemberRoleModalProps = {
     show: boolean;
@@ -13,141 +23,95 @@ type ChangeMemberRoleModalProps = {
     changeMemberRole: (newRole: MemberRole) => Promise<void>;
 };
 
-
-const styles: ModalProps['styles'] = {
-    mask: {
-        backgroundImage: `linear-gradient(to top, #18181b 0, rgba(21, 21, 22, 0.2) 100%)`,
-    },
-  
-    container: { 
-        backgroundColor: 'var(--background)',
-        color: 'var(--foreground)',
-        borderRadius: '10px',
-        border: '1px solid var(--muted-border)',
-    },
-    title: { 
-        color: 'var(--foreground)',
-        fontSize: '23px', 
-        fontWeight: 'bold',
-    },
-    body: {
-        color: 'var(--foreground)',
-        overflowY: 'auto',
-    },
-
+type MemberRoleOption = {
+    label: string;
+    value: MemberRole;
 };
+
+const ROLE_OPTIONS: MemberRoleOption[] = [
+    { label: "Admin", value: "ADMIN" },
+    { label: "Moderator", value: "MODERATOR" },
+    { label: "Member", value: "MEMBER" },
+];
 
 function ChangeMemberRoleModal({ show, onClose, changeMemberRole }: ChangeMemberRoleModalProps) {
 
     const [ newMemberRole, setNewMemberRole ] = React.useState<MemberRole>("MEMBER");
+
+    const selectedRoleOption = ROLE_OPTIONS.find((role) => role.value === newMemberRole) ?? ROLE_OPTIONS[2];
+
     return (
         <div>
-            <Modal
-            centered
-            footer={null}
-            title="Change Member Role"
-            open={show}
-            onCancel={() => {
-                onClose();
-                setNewMemberRole("MEMBER");
-            }}
-            width={"30%"}
-            styles={styles}
-            closable={false}
-            >
-                <div>
-                    <p className='text-[11px] text-muted-text font-medium mt-0 mb-4'>Enter a new member role.</p>
+            <Dialog open={show} onOpenChange={(open) => {
+                if (!open) {
+                    onClose();
+                    setNewMemberRole("MEMBER");
+                }
+            }}>
+    
+                <form>
+                    <DialogContent
+                        className="sm:max-w-sm z-100"
+                        onPointerDownOutside={(event) => event.preventDefault()}
+                        onInteractOutside={(event) => event.preventDefault()}
+                    >
+                        <DialogHeader>
+                            <DialogTitle>Change Member Role</DialogTitle>
+                        </DialogHeader>
+                        <div>
+                            <p className='text-[11px] text-muted-text font-medium mt-0 mb-4'>Enter a new member role.</p>
 
-                    <div className='flex flex-col gap-4 mb-6'>
-                        <div className='flex flex-col gap-1'>
-                            {/* <label htmlFor="newMemberRole" className="text-[14px] font-bold">New Member Role</label>
-                            <input 
-                                type="text" 
-                                id="newMemberRole" 
-                                className="bg-chat-panel border border-muted-border rounded-lg p-2 text-[12px] outline-none focus:ring-0 focus:border-accent"
-                                value={newMemberRole}
-                                onChange={(e) => setNewMemberRole(e.target.value)}
-                            /> */}
-                            <FormControl sx={{ m: 1, minWidth: 120 }}>
-                                <InputLabel 
-                                id="demo-select-small-label" 
-                                sx={{
-                                    color: "var(--foreground)",
-                                    '&.Mui-focused': {
-                                        color: 'var(--accent)',
-                                    },
-                                }}
-                                >New Member Role</InputLabel>
-                                <Select
-                                    labelId="demo-select-small-label"
-                                    id="demo-select-small"
-                                    value={newMemberRole}
-                                    label="New Member Role"
-                                    onChange={(e) => setNewMemberRole(e.target.value as MemberRole)}
-                                    sx={{
-                                        color: "var(--foreground)",
-                                        backgroundColor: "var(--chat-panel)",
-                                        '.MuiOutlinedInput-notchedOutline': {
-                                            borderColor: 'var(--muted-border)',
-                                        },
-                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                            borderColor: 'var(--accent)',
-                                        },
-                                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                                            borderColor: 'var(--muted-border)',
-                                        },
-                                        '.MuiSvgIcon-root ': {
-                                            fill: "var(--foreground) !important",
-                                        },
+                            <div className='flex flex-col gap-4 mb-6'>
+                                <Combobox
+                                    items={ROLE_OPTIONS}
+                                    value={selectedRoleOption}
+                                    onValueChange={(value) => {
+                                        if (!value) return;
+                                        setNewMemberRole((value as MemberRoleOption).value);
                                     }}
-                                    MenuProps={{
-                                        PaperProps: {
-                                            sx: {
-                                                backgroundColor: "var(--chat-panel)",
-                                                marginTop: "4px",
-                                                color: "var(--foreground)",
-                                            }
-                                        },
-                                        MenuListProps: {
-                                            sx: {
-                                                padding: 0,
-                                            }
-                                        }
-                                    }}
+                                    itemToStringValue={(item) => (item as MemberRoleOption).label}
                                 >
-                                    <MenuItem value={"ADMIN"}>Admin</MenuItem>
-                                    <MenuItem value={"MODERATOR"}>Moderator</MenuItem>
-                                    <MenuItem value={"MEMBER"} selected>Member</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </div>
-                    </div>
+                                    <ComboboxInput placeholder="Select a role" />
+                                    <ComboboxContent>
+                                        <ComboboxEmpty>No items found.</ComboboxEmpty>
+                                        <ComboboxList>
+                                            {(role: MemberRoleOption) => (
+                                                <ComboboxItem key={role.value} value={role}>
+                                                {role.label}
+                                                </ComboboxItem>
+                                            )}
+                                        </ComboboxList>
+                                    </ComboboxContent>
+                                </Combobox>
+                            </div>
 
-                    <div className='flex justify-end gap-2'>
-                        <button 
-                            type='button'
-                            onClick={() => {
-                                onClose();
-                                setNewMemberRole("MEMBER");
-                            }}
-                            className='flex-1 px-4 py-2 rounded-lg border bg-chat-panel font-semibold border-muted-border cursor-pointer'
-                        >
-                            Cancel
-                        </button>
-                        <button 
-                            type='button'
-                            onClick={() => {
-                                changeMemberRole(newMemberRole);
-                                setNewMemberRole("MEMBER");
-                                onClose();
-                            }}
-                            className='flex-1 px-4 py-2 rounded-lg bg-accent text-white font-semibold cursor-pointer hover:bg-accent-hover transition-colors duration-200'
-                        >
-                            Save
-                        </button>
-                    </div>
-                </div>
-            </Modal>
+                            <div className='flex justify-end gap-2'>
+                                <button 
+                                    type='button'
+                                    onClick={() => {
+                                        onClose();
+                                        setNewMemberRole("MEMBER");
+                                    }}
+                                    className='flex-1 px-4 py-2 rounded-lg border bg-chat-panel font-semibold border-muted-border cursor-pointer'
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    type='button'
+                                    onClick={() => {
+                                        changeMemberRole(newMemberRole);
+                                        setNewMemberRole("MEMBER");
+                                        onClose();
+                                    }}
+                                    className='flex-1 px-4 py-2 rounded-lg bg-accent text-white font-semibold cursor-pointer hover:bg-accent-hover transition-colors duration-200'
+                                >
+                                    Save
+                                </button>
+                            </div>
+                        </div>
+                    </DialogContent>
+                </form>
+            </Dialog>
         </div>
     );
 }

@@ -6,17 +6,17 @@ import InviteServerTab from './InviteServerTab';
 import SettingSidebar from './SettingSidebar';
 import ServerMemberTab from './ServerMemberTab';
 import ProfileServerTab from './ProfileServerTab';
-import { useServerLayout } from '@/hooks/useServerLayout';
 import { useServer } from '@/hooks/useServer';
 import { useServerAdmin } from '@/hooks/useServerAdmin';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
+    DialogTitle
 } from "@/components/ui/dialog"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { VisuallyHidden } from 'radix-ui';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import { useServerLayout } from '@/hooks/useServerLayout';
 
 
 type ServerSettingsModalProps = {
@@ -37,7 +37,8 @@ const tabTitles: Record<SettingsTab, string> = {
 
 function ServerSettingsModal({ show, serverId, onClose }: ServerSettingsModalProps) {
 
-    const { setSettingTabCollapsed } = useServerLayout();
+    const { settingTabCollapsed, setSettingTabCollapsed } = useServerLayout();
+    const isMobile = useIsMobile();
     const { servers } = useServer();
     const { setPreviewServerId, clearPreviewServer } = useServerAdmin();
     const selectedServer = servers.find(s => String(s.id) === String(serverId));
@@ -102,19 +103,26 @@ function ServerSettingsModal({ show, serverId, onClose }: ServerSettingsModalPro
         }}>
 
             <form>
-                <DialogContent className="sm:max-w-[80%] z-100 min-h-[80vh] p-0 overflow-hidden">
-                    <DialogHeader>
-                        <DialogTitle className="px-2 pt-2">
-                            <p className="text-xl font-bold capitalize mb-4" onClick={() => setSettingTabCollapsed(prev => !prev)}>
-                                {tabTitles[activeTab]}
-                            </p>
-                        </DialogTitle>
-                    </DialogHeader>
-                    <div className="flex h-full w-full">
+                <DialogContent className="flex flex-col sm:max-w-[80%] z-100 h-[80dvh] max-h-[80dvh] min-h-0 p-0 overflow-hidden">
+                    <VisuallyHidden.Root>
+                        <DialogHeader>
+                            <DialogTitle>{tabTitles[activeTab]}</DialogTitle>
+                        </DialogHeader>
+                    </VisuallyHidden.Root>
+                    <div className="flex-1 flex h-full min-h-0 w-full">
                         <SettingSidebar selectedServerName={selectedServer.name} activeTab={activeTab} setActiveTab={setActiveTab} />
-                        <ScrollArea className="flex-1 h-full bg-background text-foreground px-2 sm:px-5 md:px-[50px] pb-[20px]">
+
+                        {/* Overlay when sidebar is open on mobile */}
+                        {(isMobile && !settingTabCollapsed) && (
+                            <div 
+                                className="absolute inset-0 bg-black/20 z-40 backdrop-blur-sm"
+                                onClick={() => setSettingTabCollapsed(true)}
+                            />
+                        )}
+
+                        <div className="flex-1 h-full bg-background text-foreground px-2 sm:px-5 md:px-[50px] pb-[20px]">
                             {renderTab()}
-                        </ScrollArea>
+                        </div>
                     </div>
                 </DialogContent>
             </form>
