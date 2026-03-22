@@ -1,10 +1,9 @@
 import React from 'react';
-import { Layout } from 'antd';
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
 import SideBar from './SideBar';
 import ChannelPanel from './ChannelPanel';
 import { useIsMobile } from "@/hooks/useIsMobile";
-import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import {
   Drawer,
   DrawerContent,
@@ -14,9 +13,7 @@ import {
 import { useServerLayout } from '@/hooks/useServerLayout';
 
 function SidePanel() {
-
-    const [mobileOpen, setMobileOpen] = React.useState(true);
-    const { collapsed, setCollapsed } = useServerLayout();
+    const { panelCollapsed, setPanelCollapsed } = useServerLayout();
     const isMobile = useIsMobile();
 
     return (
@@ -26,8 +23,13 @@ function SidePanel() {
                 <ChannelPanel siderStyle={{ height: "100%" }} />
             </div>
             {isMobile && (
-                <Drawer direction="left" open={!collapsed} onClose={() => { setCollapsed(true); }}>
-                <DrawerContent style={{ borderColor : "var(--muted-border)", borderRadius: 0, maxWidth: "380px" } as React.CSSProperties}>
+                <Drawer
+                    direction="left"
+                    modal={false}
+                    open={!panelCollapsed}
+                    onOpenChange={(open) => setPanelCollapsed(!open)}
+                >
+                <DrawerContent style={{ borderColor : "var(--muted-border)", borderRadius: 0, maxWidth: "380px", zIndex: 50 } as React.CSSProperties}>
                     <DrawerHeader>
                     <VisuallyHidden.Root>
                         <DrawerTitle>Info Panel</DrawerTitle>

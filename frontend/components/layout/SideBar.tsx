@@ -154,13 +154,17 @@ function SideBar({ siderStyle }: SideBarProps) {
                     <div className="flex flex-col items-center flex-1 overflow-y-auto py-5 hide-scrollbar">
                         {/* Server List */}
                         {servers.map((server) => (
-                                <div
-                                    key={server.id}
-                                    className="server-item flex items-center justify-center relative my-2 cursor-pointer"
-                                    title={server.name}
-                                    onClick={() => handleSelectServer(server.id)}
-                                >
-                                    <ContextDropdownComponent items={dropDownItems(server.id)}>
+                                <ContextDropdownComponent key={server.id} items={dropDownItems(server.id)}>
+                                    <div
+                                            
+                                            className="server-item flex items-center justify-center relative my-2 cursor-pointer"
+                                            title={server.name}
+                                            onClick={(event) => {
+                                                // Avoid navigation for modified clicks (e.g. Ctrl+Click used as right-click on macOS).
+                                                if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+                                                handleSelectServer(server.id)
+                                            }}
+                                        >
                                         <Badge>
                                             <Avatar
                                                 src={server.avatarUrl || '/server-img-default.png'}
@@ -176,8 +180,8 @@ function SideBar({ siderStyle }: SideBarProps) {
                                             />
 
                                         </Badge>
-                                    </ContextDropdownComponent>
-                                </div>
+                                    </div>
+                                </ContextDropdownComponent>
                         ))}
                     </div>
                     <footer className="flex flex-col items-center py-5 bg-normal-sidebar border-t border-muted-border">

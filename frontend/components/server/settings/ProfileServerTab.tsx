@@ -99,10 +99,9 @@ function ProfileServerTab({ selectedServer }: ProfileServerTabProps) {
                 onConfirm={handleConfirm}
                 onCancel={handleCancel}
             />
-            <p className="text-xl font-bold capitalize mb-4">Server Profile</p>
-            <div className='flex items-start gap-8 w-full'>
+            <div className='flex flex-col-reverse lg:flex-row items-start gap-8 w-full'>
                 {/* Server Profile Data*/}
-                <div className='flex flex-col gap-4 w-2/3'>
+                <div className='flex flex-col gap-4 w-full lg:w-2/3'>
                     <p className="text-[11px] font-semibold text-muted-text">Let customize your server appears!</p>
 
                     {/* Server Name */}
@@ -170,7 +169,7 @@ function ProfileServerTab({ selectedServer }: ProfileServerTabProps) {
                     </div>
                 </div>
                 {/* Server Profile Card */}
-                <div className="w-1/3 border border-muted-border rounded-lg overflow-hidden bg-chat-panel">
+                <div className="w-full lg:w-1/3 border border-muted-border rounded-lg overflow-hidden bg-chat-panel">
     
                     {/* Banner */}
                     <div className="relative h-24 w-full">

@@ -359,5 +359,6 @@ div.thin-scrollbar::-webkit-scrollbar-thumb:hover {
   }
   html {
     @apply font-sans; 
+    font-size: clamp(14px, 1.5vw, 16px);
   } 
 }

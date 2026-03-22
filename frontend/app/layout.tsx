@@ -24,10 +24,10 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Chat App",
-    template: "%s | Chat App",
+    default: "Konyat",
+    template: "%s | Konyat",
   },
-  description: "Root layout wrapper for the application",
+  description: "A community app for chatting and connecting with friends and communities in real time.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

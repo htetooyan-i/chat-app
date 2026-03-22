@@ -26,7 +26,7 @@ function PanelContent({ type }: { type: Tabs }) {
 
 export default function InfoPanel({ type, changeTab }: { type: Tabs; changeTab: (tab: Tabs) => void }) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobile(1024);
 
   useEffect(() => {
     setMobileOpen(type !== "none");
@@ -36,7 +36,7 @@ export default function InfoPanel({ type, changeTab }: { type: Tabs; changeTab: 
     <>
       {/* Desktop sidebar */}
       <Sider
-        width={300}
+        width={250}
         style={{
           background: "var(--background)",
           color: "var(--foreground)",
@@ -44,7 +44,7 @@ export default function InfoPanel({ type, changeTab }: { type: Tabs; changeTab: 
         }}
         collapsed={type === "none"}
         collapsedWidth={0}
-        className="hidden md:block"
+        className="hidden lg:block"
       >
         <PanelContent type={type} />
       </Sider>
