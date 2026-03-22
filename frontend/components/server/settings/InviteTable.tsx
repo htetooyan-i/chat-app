@@ -3,6 +3,7 @@ import * as React from "react"
 import {
     ColumnFiltersState,
     getFilteredRowModel,
+    VisibilityState,
     ColumnDef,
     flexRender,
     getCoreRowModel,
@@ -17,10 +18,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import Spinner from '@/components/ui/Loader';
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { useState } from "react"
+import InviteServerModal from "../InviteServerModal"
 
-interface ServerDataTableProps<TData, TValue> {
+interface InviteTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
     data: TData[],
     noDataMessage?: string,
@@ -29,19 +39,22 @@ interface ServerDataTableProps<TData, TValue> {
     className?: string
 }
 
-export function ServerDataTable<TData, TValue>({
+
+
+export function InviteTable<TData, TValue>({
     columns,
     data,
     noDataMessage = "No data available.",
     loading = false,
     footer,
     className
-}: ServerDataTableProps<TData, TValue>) {
+}: InviteTableProps<TData, TValue>) {
 
+    const [showInviteModal, setShowInviteModal] = useState(false);
 
-    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-        []
-    )
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+    const [rowSelection, setRowSelection] = useState({})
     
     const table = useReactTable({
         data,
@@ -49,24 +62,39 @@ export function ServerDataTable<TData, TValue>({
         getCoreRowModel: getCoreRowModel(),
         onColumnFiltersChange: setColumnFilters,
         getFilteredRowModel: getFilteredRowModel(),
+        onColumnVisibilityChange: setColumnVisibility,
+        onRowSelectionChange: setRowSelection,
         state: {
             columnFilters,
+            columnVisibility,
+            rowSelection,
         },
     })
 
   return (
     <div className={`w-full ${className} flex flex-col gap-4`}>
+        <InviteServerModal
+            show={showInviteModal}
+            onClose={() => setShowInviteModal(false)}
+            fromSettings={true}
+        />
         <header className='pt-2 flex items-center justify-between gap-4 flex-shrink-0'>
-            <p className="text-[15px] font-bold text-foreground shrink-0">Recent Members</p>
-            {/* Filter and Sort Options */}
-            <div className="flex-1 flex items-center gap-2">
-                <Input type="text" className="bg-chat-panel border border-muted-border rounded-md px-2 py-1 text-sm outline-none focus:ring-0 focus:border-accent" placeholder="Search members..."    
-                value={(table.getColumn("user")?.getFilterValue() as string) ?? ""}
-                onChange={(event) =>
-                    table.getColumn("user")?.setFilterValue(event.target.value)
-                }
-                />
-
+            <div className='w-full flex items-center justify-between mb-4'>
+                <p className='uppercase text-[12px] font-bold'>Active invite codes</p>
+                <div className='flex gap-2'>
+                    <button
+                        disabled
+                        className='cursor-not-allowed text-[12px] px-2 py-1 bg-muted-background text-error border border-muted-border rounded hover:bg-muted-background/70 transition-colors font-semibold'
+                    >
+                        Pause Invites
+                    </button>
+                    <button
+                        className='cursor-pointer text-[12px] px-2 py-1 bg-accent text-white rounded hover:bg-accent/80 transition-colors font-semibold'
+                        onClick={() => setShowInviteModal(true)}
+                    >
+                        Create Invite
+                    </button>
+                </div>
             </div>
         </header>
         <Table className={`min-w-full w-max overflow-hidden rounded-md bg-muted-background`}>
@@ -116,11 +144,6 @@ export function ServerDataTable<TData, TValue>({
                 </TableRow>
             )}
             </TableBody>
-            <TableFooter>
-                <TableRow> 
-                    {footer}
-                </TableRow>
-            </TableFooter>
         </Table>
     </div>
   )
