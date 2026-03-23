@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 
 import BanService from "../services/ban.service";
 import { io } from "../server";
-import { MemberRole } from "../../generated/prisma/enums";
+import { MemberRole } from "@prisma/client";
 
 export async function handleBanRequest(req: Request, res: Response) {
     try {

@@ -60,6 +60,8 @@ export async function LoginUser(req: Request, res: Response) {
         res.cookie("refreshToken", refreshToken, cookieOptions);
         res.cookie("accessToken", accessToken, accessTokenOptions);
 
+        console.log('cookies set: ', res.getHeader('Set-Cookie')); // Debugging line to check cookies in response header
+
         res.status(200).json({
             success: true,
             data: null,
@@ -171,6 +173,7 @@ export async function LogoutUser(req: Request, res: Response) {
 
     try {
         await AuthService.logout(refreshToken); // FIX: currently this function doesn't do anything, but you can implement token revocation logic here if needed
+        
         res.clearCookie("refreshToken", cookieOptions);
         res.clearCookie("accessToken", accessTokenOptions);
 
@@ -211,8 +214,10 @@ export async function DeleteUser(req: Request, res: Response) {
 
     try {
         await AuthService.deleteUser(userId);
+
         res.clearCookie("refreshToken", cookieOptions);
         res.clearCookie("accessToken", accessTokenOptions);
+
         res.status(200).json({
             success: true,
             data: null,
@@ -311,13 +316,14 @@ export async function VerifyEmail(req: Request, res: Response) {
             httpOnly: true,
             maxAge: 60 * 1000,
             secure: process.env.NODE_ENV === "production",
+
             sameSite: process.env.NODE_ENV === "production" ? "none" as const : "lax" as const,
             domain: process.env.NODE_ENV === "production" ? ".konyat.chat" : undefined,
         });// This cookie is just used to show the success message on the frontend after redirect, it will be cleared immediately after the frontend reads it
 
-        res.redirect(`http://localhost:3000/verify-email?status=success`);
+        res.redirect(`${process.env.FRONTEND_URL}/verify-email?status=success`);
     } catch (error) {
-        res.redirect(`http://localhost:3000/verify-email?status=error`);
+        res.redirect(`${process.env.FRONTEND_URL}/verify-email?status=error`);
     }
 }
 
@@ -326,12 +332,14 @@ export async function VerifyRedirectCookie(req: Request, res: Response) {
   const cookieValue = req.cookies?.emailVerified;
 
   if (cookieValue) {
+
     res.clearCookie("emailVerified", { // consume once read
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" as const : "lax" as const,
         domain: process.env.NODE_ENV === "production" ? ".konyat.chat" : undefined,
     });
+
     return res.sendStatus(200);   // OK
   }
 
@@ -538,8 +546,10 @@ export async function ResetPassword(req: Request, res: Response) {
         
         if (refreshToken) {
             await AuthService.logout(refreshToken);
+
             res.clearCookie("refreshToken", cookieOptions);
             res.clearCookie("accessToken", accessTokenOptions);
+
         }
 
         res.cookie("passwordReset", "true", { // This cookie is just used to show the success message on the frontend after redirect, it will be cleared immediately after the frontend reads it

@@ -1,5 +1,5 @@
 import { prisma } from '../lib/prisma';
-import { ChannelType } from "../../generated/prisma/enums";
+import { ChannelType } from "@prisma/client";
 
 class ChannelService {
 

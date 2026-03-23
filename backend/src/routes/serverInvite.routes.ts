@@ -3,7 +3,7 @@ import express from 'express';
 import { authMiddleware } from '../middleware/auth';
 import { requireServerRole } from '../middleware/requireServerRole';
 import { verifyNotBanned } from '../middleware/verifyNotBanned';
-import { MemberRole } from '../../generated/prisma/enums';
+import { MemberRole } from '@prisma/client';
 import {
     CreateInvite,
     DeleteInvite,

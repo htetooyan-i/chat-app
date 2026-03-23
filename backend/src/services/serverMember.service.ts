@@ -1,5 +1,5 @@
 import { prisma } from '../lib/prisma';
-import { MemberRole } from "../../generated/prisma/enums";
+import { MemberRole } from "@prisma/client";
 
 class ServerMemberService {
 

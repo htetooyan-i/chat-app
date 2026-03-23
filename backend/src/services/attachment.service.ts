@@ -1,6 +1,6 @@
 import { prisma } from '../lib/prisma';
 
-import { AttachmentType } from '../../generated/prisma/enums';
+import { AttachmentType } from '@prisma/client';
 
 class AttachmentService {
     static async deleteAttachment(attachmentId: number) {
