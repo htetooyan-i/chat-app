@@ -5,7 +5,7 @@ import { io } from "../server";
 import { prisma } from '../lib/prisma';
 import ServerService from "../services/server.service";
 import ServerMemberService from '../services/serverMember.service';
-import { ChannelType } from '../generated/prisma';
+import { ChannelType } from '@prisma/client';
 
 export async function createServer(req: Request, res: Response) {
     const userId = req.user?.userId;
