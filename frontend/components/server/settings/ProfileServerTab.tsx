@@ -10,6 +10,7 @@ import {useMediaUpload} from "@/hooks/useMediaUpload";
 import ProfilePreviewModal from "@/components/ui/ProfilePreviewModal";
 import {getErrorMessage} from "@/lib/api";
 import { useServerLayout } from '@/hooks/useServerLayout';
+import { Spinner } from '@/components/ui/Spinner';
 
 type ProfileServerTabProps = {
     selectedServer: Server;
@@ -23,6 +24,7 @@ function ProfileServerTab({ selectedServer }: ProfileServerTabProps) {
     const { updateServer } = useServer();
 
     const [ hasUnsavedChanges, setHasUnsavedChanges ] = useState<boolean>(false);
+    const [isSaving, setIsSaving] = useState(false);
     const [ profileForm, setProfileForm ] = useState<Server | null>(null);
     const setServerProfile = (value: SetStateAction<Server>) => {
         setProfileForm(value as SetStateAction<Server | null>);
@@ -37,6 +39,7 @@ function ProfileServerTab({ selectedServer }: ProfileServerTabProps) {
     }, [selectedServer]);
 
     const handleSaveProfileChanges = async () => {
+        setIsSaving(true);
         try {
             await updateServer(profileForm!);
             toast.success("Server profile updated successfully");
@@ -45,6 +48,8 @@ function ProfileServerTab({ selectedServer }: ProfileServerTabProps) {
             toast.error("Failed to update server profile.", {
                 description: getErrorMessage(error, "Failed to update server profile.")
             });
+        } finally {
+            setIsSaving(false);
         }
     }
 
@@ -235,7 +240,14 @@ function ProfileServerTab({ selectedServer }: ProfileServerTabProps) {
                         setCroppedPreviewUrl(null);
                         setProfileForm(selectedServer!);
                     }}>Reset</button>
-                    <button className="bg-accent text-foreground hover:bg-accent/70 px-2 py-1 rounded-lg font-semibold cursor-pointer" onClick={handleSaveProfileChanges}>Save Changes</button>
+                    <button
+                        disabled={isSaving}
+                        className={`bg-accent text-foreground px-2 py-1 rounded-lg font-semibold flex items-center justify-center gap-2 ${isSaving ? "cursor-not-allowed opacity-70" : "cursor-pointer hover:bg-accent/70"}`}
+                        onClick={handleSaveProfileChanges}
+                    >
+                        {isSaving && <Spinner />}
+                        <span>{isSaving ? "Saving..." : "Save Changes"}</span>
+                    </button>
                 </div>
             </div>
         </div>

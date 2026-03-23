@@ -13,22 +13,14 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import Spinner from '@/components/ui/Loader';
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { useState } from "react"
 import InviteServerModal from "../InviteServerModal"
+import Spinner from '@/components/ui/Loader';
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
 
 interface InviteTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
@@ -82,18 +74,20 @@ export function InviteTable<TData, TValue>({
             <div className='w-full flex items-center justify-between mb-4'>
                 <p className='uppercase text-[12px] font-bold'>Active invite codes</p>
                 <div className='flex gap-2'>
-                    <button
+                    {/* FUTURE: This feature will be implemented later */}
+                    {/* <Button
                         disabled
                         className='cursor-not-allowed text-[12px] px-2 py-1 bg-muted-background text-error border border-muted-border rounded hover:bg-muted-background/70 transition-colors font-semibold'
                     >
                         Pause Invites
-                    </button>
-                    <button
-                        className='cursor-pointer text-[12px] px-2 py-1 bg-accent text-white rounded hover:bg-accent/80 transition-colors font-semibold'
+                    </Button> */}
+                    <Button
+                        variant={"default"}
+                        className='cursor-pointer text-[12px] px-2 py-1 bg-accent text-white hover:bg-accent/80 transition-colors font-semibold'
                         onClick={() => setShowInviteModal(true)}
                     >
-                        Create Invite
-                    </button>
+                        <span>Create Invite</span>
+                    </Button>
                 </div>
             </div>
         </header>

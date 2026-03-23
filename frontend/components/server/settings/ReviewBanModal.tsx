@@ -1,8 +1,20 @@
 import React from 'react';
-import { Modal, ModalProps, Select, SelectProps, ConfigProvider } from 'antd';
-import { Input } from 'antd';
+import {
+    Combobox,
+    ComboboxContent,
+    ComboboxEmpty,
+    ComboboxInput,
+    ComboboxItem,
+    ComboboxList,
+} from '../../ui/combobox';
 
-const { TextArea } = Input;
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Spinner } from "@/components/ui/Spinner";
 
 type ReviewBanModalProps = {
     show: boolean;
@@ -10,133 +22,118 @@ type ReviewBanModalProps = {
     makeDecision: (decision: "ACCEPTED" | "REJECTED", duration?: string) => Promise<void>;
 };
 
-const styles: ModalProps['styles'] = {
-    mask: {
-        backgroundImage: `linear-gradient(to top, #18181b 0, rgba(21, 21, 22, 0.2) 100%)`,
-    },
-  
-    container: { 
-        backgroundColor: 'var(--background)',
-        color: 'var(--foreground)',
-        borderRadius: '10px',
-        border: '1px solid var(--muted-border)',
-    },
-    title: { 
-        color: 'var(--foreground)',
-        fontSize: '23px', 
-        fontWeight: 'bold',
-    },
-    body: {
-        color: 'var(--foreground)',
-        overflowY: 'auto',
-    },
-
+type Option = {
+    label: string;
+    value: string;
 };
 
-const selectStyles: SelectProps['styles'] = {
-    root: {
-        width: "100%", 
-        backgroundColor: "var(--sidebar)", 
-        borderColor: "var(--muted-border)", 
-        color: "var(--foreground)", 
-        fontWeight: "bold",
-    },
-    prefix: {
-        color: "var(--foreground)",
-    },
-    content: {
-        color: "var(--foreground)",
-        fontWeight: "bold",
-    },
-    suffix: {
-        color: "var(--foreground)",
-    },
-    popup: {
-        root: {
-            backgroundColor: "var(--chat-panel)",
-            borderColor: "var(--muted-border)",
-        },
-        listItem: {
-            color: "var(--foreground)",
-        },
-    },
-};
+const BAN_DURATION_OPTIONS: Option[] = [
+    { value: '7', label: '7 days' },
+    { value: '30', label: '30 days' },
+    { value: '90', label: '90 days' },
+    { value: 'permanent', label: 'Permanent' },
+];
 
 function ReviewBanModal({ show, onClose, makeDecision }: ReviewBanModalProps) {
     const [ duration, setDuration ] = React.useState<string>("7");
+    const [selectedDuration, setSelectedDuration] = React.useState<Option>(BAN_DURATION_OPTIONS[0]);
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const [decisionInProgress, setDecisionInProgress] = React.useState<"ACCEPTED" | "REJECTED" | null>(null);
+
+    const resetDuration = () => {
+        setDuration(BAN_DURATION_OPTIONS[0].value);
+        setSelectedDuration(BAN_DURATION_OPTIONS[0]);
+    };
 
     return (
-        <div>
-            <Modal
-            centered
-            footer={null}
-            title="Review Ban"
-            open={show}
-            onCancel={() => {
+        <Dialog open={show} onOpenChange={(open) => {
+            if (!open) {
                 onClose();
-                setDuration("7");
-            }}
-            width={"30%"}
-            styles={styles}
-            closable={false}
-            >
-                <div>
-                    <p className='text-[11px] text-muted-text font-medium mt-0 mb-4'>Enter a duration for the ban.</p>
-                    <div className='flex flex-col gap-4 mb-6'>
-                        <div className='flex flex-col gap-3'>
-                            <ConfigProvider 
-                            theme={{ 
-                                components: {
-                                    Select: {
-                                        optionSelectedBg: "var(--accent)",
-                                    },
-                                },               
-                            }}>
-                                <Select
-                                    defaultValue="7"
-                                    styles={selectStyles}
-                                    onChange={(value) => {
-                                        setDuration(value);
+                resetDuration();
+            }
+        }}>
+
+            <form>
+                <DialogContent className="sm:max-w-sm z-100">
+                    <DialogHeader>
+                        <DialogTitle>Review Ban</DialogTitle>
+                    </DialogHeader>
+                    <div>
+                        <p className='text-[11px] text-muted-text font-medium mt-0 mb-4'>Enter a duration for the ban.</p>
+                        <div className='flex flex-col gap-4 mb-6'>
+                            <div className='flex flex-col gap-3'>
+                                <Combobox
+                                    items={BAN_DURATION_OPTIONS}
+                                    value={selectedDuration}
+                                    onValueChange={(value) => {
+                                        if (!value) return;
+                                        const nextValue = value as Option;
+                                        setSelectedDuration(nextValue);
+                                        setDuration(nextValue.value);
                                     }}
-                                    options={[
-                                        { value: '7', label: '7 days' },
-                                        { value: '30', label: '30 days' },
-                                        { value: '90', label: '90 days' },
-                                        { value: 'permanent', label: 'Permanent' },
-                                    ]}
-                                />
-                            </ConfigProvider>
+                                    itemToStringValue={(item) => (item as Option).label}
+                                >
+                                    <ComboboxInput className='w-full' placeholder="Select ban duration" />
+                                    <ComboboxContent>
+                                        <ComboboxEmpty>No items found.</ComboboxEmpty>
+                                        <ComboboxList>
+                                            {(option: Option) => (
+                                                <ComboboxItem key={option.value} value={option}>
+                                                    {option.label}
+                                                </ComboboxItem>
+                                            )}
+                                        </ComboboxList>
+                                    </ComboboxContent>
+                                </Combobox>
+                            </div>
+                        </div>
+
+                        <div className='flex justify-end gap-2'>
+                            <button 
+                                type='button'
+                                disabled={isSubmitting}
+                                onClick={async () => {
+                                    setIsSubmitting(true);
+                                    setDecisionInProgress("REJECTED");
+                                    try {
+                                        await makeDecision("REJECTED");
+                                        resetDuration();
+                                        onClose();
+                                    } finally {
+                                        setIsSubmitting(false);
+                                        setDecisionInProgress(null);
+                                    }
+                                }}
+                                className={`flex-1 px-4 py-2 rounded-lg text-success bg-success/20 font-semibold flex items-center justify-center gap-2 ${isSubmitting ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
+                            >
+                                {decisionInProgress === "REJECTED" && <Spinner />}
+                                <span>{decisionInProgress === "REJECTED" ? "Rejecting..." : "Reject Request"}</span>
+                            </button>
+                            <button 
+                                type='button'
+                                disabled={isSubmitting}
+                                onClick={async () => {
+                                    setIsSubmitting(true);
+                                    setDecisionInProgress("ACCEPTED");
+                                    try {
+                                        await makeDecision("ACCEPTED" , duration);
+                                        resetDuration();
+                                        onClose();
+                                    } finally {
+                                        setIsSubmitting(false);
+                                        setDecisionInProgress(null);
+                                    }
+                                }}
+                                className={`flex-1 px-4 py-2 rounded-lg bg-error text-white font-semibold transition-opacity duration-200 flex items-center justify-center gap-2 ${isSubmitting ? "cursor-not-allowed opacity-70" : "cursor-pointer hover:opacity-80"}`}
+                            >
+                                {decisionInProgress === "ACCEPTED" && <Spinner />}
+                                <span>{decisionInProgress === "ACCEPTED" ? "Accepting..." : "Accept Request"}</span>
+                            </button>
                         </div>
                     </div>
-
-                    <div className='flex justify-end gap-2'>
-                        <button 
-                            type='button'
-                            onClick={() => {
-                                makeDecision("REJECTED");
-                                setDuration("7");
-                                onClose();
-
-                            }}
-                            className='flex-1 px-4 py-2 rounded-lg text-success bg-success/20 font-semibold cursor-pointer'
-                        >
-                            Reject Request
-                        </button>
-                        <button 
-                            type='button'
-                            onClick={() => {
-                                makeDecision("ACCEPTED" , duration);
-                                setDuration("7");
-                                onClose();
-                            }}
-                            className='flex-1 px-4 py-2 rounded-lg bg-error text-white font-semibold cursor-pointer hover:opacity-80 transition-opacity duration-200'
-                        >
-                            Accept Request
-                        </button>
-                    </div>
-                </div>
-            </Modal>
-        </div>
+                </DialogContent>
+            </form>
+        </Dialog>
     );
 }
 

@@ -8,7 +8,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu"
 
-export type ContextDropdownItem = {
+export type ContextDropdownDemoItem = {
     label: string | React.ReactNode;
       onClick: () => void;
       type: 'normal' | 'danger' | 'divider';
@@ -17,14 +17,43 @@ export type ContextDropdownItem = {
 
 }
 
-type ContextDropdownComponentProps = {
-  items: ContextDropdownItem[];
+type ContextDropdownDemoComponentProps = {
+  items: ContextDropdownDemoItem[];
   children: React.ReactNode;
   horizontal?: boolean;
 
 }
 
-function ContextDropdown({ children, items, horizontal = false }: ContextDropdownComponentProps) {
+function ContextDropdownDemo({ children, items, horizontal = false }: ContextDropdownDemoComponentProps) {
+    const [contextMenu, setContextMenu] = useState<{
+    mouseX: number;
+    mouseY: number;
+  } | null>(null);
+
+  const handleContextMenu = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    setContextMenu({
+      mouseX: event.clientX + 2,
+      mouseY: event.clientY - 6,
+    });
+
+    // Prevent text selection lost after opening the context menu on Safari and Firefox
+    const selection = document.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+
+      setTimeout(() => {
+        selection.addRange(range);
+      });
+    }
+  };
+  
+  const handleClose = () => {
+    setContextMenu(null);
+  };
+
   
   return (
     <ContextMenu>
@@ -57,4 +86,4 @@ function ContextDropdown({ children, items, horizontal = false }: ContextDropdow
   );
 }
 
-export default ContextDropdown;
+export default ContextDropdownDemo;

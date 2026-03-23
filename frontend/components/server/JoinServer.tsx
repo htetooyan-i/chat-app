@@ -3,6 +3,7 @@ import { toast } from "sonner";
 
 import { useServer } from '@/hooks/useServer';
 import { getErrorMessage } from '@/lib/api';
+import { Spinner } from "@/components/ui/Spinner"
 
 type JoinServerProps = {
     onClose: () => void;
@@ -12,10 +13,12 @@ type JoinServerProps = {
 function JoinServer({ onClose, changeView }: JoinServerProps) {
 
     const { joinServer, refreshServers } = useServer();
+    const [isLoading, setIsLoading] = useState(false);
     const [ inviteCode, setInviteCode ] = useState("");
 
     const handleJoinServer = async () => {
         let finalCode = inviteCode;
+        setIsLoading(true);
 
         // If the invite code is a URL, extract the code
         if (inviteCode.startsWith("http")) {
@@ -26,9 +29,6 @@ function JoinServer({ onClose, changeView }: JoinServerProps) {
         try {
             await joinServer(finalCode);
             await refreshServers();
-            // queueMicrotask(() => {
-            //     showSuccess("Server joined successfully!");
-            // });
             setInviteCode("");
             onClose();
         } catch (error) {
@@ -38,6 +38,8 @@ function JoinServer({ onClose, changeView }: JoinServerProps) {
                     description: getErrorMessage(error, "Failed to join server. Please check the invite code and try again.")
                 });
             });
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -63,7 +65,7 @@ function JoinServer({ onClose, changeView }: JoinServerProps) {
                     </div>
                 </div>
             </main>
-            <button type="button" onClick={changeView} className="underline text-accent font-[11px] my-2 cursor-pointer">Want to create a new server?</button>
+            <button type="button" onClick={changeView} className="w-full text-left underline text-accent font-[11px] my-2 cursor-pointer">Want to create a new server?</button>
             {/* Footer */}
             <div className="flex justify-end gap-2">
                 <button
@@ -76,10 +78,12 @@ function JoinServer({ onClose, changeView }: JoinServerProps) {
                     Cancel
                 </button>
                 <button
-                    className="flex-1 px-4 py-2 bg-accent font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
+                    className={`flex-1 flex justify-center items-center gap-2 px-4 py-2 bg-accent font-semibold text-foreground rounded cursor-pointer ${isLoading ? "cursor-not-allowed opacity-70" : "hover:opacity-80"}`}
                     onClick={handleJoinServer}
+                    disabled={isLoading}
                 >
-                    Join
+                    {isLoading && <Spinner />}
+                    {isLoading ? "Joining..." : "Join"}
                 </button>
             </div>
         </>

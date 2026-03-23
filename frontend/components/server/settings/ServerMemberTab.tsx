@@ -6,9 +6,8 @@ import { ColumnDef } from '@tanstack/react-table';
 
 import BanMemberModal from './BanMemberModal';
 import ChangeMemberRoleModal from './ChangeMemberRoleModal';
-import ButtonDropDownDemo from '@/components/ui/ButtonDropDownDemo';
 import { ServerDataTable } from '@/components/server/settings/MemberTable';
-import { ButtonDropDownItem } from '@/components/ui/ButtonDropDown';
+import ButtonDropDown, { ButtonDropDownItem } from '@/components/ui/ButtonDropDown';
 import { formatDate } from '@/lib/helper';
 import { useServerMember } from '@/hooks/useServerMember';
 import { getErrorMessage } from '@/lib/api';
@@ -146,11 +145,11 @@ function ServerMemberTab({ selectedServer }: ServerMemberTabProps) {
             cell: ({ row }) => {
                 const member = row.original;
                 return (
-                    <ButtonDropDownDemo items={moreOptionItems(member.userId)} removeStyles>
+                    <ButtonDropDown items={moreOptionItems(member.userId)} removeStyles>
                         <Button variant="ghost" size="sm">
                             <Ellipsis size={16} />
                         </Button>
-                    </ButtonDropDownDemo>
+                    </ButtonDropDown>
                 );
             }
         }

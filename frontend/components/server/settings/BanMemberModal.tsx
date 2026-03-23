@@ -2,6 +2,7 @@ import React from 'react';
 import { Modal, ModalProps, Select, SelectProps, ConfigProvider } from 'antd';
 import { Input } from 'antd';
 import { toast } from "sonner";
+import { Spinner } from "@/components/ui/Spinner";
 
 import { useServerMember } from '@/hooks/useServerMember';
 import { getErrorMessage } from "@/lib/api";
@@ -88,10 +89,12 @@ function BanMemberModal({ show, onClose, byAuthority }: BanMemberProps) {
     const [reason, setReason] = React.useState<string[]>([]);
     const [duration, setDuration] = React.useState<string>("7");
     const [customReason, setCustomReason] = React.useState("");
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
     const showTextArea = reason.includes("other");
 
 
     const handleBanMember = async (finalReason: string) => {
+        setIsSubmitting(true);
 
         try {
             const finalDuration = duration === "permanent" ? null : Number(duration)
@@ -101,6 +104,9 @@ function BanMemberModal({ show, onClose, byAuthority }: BanMemberProps) {
             toast.error("Failed to ban member.", {
                 description: getErrorMessage(error, "Failed to ban member")
             });
+            return false;
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -195,29 +201,34 @@ function BanMemberModal({ show, onClose, byAuthority }: BanMemberProps) {
                     <div className='flex justify-end gap-2'>
                         <button 
                             type='button'
+                            disabled={isSubmitting}
                             onClick={() => {
                                 onClose();
                                 setReason([]);
                                 setCustomReason("");
                             }}
-                            className='flex-1 px-4 py-2 rounded-lg border bg-chat-panel font-semibold border-muted-border cursor-pointer'
+                            className={`flex-1 px-4 py-2 rounded-lg border bg-chat-panel font-semibold border-muted-border ${isSubmitting ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
                         >
                             Cancel
                         </button>
                         <button 
                             type='button'
-                            onClick={() => {
+                            disabled={isSubmitting}
+                            onClick={async () => {
                                 const finalReason = showTextArea && customReason
                                     ? [...reason.filter(r => r !== "other"), customReason].join(", ")
                                     : reason.join(", ");
-                                handleBanMember(finalReason);
-                                setReason([]);
-                                setCustomReason("");
-                                onClose();
+                                const didBan = await handleBanMember(finalReason);
+                                if (didBan) {
+                                    setReason([]);
+                                    setCustomReason("");
+                                    onClose();
+                                }
                             }}
-                            className='flex-1 px-4 py-2 rounded-lg bg-error text-white font-semibold cursor-pointer hover:opacity-80 transition-opacity duration-200'
+                            className={`flex-1 px-4 py-2 rounded-lg bg-error text-white font-semibold transition-opacity duration-200 flex items-center justify-center gap-2 ${isSubmitting ? "cursor-not-allowed opacity-70" : "cursor-pointer hover:opacity-80"}`}
                         >
-                            Ban Member
+                            {isSubmitting && <Spinner />}
+                            <span>{isSubmitting ? "Banning..." : "Ban Member"}</span>
                         </button>
                     </div>
                 </div>

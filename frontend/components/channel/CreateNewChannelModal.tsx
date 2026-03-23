@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Spinner } from '../ui/Spinner';
 
 
 type CreateNewChannelModalProps = {
@@ -26,10 +27,12 @@ function CreateNewChannelModal({ showCreateChannelModal, setShowCreateChannelMod
                     ? params.serverId[0]
                     : params.serverId;
     const [channelName, setChannelName] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const { createChannel } = useChannel();
 
     const handleSubmit = async () => {
-       try {
+        setIsSubmitting(true);
+        try {
             const newChannel = await createChannel(channelName);
             if (newChannel) {
                 router.push(`/channels/${serverId}/${newChannel.id}`);
@@ -41,6 +44,8 @@ function CreateNewChannelModal({ showCreateChannelModal, setShowCreateChannelMod
             toast.error("Failed to create channel.", {
                 description: getErrorMessage(err, "An unexpected error occurred.")
             });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -74,16 +79,19 @@ function CreateNewChannelModal({ showCreateChannelModal, setShowCreateChannelMod
                         </main>
                         <div className="flex justify-end gap-2">
                             <button
-                                className="flex-1 px-4 py-2 bg-muted-background border border-muted-border font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
+                                disabled={isSubmitting}
+                                className="flex-1 px-4 py-2 bg-muted-background border border-muted-border font-semibold text-foreground rounded hover:opacity-80 cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
                                 onClick={() => {setShowCreateChannelModal(false), setChannelName("")}}
                             >
                                 Cancel
                             </button>
                             <button
-                                className="flex-1 px-4 py-2 bg-accent font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
+                                disabled={isSubmitting}
+                                className="flex-1 flex justify-center items-center gap-2 px-4 py-2 bg-accent font-semibold text-foreground rounded hover:opacity-80 cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
                                 onClick={handleSubmit}
                             >
-                                Create
+                                {isSubmitting ? <Spinner /> : null}
+                                {isSubmitting ? "Creating..." : "Create Channel"}
                             </button>
                         </div>
                     </DialogContent>

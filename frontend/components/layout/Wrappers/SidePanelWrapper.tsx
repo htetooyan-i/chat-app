@@ -18,7 +18,7 @@ const siderStyle: React.CSSProperties = {
 };
 
 export default function SidePanelWrapper() {
-    const { loading: serverLoading } = useServer();
+    const { servers, loading: serverLoading } = useServer();
     const { loading: channelLoading } = useChannel();
     const { user, loading: authLoading } = useAuth();
 
@@ -35,6 +35,12 @@ export default function SidePanelWrapper() {
             <Skeletons.ChannelPanelSkeleton />
         </div>
     );
+
+    if (!servers || servers.length === 0) {
+        return (
+            <SideBar siderStyle={siderStyle} />
+        );
+    }
 
     return (
         <SidePanel />

@@ -5,7 +5,7 @@ import { Avatar, Badge } from 'antd';
 import { toast } from "sonner";
 
 import BanMemberModal from './settings/BanMemberModal';
-import ContextDropdownComponent, { ContextDropdownItem } from "@/components/ui/ContextDropdown";
+import ContextDropdown, { ContextDropdownItem } from "@/components/ui/ContextDropdown";
 import InviteServerModal from './InviteServerModal';
 import { useServerMember } from '@/hooks/useServerMember';
 import { getErrorMessage } from "@/lib/api";
@@ -78,7 +78,7 @@ function ServerMemberInfo() {
                 members.map(member => (
                 
                     <div key={member.id} className="px-2">
-                        <ContextDropdownComponent items={getDropdownItems(member.userId)}>
+                        <ContextDropdown items={getDropdownItems(member.userId)}>
                             <div className={`w-full flex justify-between items-center gap-2 rounded cursor-pointer px-2 py-1 serverMember`}>
                                 <div className="flex items-center gap-2">
                                     <Badge dot color="green" className="bottom-badge cursor-pointer" style={{}}>
@@ -93,7 +93,7 @@ function ServerMemberInfo() {
                                 </div>
                                 <span className="font-semibold" style={{fontSize: "12px"}}>{member.role}</span>
                             </div>
-                        </ContextDropdownComponent> 
+                        </ContextDropdown> 
                     </div>
                 ))
             }

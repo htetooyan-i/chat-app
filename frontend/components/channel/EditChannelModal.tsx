@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Spinner } from '../ui/Spinner';
 
 type EditChannelModalProps = {
     show: boolean;
@@ -19,9 +20,11 @@ type EditChannelModalProps = {
 function EditChannelModal({ show, onClose }: EditChannelModalProps) {
 
     const [ newChannelName, setNewChannelName ] = React.useState("");
+    const [ isSubmitting, setIsSubmitting ] = React.useState(false);
     const { editChannelName } = useChannel();
 
     const changeChannelName = async (name: string) => {
+        setIsSubmitting(true);
         if (name.trim() === "") {
             toast.error("Channel name cannot be empty.", {
                 description: "Please enter a valid channel name."
@@ -38,6 +41,8 @@ function EditChannelModal({ show, onClose }: EditChannelModalProps) {
             toast.error("Failed to update channel name.", {
                 description: getErrorMessage(err, "An unexpected error occurred.")
             });
+        } finally {
+            setIsSubmitting(false);
         }
     }
 
@@ -77,16 +82,18 @@ function EditChannelModal({ show, onClose }: EditChannelModalProps) {
                                         onClose();
                                         setNewChannelName("");
                                     }}
-                                    className='flex-1 px-4 py-2 rounded-lg border bg-chat-panel font-semibold border-muted-border cursor-pointer'
+                                    className='flex-1 px-4 py-2 rounded-lg border bg-chat-panel font-semibold border-muted-border cursor-pointer hover:bg-chat-panel/80 transition-colors duration-200'
                                 >
                                     Cancel
                                 </button>
                                 <button 
+                                    disabled={isSubmitting}
                                     type='button'
                                     onClick={() => changeChannelName(newChannelName)}
-                                    className='flex-1 px-4 py-2 rounded-lg bg-accent text-white font-semibold cursor-pointer hover:bg-accent-hover transition-colors duration-200'
+                                    className='flex-1 px-4 py-2 rounded-lg bg-accent text-white font-semibold cursor-pointer hover:bg-accent-hover transition-colors duration-200 flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-70'
                                 >
-                                    Save
+                                    {isSubmitting ? <Spinner /> : null}
+                                    {isSubmitting ? "Saving..." : "Save"}
                                 </button>
                             </div>
                         </div>

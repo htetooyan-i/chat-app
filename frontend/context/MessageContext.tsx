@@ -27,6 +27,69 @@ type MessageContextType = {
 
 export const MessageContext = createContext<MessageContextType | null>(null);
 
+type ReactionAction = "added" | "removed";
+
+const applyReactionChange = (
+    message: Message,
+    reaction: { userId: number; emoji: string },
+    action: ReactionAction
+): Message => {
+    const reactions = message.reactions ?? [];
+    const existing = reactions.find((r) => r.emoji === reaction.emoji);
+
+    if (action === "added") {
+        if (existing) {
+            if (existing.userIds.includes(reaction.userId)) {
+                return message;
+            }
+
+            return {
+                ...message,
+                reactions: reactions.map((r) =>
+                    r.emoji === reaction.emoji
+                        ? {
+                            ...r,
+                            count: r.count + 1,
+                            userIds: [...r.userIds, reaction.userId],
+                        }
+                        : r
+                ),
+            };
+        }
+
+        return {
+            ...message,
+            reactions: [
+                ...reactions,
+                {
+                    emoji: reaction.emoji,
+                    count: 1,
+                    userIds: [reaction.userId],
+                },
+            ],
+        };
+    }
+
+    if (!existing || !existing.userIds.includes(reaction.userId)) {
+        return message;
+    }
+
+    return {
+        ...message,
+        reactions: reactions
+            .map((r) =>
+                r.emoji === reaction.emoji
+                    ? {
+                        ...r,
+                        count: r.count - 1,
+                        userIds: r.userIds.filter((id) => id !== reaction.userId),
+                    }
+                    : r
+            )
+            .filter((r) => r.count > 0),
+    };
+};
+
 export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
     const { socket } = useSocket();
@@ -100,59 +163,14 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         };
 
         const handleToggleReaction = (data: {messageId: number, reaction: Reaction, action: string}) => {
+            const action: ReactionAction = data.action === "added" ? "added" : "removed";
             setMessages(prev => prev.map(msg => {
                 if (msg.id !== data.messageId) return msg;
-
-                const reactions = msg.reactions ?? [];
-                const existing = reactions.find(r => r.emoji === data.reaction.emoji);
-
-                if (data.action === "added") {
-                    if (existing) {
-                        if (existing.userIds.includes(data.reaction.userId)) {
-                            return msg; // already counted → do nothing
-                        }
-
-                        return {
-                            ...msg,
-                            reactions: reactions.map(r =>
-                                r.emoji === data.reaction.emoji
-                                    ? {
-                                        ...r,
-                                        count: r.count + 1,
-                                        userIds: [...r.userIds, data.reaction.userId],
-                                    }
-                                    : r
-                            ),
-                        };
-                    } else {
-                        return {
-                            ...msg,
-                            reactions: [
-                                ...reactions,
-                                {
-                                    emoji: data.reaction.emoji,
-                                    count: 1,
-                                    userIds: [data.reaction.userId],
-                                },
-                            ],
-                        };
-                    }
-                } else {
-                    return {
-                        ...msg,
-                        reactions: reactions
-                            .map(r =>
-                                r.emoji === data.reaction.emoji
-                                    ? {
-                                        ...r,
-                                        count: r.count - 1,
-                                        userIds: r.userIds.filter(id => id !== data.reaction.userId),
-                                    }
-                                    : r
-                            )
-                            .filter(r => r.count > 0),
-                    };
-                }
+                return applyReactionChange(
+                    msg,
+                    { userId: data.reaction.userId, emoji: data.reaction.emoji },
+                    action
+                );
             }));
         };
 
@@ -167,6 +185,7 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
             socket.off("newMessage", handleNewMessage);
             socket.off("messageEdited", handleEditedMessage);
             socket.off("messageDeleted", handleDeletedMessage);
+            socket.off("reactionToggled", handleToggleReaction);
             socket.emit("leaveChannel", `channel-${channelId}`);
         };
     }, [channelId, socket, fetchMessages]);
@@ -282,9 +301,37 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // ** REACTION **
 
     const toggleReaction = async (messageId: number, emoji: string) => {
-        await api.post(`/messages/${messageId}/reactions/`, {emoji});
-    }
+        if (!user) return;
 
+        let localAction: ReactionAction = "added";
+
+        setMessages((prev) =>
+            prev.map((msg) => {
+                if (msg.id !== messageId) return msg;
+
+                const hasReaction =
+                    msg.reactions?.some(
+                        (reaction) =>
+                            reaction.emoji === emoji && reaction.userIds.includes(user.id)
+                    ) ?? false;
+
+                localAction = hasReaction ? "removed" : "added";
+
+                return applyReactionChange(
+                    msg,
+                    { userId: user.id, emoji },
+                    localAction
+                );
+            })
+        );
+
+        try {
+            await api.post(`/messages/${messageId}/reactions/`, {emoji});
+        } catch (error) {
+            await fetchMessages();
+            throw getErrorMessage(error, "Failed to toggle reaction. Please try again later.");
+        }
+    }
 
     return (
         <MessageContext.Provider value={{ messages, groupedMessages, loading, hasMore, sendMessage, editExistingMessage, deleteMessage, loadMore, toggleReaction }}>

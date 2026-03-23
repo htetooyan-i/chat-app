@@ -28,6 +28,7 @@ function InviteServerModal({ show, onClose, fromSettings }: InviteServerModalPro
 
     const [ expireAfter, setExpireAfter ] = useState("7");
     const [ maxUses, setMaxUses ] = useState("No Limit");
+    const [isGenerating, setIsGenerating] = useState(false);
 
     useEffect(() => {
         if (show && invites) {
@@ -52,6 +53,7 @@ function InviteServerModal({ show, onClose, fromSettings }: InviteServerModalPro
     }
 
     const handleGenerateNewLink = async () => {
+        setIsGenerating(true);
         try {
             const invite = await createInvite(expireAfter, maxUses);
             setInviteCode(invite);
@@ -68,6 +70,8 @@ function InviteServerModal({ show, onClose, fromSettings }: InviteServerModalPro
             toast.error("Failed to create new invite link.", {
                 description: "Please try again later."
             });
+        } finally {
+            setIsGenerating(false);
         }
     }
 
@@ -105,7 +109,8 @@ function InviteServerModal({ show, onClose, fromSettings }: InviteServerModalPro
                                 createNewCode ? (
                                     <div className="flex gap-2 w-full">
                                         <button
-                                            className="text-sm flex-1 px-4 py-2 bg-muted-background border border-muted-border font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
+                                            disabled={isGenerating}
+                                            className={`text-sm flex-1 px-4 py-2 bg-muted-background border border-muted-border font-semibold text-foreground rounded ${isGenerating ? "cursor-not-allowed opacity-70" : "hover:opacity-80 cursor-pointer"}`}
                                             onClick={() => {
                                                 if (fromSettings) {
                                                     onClose();
@@ -117,9 +122,10 @@ function InviteServerModal({ show, onClose, fromSettings }: InviteServerModalPro
                                             Back
                                         </button>
                                         <button
-                                            className="text-sm flex-1 px-4 py-2 bg-accent border border-accent font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
-                                            onClick={() => {
-                                                handleGenerateNewLink();
+                                            disabled={isGenerating}
+                                            className={`text-sm flex-1 px-4 py-2 bg-accent border border-accent font-semibold text-foreground rounded ${isGenerating ? "cursor-not-allowed opacity-70" : "hover:opacity-80 cursor-pointer"}`}
+                                            onClick={async () => {
+                                                await handleGenerateNewLink();
                                                 if (fromSettings) {
                                                     onClose();
                                                 } else {
@@ -127,7 +133,7 @@ function InviteServerModal({ show, onClose, fromSettings }: InviteServerModalPro
                                                 }
                                             }}
                                         >
-                                            Generate New Link
+                                            {isGenerating ? "Generating..." : "Generate New Link"}
                                         </button>
                                     </div>
                                 ) : (

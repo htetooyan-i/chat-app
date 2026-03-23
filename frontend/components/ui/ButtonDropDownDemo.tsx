@@ -30,7 +30,7 @@ type ButtonDropDownComponentProps = {
     onOpenChange?: (open: boolean) => void;
 }
 
-export default function DropdownMenuDemo({ items, children, removeStyles = false, onOpenChange }: ButtonDropDownComponentProps) {
+export default function ButtonDropdownMenuDemo({ items, children, removeStyles = false, onOpenChange }: ButtonDropDownComponentProps) {
   return (
     <DropdownMenu>
             <DropdownMenuTrigger asChild>

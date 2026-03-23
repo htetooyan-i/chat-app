@@ -213,8 +213,9 @@ function ChatMessage({ messages, messagesMap }: ChatMessageProps) {
                                     items={items(message)} 
                                     removeStyles
                                     onOpenChange={(open) => setOpenDropdownId(open ? message.id : null)} 
+
                                     >
-                                        <Ellipsis size={16}/>
+                                        <Ellipsis size={16} className='cursor-pointer'/>
                                     </ButtonDropDown>
                                 </div>
                             </div>

@@ -9,6 +9,7 @@ import { Avatar } from "antd";
 import { Camera, Plus } from "lucide-react";
 import { useServer } from '@/hooks/useServer';
 import { getErrorMessage } from '@/lib/api';
+import { Spinner } from "@/components/ui/Spinner"
 
 type CreateServerProps = {
     onClose: () => void;
@@ -16,10 +17,12 @@ type CreateServerProps = {
 }
 
 function CreateServer({ onClose, changeView }: CreateServerProps) {
+
     const { createServer } = useServer();
 
     const [serverName, setServerName] = useState("");
     const [avatarUrl, setAvatarUrl] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
     const [copied, setCopied] = useState(false);
     const [inviteCode, setInviteCode] = useState<string | null>(null);
     const [isSucceed, setIsSucceed] = useState(false);
@@ -65,6 +68,7 @@ function CreateServer({ onClose, changeView }: CreateServerProps) {
     };
 
     const handleCreateNewServer = async () => {
+        setIsLoading(true);
         try {
             const invite = await createServer(serverName, avatarUrl);
             if (!invite) throw new Error("No invite code returned");
@@ -75,6 +79,8 @@ function CreateServer({ onClose, changeView }: CreateServerProps) {
             toast.error("Failed to create server.", {
                 description: getErrorMessage(error, "An unexpected error occurred.")
             });
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -173,10 +179,12 @@ function CreateServer({ onClose, changeView }: CreateServerProps) {
 
                 {!isSucceed && (
                     <button
-                        className="flex-1 px-4 py-2 bg-accent font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
+                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-accent font-semibold text-foreground rounded cursor-pointer ${isLoading ? "cursor-not-allowed opacity-70" : "hover:opacity-80"}`}
                         onClick={handleCreateNewServer}
+                        disabled={isLoading}
                     >
-                        Create
+                        {isLoading && <Spinner />}
+                        <span>{isLoading ? "Creating..." : "Create"}</span>
                     </button>
                 )}
             </div>

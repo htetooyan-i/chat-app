@@ -7,6 +7,7 @@ import { useChannel } from '@/hooks/useChannel';
 import {getErrorMessage} from "@/lib/api";
 import { Server } from '@/types/Server';
 import { useServerLayout } from '@/hooks/useServerLayout';
+import { Spinner } from '@/components/ui/Spinner';
 
 type DeleteServerTabProps = {
     selectedServer?: Server;
@@ -22,12 +23,14 @@ function DeleteServerTab({ selectedServer, onClose }: DeleteServerTabProps) {
     const { channelsByServer, clearServerCache } = useChannel();
 
     const [ confirmationName, setConfirmationName ] = React.useState("");
+    const [isDeleting, setIsDeleting] = React.useState(false);
 
     if (!selectedServer) {
         return null;
     }
 
     const handleDeleteServer = async () => {
+        setIsDeleting(true);
         try {   
             await deleteServer(selectedServer.id!);
             clearServerCache(selectedServer.id);
@@ -52,6 +55,8 @@ function DeleteServerTab({ selectedServer, onClose }: DeleteServerTabProps) {
             toast.error("Failed to delete server. Please try again.", {
                 description: getErrorMessage(error, "Failed to delete server")
             });
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -79,23 +84,25 @@ function DeleteServerTab({ selectedServer, onClose }: DeleteServerTabProps) {
                 {/* Action Buttons */}
                 <div className='flex gap-2'>
                     <button 
+                        disabled={isDeleting}
                         onClick={() => {
                             setConfirmationName("");
                             onClose();
                         }}
-                        className="bg-muted-background border border-muted-border text-foreground px-4 py-2 rounded-md disabled:opacity-50 mt-4 cursor-pointer"
+                        className={`bg-muted-background border border-muted-border text-foreground px-4 py-2 rounded-md mt-4 ${isDeleting ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
                     >
                         Cancel
                     </button>
                     <button 
-                        onClick={() => {
-                            handleDeleteServer();
+                        onClick={async () => {
+                            await handleDeleteServer();
                             setConfirmationName("");
                         }}
-                        disabled={confirmationName.toUpperCase() !== selectedServer.name.toUpperCase()}
-                        className="bg-error hover:bg-error/70 text-foreground px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed mt-4 cursor-pointer"
+                        disabled={isDeleting || confirmationName.toUpperCase() !== selectedServer.name.toUpperCase()}
+                        className={`bg-error text-foreground px-4 py-2 rounded-md mt-4 flex items-center justify-center gap-2 ${(isDeleting || confirmationName.toUpperCase() !== selectedServer.name.toUpperCase()) ? "cursor-not-allowed opacity-70" : "cursor-pointer hover:bg-error/70"}`}
                     >
-                        Delete Server
+                        {isDeleting && <Spinner />}
+                        <span>{isDeleting ? "Deleting..." : "Delete Server"}</span>
                     </button>
                 </div>
             </div>
