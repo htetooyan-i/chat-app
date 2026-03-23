@@ -96,8 +96,8 @@ function ChatContent({ channel, containerRef, sentinelRef }: ChatContentProps) {
                             </div>  
                         )
                     }
-                    <div ref={containerRef} className="w-full">
-                        <div ref={sentinelRef} className="h-1" />
+                    <div ref={containerRef as React.RefObject<HTMLDivElement>} className="w-full">
+                        <div ref={sentinelRef as React.RefObject<HTMLDivElement>} className="h-1" />
                         {
                             Object.entries(groupedMessages).map(([date, messages]) => {
                                 const messagesMap: Record<string, Message> = {};
