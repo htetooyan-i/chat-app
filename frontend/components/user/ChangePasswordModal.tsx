@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Spinner } from '../ui/Spinner';
 
 type ChangePasswordModalProps = {
     showPasswordEditingModal: boolean;
@@ -26,24 +27,27 @@ function ChangePasswordModal({ showPasswordEditingModal, setShowPasswordEditingM
     const [ isConfirmPasswordVisible, setIsConfirmPasswordVisible ] = React.useState(false);
     const [ isNewPasswordVisible, setIsNewPasswordVisible ] = React.useState(false);
     const [ isCurrentPasswordVisible, setIsCurrentPasswordVisible ] = React.useState(false);
+    const [isSaving, setIsSaving] = React.useState(false);
 
     const isPasswordInvalid = !parsePasswordValidation(newPassword) || newPassword !== confirmPassword;
 
     const handleChangePassword = async () => {
+        setIsSaving(true);
         try {
             await updatePassword(newPassword, currentPassword);
             toast.success("Password changed successfully!");
+            setNewPassword("");
+            setCurrentPassword("");
+            setConfirmPassword("");
+            setShowPasswordEditingModal(false);
         } catch (error) {
             console.error('Error updating password:', error);
             toast.error("Failed to change password.", {
                 description: "Please ensure your current password is correct and try again."
             });
+        } finally {
+            setIsSaving(false);
         }
-
-        setNewPassword("");
-        setCurrentPassword("");
-        setConfirmPassword("");
-        setShowPasswordEditingModal(false);
     }
 
     const handleResetPassword = async () => {
@@ -149,18 +153,20 @@ function ChangePasswordModal({ showPasswordEditingModal, setShowPasswordEditingM
                             <div className='flex justify-end gap-2'>
                                 <button 
                                     type='button'
+                                    disabled={isSaving}
                                     onClick={handleCancel}
-                                    className='flex-1 px-4 py-2 rounded-lg border bg-chat-panel font-semibold border-muted-border cursor-pointer'
+                                    className='flex-1 px-4 py-2 rounded-lg border bg-chat-panel font-semibold border-muted-border cursor-pointer disabled:cursor-not-allowed disabled:opacity-70'
                                 >
                                     Cancel
                                 </button>
                                 <button 
                                     type='button'
-                                    disabled={isPasswordInvalid}
+                                    disabled={isPasswordInvalid || isSaving}
                                     onClick={handleChangePassword}
-                                    className='flex-1 px-4 py-2 rounded-lg bg-accent text-white font-semibold cursor-pointer hover:bg-accent-hover transition-colors duration-200'
+                                    className='flex-1 px-4 py-2 rounded-lg bg-accent text-white font-semibold cursor-pointer hover:bg-accent-hover transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-70 flex items-center justify-center gap-2'
                                 >
-                                    Save
+                                    {isSaving && <Spinner />}
+                                    <span>{isSaving ? "Saving..." : "Save"}</span>
                                 </button>
                             </div>
                         </div>

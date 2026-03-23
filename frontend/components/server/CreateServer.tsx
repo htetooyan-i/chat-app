@@ -148,6 +148,7 @@ function CreateServer({ onClose, changeView }: CreateServerProps) {
                         Invite others to join your server using the link below.
                     </p>
                     <button
+                        type="button"
                         className={`w-full px-4 py-2 text-foreground rounded hover:opacity-80 cursor-pointer ${copied ? 'bg-green-500/10 border border-success' : 'bg-accent'}`}
                         onClick={handleCopyInviteLink}
                     >
@@ -158,14 +159,23 @@ function CreateServer({ onClose, changeView }: CreateServerProps) {
 
             {
                 !isSucceed && (
-                    <button type="button" onClick={changeView} className="underline text-accent font-[11px] my-2 cursor-pointer">Already have a link?</button>
+                    <button
+                        type="button"
+                        disabled={isLoading}
+                        onClick={changeView}
+                        className="underline text-accent font-[11px] my-2 cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
+                    >
+                        Already have a link?
+                    </button>
                 )
             }
 
             {/* Footer */}
             <div className="flex justify-end gap-2 mt-4">
                 <button
-                    className="flex-1 px-4 py-2 bg-muted-background border border-muted-border font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
+                    type="button"
+                    disabled={isLoading}
+                    className="flex-1 px-4 py-2 bg-muted-background border border-muted-border font-semibold text-foreground rounded hover:opacity-80 cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
                     onClick={() => {
                         setIsSucceed(false);
                         setServerName("");
@@ -179,6 +189,7 @@ function CreateServer({ onClose, changeView }: CreateServerProps) {
 
                 {!isSucceed && (
                     <button
+                        type="button"
                         className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-accent font-semibold text-foreground rounded cursor-pointer ${isLoading ? "cursor-not-allowed opacity-70" : "hover:opacity-80"}`}
                         onClick={handleCreateNewServer}
                         disabled={isLoading}

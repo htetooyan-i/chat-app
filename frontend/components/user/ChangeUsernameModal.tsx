@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Spinner } from '../ui/Spinner';
 
 type ChangeUsernameModalProps = {
     showUsernameEditingModal: boolean;
@@ -21,23 +22,25 @@ function ChangeUsernameModal({ showUsernameEditingModal, setShowUsernameEditingM
     const { updateUserInfo } = useAuth();
     const [ newUsername, setNewUsername ] = React.useState("");
     const [ password, setPassword ] = React.useState("");
+    const [isSaving, setIsSaving] = React.useState(false);
 
     const handleChangeUsername = async () => {
+        setIsSaving(true);
         try {
             const updatedUserData:Partial<User> = {username: newUsername};
             await updateUserInfo(updatedUserData, password);
-
+            setNewUsername("");
+            setPassword("");
+            setShowUsernameEditingModal(false);
             toast.success("Username changed successfully!");
         } catch (error) {
             console.error('Error updating username:', error);
             toast.error("Failed to change username.", {
                 description: "Please ensure your password is correct and try again."
             });
+        } finally {
+            setIsSaving(false);
         }
-
-        setNewUsername("");
-        setPassword("");
-        setShowUsernameEditingModal(false);
     }
 
     const handleCancel = () => {
@@ -87,18 +90,21 @@ function ChangeUsernameModal({ showUsernameEditingModal, setShowUsernameEditingM
 
                         <div className='flex justify-end gap-2'>
                             <button 
+                                disabled={isSaving}
                                 type='button'
                                 onClick={handleCancel}
-                                className='flex-1 px-4 py-2 rounded-lg border bg-chat-panel font-semibold border-muted-border cursor-pointer'
+                                className='flex-1 px-4 py-2 rounded-lg border bg-chat-panel font-semibold border-muted-border cursor-pointer disabled:cursor-not-allowed disabled:opacity-70'
                             >
                                 Cancel
                             </button>
                             <button 
+                                disabled={isSaving}
                                 type='button'
                                 onClick={handleChangeUsername}
-                                className='flex-1 px-4 py-2 rounded-lg bg-accent text-white font-semibold cursor-pointer hover:bg-accent-hover transition-colors duration-200'
+                                className='flex-1 px-4 py-2 rounded-lg bg-accent text-white font-semibold cursor-pointer hover:bg-accent-hover transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-70 flex items-center justify-center gap-2'
                             >
-                                Save
+                                {isSaving && <Spinner />}
+                                <span>{isSaving ? "Saving..." : "Save Changes"}</span>
                             </button>
                         </div>
                     </div>

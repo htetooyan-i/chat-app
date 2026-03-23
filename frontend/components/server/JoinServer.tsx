@@ -65,11 +65,19 @@ function JoinServer({ onClose, changeView }: JoinServerProps) {
                     </div>
                 </div>
             </main>
-            <button type="button" onClick={changeView} className="w-full text-left underline text-accent font-[11px] my-2 cursor-pointer">Want to create a new server?</button>
+            <button
+                type="button"
+                disabled={isLoading}
+                onClick={changeView}
+                className="w-full text-left underline text-accent font-[11px] my-2 cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
+            >
+                Want to create a new server?
+            </button>
             {/* Footer */}
             <div className="flex justify-end gap-2">
                 <button
-                    className="flex-1 px-4 py-2 bg-muted-background border border-muted-border font-semibold text-foreground rounded hover:opacity-80 cursor-pointer"
+                    disabled={isLoading}
+                    className="flex-1 px-4 py-2 bg-muted-background border border-muted-border font-semibold text-foreground rounded hover:opacity-80 cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
                     onClick={() => {
                         setInviteCode("");
                         onClose();

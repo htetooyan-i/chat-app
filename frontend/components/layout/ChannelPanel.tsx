@@ -28,6 +28,7 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
     const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
     const [showDeleteChannelModal, setShowDeleteChannelModal] = useState(false);
     const [ showEditChannelModal, setShowEditChannelModal ] = useState(false);
+    const [isDeletingChannel, setIsDeletingChannel] = useState(false);
 
     const dropdownItems = (channel: Channel): ContextDropdownItem[] => [
         {
@@ -53,6 +54,7 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
     };
 
     const handleDeleteChannel = async () => {
+        setIsDeletingChannel(true);
         try {
             await deleteChannel();
 
@@ -69,6 +71,8 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
             toast.error("Failed to delete channel.", {
                 description: getErrorMessage(err, "An unexpected error occurred.")
             });
+        } finally {
+            setIsDeletingChannel(false);
         }
     };
 
@@ -78,10 +82,11 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
             <DeleteChannelModal 
             show={showDeleteChannelModal} 
             channelName={selectedChannel?.name || ""}
+            isSubmitting={isDeletingChannel}
             onClose={() => {
                 setShowDeleteChannelModal(false);
             }}
-            onConfirm={() => {
+            onConfirm={async () => {
                 if (selectedChannel) handleDeleteChannel()
             }} />
             <EditChannelModal show={showEditChannelModal} onClose={() => setShowEditChannelModal(false)} />

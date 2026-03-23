@@ -29,6 +29,7 @@ function EditChannelModal({ show, onClose }: EditChannelModalProps) {
             toast.error("Channel name cannot be empty.", {
                 description: "Please enter a valid channel name."
             });
+            setIsSubmitting(false);
             return;
         }
 
@@ -77,12 +78,13 @@ function EditChannelModal({ show, onClose }: EditChannelModalProps) {
 
                             <div className='flex justify-end gap-2'>
                                 <button 
+                                    disabled={isSubmitting}
                                     type='button'
                                     onClick={() => {
                                         onClose();
                                         setNewChannelName("");
                                     }}
-                                    className='flex-1 px-4 py-2 rounded-lg border bg-chat-panel font-semibold border-muted-border cursor-pointer hover:bg-chat-panel/80 transition-colors duration-200'
+                                    className='flex-1 px-4 py-2 rounded-lg border bg-chat-panel font-semibold border-muted-border cursor-pointer hover:bg-chat-panel/80 transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-70'
                                 >
                                     Cancel
                                 </button>

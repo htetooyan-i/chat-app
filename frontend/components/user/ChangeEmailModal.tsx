@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Spinner } from '../ui/Spinner';
 
 type ChangeEmailModalProps = {
     showEmailEditingModal: boolean;
@@ -19,19 +20,22 @@ function ChangeEmailModal({ showEmailEditingModal, setShowEmailEditingModal }: C
     const { updateEmail } = useAuth();
     const [ newEmail, setNewEmail ] = React.useState("");
     const [ password, setPassword ] = React.useState("");
+    const [isSaving, setIsSaving] = React.useState(false);
 
     const handleChangeEmail = async () => {
+        setIsSaving(true);
         try {
             await updateEmail(newEmail, password);
             toast.success("Email changed successfully!");
+            setNewEmail("");
+            setPassword("");
+            setShowEmailEditingModal(false);
         } catch (error) {
             console.error('Error updating email:', error);
             toast.error("Failed to change email.");
+        } finally {
+            setIsSaving(false);
         }
-
-        setNewEmail("");
-        setPassword("");
-        setShowEmailEditingModal(false);
     }
 
     const handleCancel = () => {
@@ -81,17 +85,20 @@ function ChangeEmailModal({ showEmailEditingModal, setShowEmailEditingModal }: C
                         <div className='flex justify-end gap-2'>
                             <button 
                                 type='button'
+                                disabled={isSaving}
                                 onClick={handleCancel}
-                                className='flex-1 px-4 py-2 rounded-lg border bg-chat-panel font-semibold border-muted-border cursor-pointer'
+                                className='flex-1 px-4 py-2 rounded-lg border bg-chat-panel font-semibold border-muted-border cursor-pointer disabled:cursor-not-allowed disabled:opacity-70'
                             >
                                 Cancel
                             </button>
                             <button 
                                 type='button'
+                                disabled={isSaving}
                                 onClick={handleChangeEmail}
-                                className='flex-1 px-4 py-2 rounded-lg bg-accent text-white font-semibold cursor-pointer hover:bg-accent-hover transition-colors duration-200'
+                                className='flex-1 px-4 py-2 rounded-lg bg-accent text-white font-semibold cursor-pointer hover:bg-accent-hover transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-70 flex items-center justify-center gap-2'
                             >
-                                Save
+                                {isSaving && <Spinner />}
+                                <span>{isSaving ? "Saving..." : "Save"}</span>
                             </button>
                         </div>
                     </div>

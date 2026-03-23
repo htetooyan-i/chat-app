@@ -1,19 +1,23 @@
+import { useState } from 'react';
 import { toast } from "sonner";
 
 import { api } from "@/lib/api";
 import { handleMaintenanceRoute } from '@/lib/helper';
 import { useUserSettingLayout } from '@/hooks/useUserSettingsLayout';
 import { useAuth } from "@/hooks/useAuth";
+import { Spinner } from '../ui/Spinner';
 
 
 function UserSettingsPassword() {
 
     const { setShowPasswordEditingModal } = useUserSettingLayout();
     const { user } = useAuth();
+    const [isVerifying, setIsVerifying] = useState(false);
 
     const handleVerifyEmail = async () => {
+        setIsVerifying(true);
         try {
-            api.post("/auth/send-verification-email");
+            await api.post("/auth/send-verification-email");
             toast.success("Verification email sent successfully", {
                 description: `Please check your email ${user?.email} for further instructions.`
             });
@@ -21,6 +25,8 @@ function UserSettingsPassword() {
             toast.error("Failed to send verification email", {
                 description: "An unexpected error occurred."
             });
+        } finally {
+            setIsVerifying(false);
         }
     }
 
@@ -34,7 +40,14 @@ function UserSettingsPassword() {
                 <div className={`${user?.verified ? "hidden" : "block"}`}>
                     <p className='text-lg font-semibold mb-4'>Email Verification</p>
 
-                    <button onClick={handleVerifyEmail} className='bg-accent hover:opacity-80 text-foreground px-4 py-2 rounded-md cursor-pointer font-semibold transition-opacity'>Verify Email</button>
+                    <button
+                        onClick={handleVerifyEmail}
+                        disabled={isVerifying}
+                        className='bg-accent hover:opacity-80 text-foreground px-4 py-2 rounded-md cursor-pointer font-semibold transition-opacity disabled:cursor-not-allowed disabled:opacity-70 flex items-center gap-2'
+                    >
+                        {isVerifying && <Spinner />}
+                        <span>{isVerifying ? "Sending..." : "Verify Email"}</span>
+                    </button>
                 </div>
 
                 <div>
