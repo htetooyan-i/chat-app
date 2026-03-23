@@ -5,6 +5,7 @@ import { io } from "../server";
 import { prisma } from '../lib/prisma';
 import ServerService from "../services/server.service";
 import ServerMemberService from '../services/serverMember.service';
+import { ChannelType } from '../generated/prisma';
 
 export async function createServer(req: Request, res: Response) {
     const userId = req.user?.userId;
@@ -20,6 +21,10 @@ export async function createServer(req: Request, res: Response) {
 
             await tx.serverMember.create({
                 data: { serverId: server.id, userId, role: server.ownerId === userId ? "OWNER" : "MEMBER" },
+            });
+
+            await tx.channel.create({
+                data: { name: 'General', serverId: server.id, type: ChannelType.TEXT },
             });
 
             return server;

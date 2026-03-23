@@ -118,7 +118,7 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
                             channels.map(channel => (
                                 <ContextDropdownComponent items={dropdownItems(channel)} key={channel.id}>
                                     <div onClick={() => handleChangeChannel(channel.id)} className={`text-[15px] h-[45px] w-full p-2 border-s-4 rounded-r-sm cursor-pointer flex items-center ${channel.id === selectedChannel?.id ? 'border-accent  bg-chat-panel' : 'border-muted-border'}`}>
-                                        <p className='capitalize truncate'><span>#</span> {channel.name}</p>
+                                        <p className='truncate'><span>#</span> {channel.name}</p>
                                     </div>
                                 </ContextDropdownComponent>
                             ))

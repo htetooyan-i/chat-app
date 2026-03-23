@@ -25,10 +25,10 @@ function ChatHeader({ selectedChannel, selectedServer, activeTab, setActiveTab }
         >
             <div className='flex w-full justify-between items-center'>
                 <div className='flex justify-start items-center gap-2 flex-1 min-w-0 overflow-hidden'>
-                    <p onClick={() => setPanelCollapsed(prev => !prev)} className='text-white text-lg font-semibold text-[26px] capitalize cursor-pointer'>{selectedServer?.name || "Chat"}</p>
+                    <p onClick={() => setPanelCollapsed(prev => !prev)} className='text-white text-lg font-semibold text-[26px] cursor-pointer'>{selectedServer?.name || "Chat"}</p>
                     <ChevronRight className='text-foreground flex-shrink-0' size={32}/>
                     {/* FIX: Channel name should be dynamic and width doesn't work for now */}
-                    <p className='text-[15px] min-w-0 max-w-[300px] truncate text-muted-text capitalize font-semibold'>
+                    <p className='text-[15px] min-w-0 max-w-[300px] truncate text-muted-text font-semibold'>
                         # {selectedChannel?.name || "Channel"}
                     </p>
                 </div>
