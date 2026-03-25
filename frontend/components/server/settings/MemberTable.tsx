@@ -1,5 +1,5 @@
 "use client"
-import * as React from "react"
+import React, { useEffect, useState } from "react"
 import {
     ColumnFiltersState,
     getFilteredRowModel,
@@ -34,7 +34,8 @@ interface ServerDataTableProps<TData, TValue> {
     noDataMessage?: string,
     loading?: boolean,
     footer?: React.ReactNode,
-    className?: string
+    className?: string,
+    setSelectedMembers: React.Dispatch<React.SetStateAction<any[]>>,
 }
 
 
@@ -45,12 +46,13 @@ export function ServerDataTable<TData, TValue>({
     noDataMessage = "No data available.",
     loading = false,
     footer,
-    className
+    className,
+    setSelectedMembers
 }: ServerDataTableProps<TData, TValue>) {
 
-    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-    const [rowSelection, setRowSelection] = React.useState({})
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+    const [rowSelection, setRowSelection] = useState({})
     
     const table = useReactTable({
         data,
@@ -67,106 +69,112 @@ export function ServerDataTable<TData, TValue>({
         },
     })
 
-  return (
-    <div className={`w-full ${className} flex flex-col gap-4`}>
-        <header className='pt-2 flex items-center justify-between gap-4 flex-shrink-0'>
-            <p className="text-[15px] font-bold text-foreground shrink-0">Recent Members</p>
-            {/* Filter and Sort Options */}
-            <div className="flex items-center gap-2">
-                <Input type="text" className="bg-chat-panel border border-muted-border rounded-md px-2 py-1 text-sm" placeholder="Search members..."    
-                value={(table.getColumn("user")?.getFilterValue() as string) ?? ""}
-                onChange={(event) =>
-                    table.getColumn("user")?.setFilterValue(event.target.value)
-                }
-                />
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="default" className="ml-auto bg-accent hover:bg-accent/80 cursor-pointer">Filter Columns</Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        {table
-                        .getAllColumns()
-                        .filter(
-                            (column) => column.getCanHide()
-                        )
-                        .map((column) => {
-                            return (
-                            <DropdownMenuCheckboxItem
-                                key={column.id}
-                                className="capitalize"
-                                checked={column.getIsVisible()}
-                                onCheckedChange={(value) =>
-                                column.toggleVisibility(!!value)
-                                }
-                            >
-                                {column.id}
-                            </DropdownMenuCheckboxItem>
+    useEffect(() => {
+        const selectedRows = table.getSelectedRowModel().rows;
+        setSelectedMembers(selectedRows.map(row => row.original));
+    }, [rowSelection]);
+
+    return (
+        <div className={`w-full ${className} flex flex-col gap-4`}>
+            <header className='pt-2 flex items-center justify-between gap-4 flex-shrink-0'>
+                <p className="text-[15px] font-bold text-foreground shrink-0">Recent Members</p>
+                {/* Filter and Sort Options */}
+                <div className="flex items-center gap-2">
+                    <Input type="text" className="bg-chat-panel border border-muted-border rounded-md px-2 py-1 text-sm" placeholder="Search members..."    
+                    value={(table.getColumn("user")?.getFilterValue() as string) ?? ""}
+                    onChange={(event) =>
+                        table.getColumn("user")?.setFilterValue(event.target.value)
+                    }
+                    />
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="default" className="ml-auto bg-accent hover:bg-accent/80 cursor-pointer">Filter Columns</Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            {table
+                            .getAllColumns()
+                            .filter(
+                                (column) => column.getCanHide()
                             )
+                            .map((column) => {
+                                return (
+                                <DropdownMenuCheckboxItem
+                                    key={column.id}
+                                    className="capitalize"
+                                    checked={column.getIsVisible()}
+                                    onCheckedChange={(value) =>
+                                    column.toggleVisibility(!!value)
+                                    }
+                                >
+                                    {column.id}
+                                </DropdownMenuCheckboxItem>
+                                )
+                            })}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </header>
+            <Table className={`min-w-full w-max overflow-hidden rounded-md bg-muted-background`}>
+                <TableHeader>
+                    {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                        {headerGroup.headers.map((header) => {
+                        return (
+                            <TableHead key={header.id}>
+                            {header.isPlaceholder
+                                ? null
+                                : flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext()
+                                )}
+                            </TableHead>
+                        )
                         })}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
-        </header>
-        <Table className={`min-w-full w-max overflow-hidden rounded-md bg-muted-background`}>
-            <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                    return (
-                        <TableHead key={header.id}>
-                        {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                            )}
-                        </TableHead>
-                    )
-                    })}
-                </TableRow>
-                ))}
-            </TableHeader>
-        <TableBody>
-            {loading ? (
-                <TableRow>
-                    <TableCell colSpan={columns.length} className="py-10 text-center">
-                        <Spinner size="large" />
-                    </TableCell>
-                </TableRow>
-            ) : table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                >
-                    {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
+                    </TableRow>
                     ))}
-                </TableRow>
-                ))
-            ) : (
-                <TableRow>
-                    <TableCell colSpan={columns.length} className="h-24 text-center">
-                        {noDataMessage}
-                    </TableCell>
-                </TableRow>
-            )}
-            </TableBody>
-            <TableFooter>
-                <TableRow> 
-                    <TableCell colSpan={columns.length} className="px-4 py-2">
-                        <div className="flex items-center justify-between">
-                            <div className="flex-1 text-sm text-muted-foreground">
-                                {table.getFilteredSelectedRowModel().rows.length} of{" "}
-                                {table.getFilteredRowModel().rows.length} members selected.
+                </TableHeader>
+            <TableBody>
+                {loading ? (
+                    <TableRow>
+                        <TableCell colSpan={columns.length} className="py-10 text-center">
+                            <Spinner size="large" />
+                        </TableCell>
+                    </TableRow>
+                ) : table.getRowModel().rows?.length ? (
+                    table.getRowModel().rows.map((row) => (
+                    <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && "selected"}
+                    >
+                        {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                        ))}
+                    </TableRow>
+                    ))
+                ) : (
+                    <TableRow>
+                        <TableCell colSpan={columns.length} className="h-24 text-center">
+                            {noDataMessage}
+                        </TableCell>
+                    </TableRow>
+                )}
+                </TableBody>
+                <TableFooter>
+                    <TableRow> 
+                        <TableCell colSpan={columns.length} className="px-4 py-2">
+                            <div className="flex items-center justify-between">
+                                <div className="flex-1 text-sm text-muted-foreground">
+                                    {table.getFilteredSelectedRowModel().rows.length} of{" "}
+                                    {table.getFilteredRowModel().rows.length} members selected.
+                                </div>
                             </div>
-                        </div>
-                    </TableCell>
-                </TableRow>
-            </TableFooter>
-        </Table>
-    </div>
-  )
+                        </TableCell>
+                    </TableRow>
+                </TableFooter>
+            </Table>
+            {footer ? <footer>{footer}</footer> : null}
+        </div>
+    )
 }

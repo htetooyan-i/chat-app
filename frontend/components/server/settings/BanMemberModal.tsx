@@ -1,13 +1,42 @@
 import React from 'react';
-import { Modal, ModalProps, Select, SelectProps, ConfigProvider } from 'antd';
-import { Input } from 'antd';
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/Spinner";
+import {
+    Combobox,
+    ComboboxContent,
+    ComboboxEmpty,
+    ComboboxInput,
+    ComboboxItem,
+    ComboboxList,
+} from '@/components/ui/combobox';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 
 import { useServerMember } from '@/hooks/useServerMember';
 import { getErrorMessage } from "@/lib/api";
 
-const { TextArea } = Input;
+type Option = {
+    label: string;
+    value: string;
+};
+
+const BAN_REASON_OPTIONS: Option[] = [
+    { value: "spamming", label: "Spamming" },
+    { value: "harassing", label: "Harassing" },
+    { value: "inappropriate_content", label: "Inappropriate Content" },
+    { value: "other", label: "Other" },
+];
+
+const BAN_DURATION_OPTIONS: Option[] = [
+    { value: '7', label: '7 days' },
+    { value: '30', label: '30 days' },
+    { value: '90', label: '90 days' },
+    { value: 'permanent', label: 'Permanent' },
+];
 
 type BanMemberProps = {
     show: boolean;
@@ -15,82 +44,16 @@ type BanMemberProps = {
     byAuthority?: boolean;
 };
 
-const styles: ModalProps['styles'] = {
-    mask: {
-        backgroundImage: `linear-gradient(to top, #18181b 0, rgba(21, 21, 22, 0.2) 100%)`,
-    },
-  
-    container: { 
-        backgroundColor: 'var(--background)',
-        color: 'var(--foreground)',
-        borderRadius: '10px',
-        border: '1px solid var(--muted-border)',
-    },
-    title: { 
-        color: 'var(--foreground)',
-        fontSize: '23px', 
-        fontWeight: 'bold',
-    },
-    body: {
-        color: 'var(--foreground)',
-        overflowY: 'auto',
-    },
-
-};
-
-const selectStyles: SelectProps['styles'] = {
-    root: {
-        backgroundColor: 'var(--chat-panel)',
-        color: 'var(--foreground)',
-        borderRadius: '5px',
-        border: '1px solid var(--muted-border)',
-    },
-    content: {
-        color: 'var(--foreground)',
-    },
-
-    suffix: {
-        color: 'var(--muted-text)',
-    },
-
-    placeholder: {
-        color: 'var(--muted-text)',
-    },
-    item: {
-        backgroundColor: 'var(--error-background)',
-        fontWeight: '500',
-        color: 'var(--error)',
-    },
-    itemRemove: {
-        color: 'var(--error)',
-    },
-    popup: {
-        root: {
-            backgroundColor: 'var(--chat-panel)',
-            color: 'var(--foreground)',
-            borderRadius: '5px',
-            border: '1px solid var(--muted-border)',
-        },
-        list: {
-            backgroundColor: 'var(--chat-panel)',
-            color: 'var(--foreground)',
-        },
-        listItem: {
-            backgroundColor: 'var(--chat-panel)',
-            color: 'var(--foreground)',
-        },
-    }
-};
-
 function BanMemberModal({ show, onClose, byAuthority }: BanMemberProps) {
 
     const { requestBanMember } = useServerMember();
 
-    const [reason, setReason] = React.useState<string[]>([]);
+    const [selectedReason, setSelectedReason] = React.useState<Option>(BAN_REASON_OPTIONS[0]);
     const [duration, setDuration] = React.useState<string>("7");
+    const [selectedDuration, setSelectedDuration] = React.useState<Option>(BAN_DURATION_OPTIONS[0]);
     const [customReason, setCustomReason] = React.useState("");
     const [isSubmitting, setIsSubmitting] = React.useState(false);
-    const showTextArea = reason.includes("other");
+    const showTextArea = selectedReason.value === "other";
 
 
     const handleBanMember = async (finalReason: string) => {
@@ -100,6 +63,7 @@ function BanMemberModal({ show, onClose, byAuthority }: BanMemberProps) {
             const finalDuration = duration === "permanent" ? null : Number(duration)
             await requestBanMember(finalReason, finalDuration ?? undefined);
             toast.success("Member banned successfully");
+            return true;
         } catch (error) {
             toast.error("Failed to ban member.", {
                 description: getErrorMessage(error, "Failed to ban member")
@@ -111,116 +75,118 @@ function BanMemberModal({ show, onClose, byAuthority }: BanMemberProps) {
     };
 
     return (
-        <div>
-            <Modal
-            centered
-            footer={null}
-            title="Ban Member"
-            open={show}
-            onCancel={() => {
+        <Dialog open={show} onOpenChange={(open) => {
+            if (!open) {
                 onClose();
-                setReason([]);
+                setSelectedReason(BAN_REASON_OPTIONS[0]);
+                setSelectedDuration(BAN_DURATION_OPTIONS[0]);
+                setDuration(BAN_DURATION_OPTIONS[0].value);
                 setCustomReason("");
-            }}
-            width={"30%"}
-            styles={styles}
-            closable={false}
-            >
-                <div>
+            }
+        }}>
+            <form>
+                <DialogContent className="sm:max-w-sm z-100">
+                    <DialogHeader>
+                        <DialogTitle>Ban Member</DialogTitle>
+                    </DialogHeader>
+
                     <p className='text-[11px] text-muted-text font-medium mt-0 mb-4'>Enter a reason for banning the member.</p>
-                    <div className='flex flex-col mb-6'>
-                        <div className='flex flex-col gap-6'>
-                            <ConfigProvider 
-                            theme={{ 
-                                components: { 
-                                    Select: { 
-                                        hoverBorderColor: 'var(--error)',
-                                        optionSelectedBg: 'rgba(239, 68, 68, 0.2)',
-                                        optionActiveBg: 'rgba(239, 68, 68, 0.1)',
-                                        optionSelectedColor: 'var(--error)', 
-                                    },
-                                    Input: {
-                                        colorBgContainer: 'var(--chat-panel)',
-                                        colorText: 'var(--foreground)',
-                                        colorBorder: 'var(--muted-border)',
-                                        colorTextPlaceholder: 'var(--muted-text)',
-                                        hoverBorderColor: 'var(--error)',
-                                        activeBorderColor: 'var(--error)',
-                                        colorTextDescription: 'var(--muted-text)', // count text color
-                                    }
-                                }                
-                            }}>
-                                <Select
-                                styles={selectStyles}
-                                mode='tags'
-                                placeholder="Select or type a ban reason"
-                                value={reason}
-                                onChange={(val) => setReason(val)}
-                                options={[
-                                    { value: "spamming", label: "Spamming" },
-                                    { value: "harassing", label: "Harassing" },
-                                    { value: "inappropriate_content", label: "Inappropriate Content" },
-                                    { value: "other", label: "Other" },
-                                ]}
-                                />
 
-                                {showTextArea && (
-                                    <TextArea
-                                    rows={4}
-                                    placeholder="Enter custom ban reason..."
-                                    maxLength={200}
-                                    showCount
-                                    value={customReason}
-                                    onChange={(e) => setCustomReason(e.target.value)}
-                                    />
-                                )}
-
-                                
-                            </ConfigProvider>
-                            {
-                                byAuthority && (
-                                    <Select
-                                    value={duration}
-                                    defaultValue="7"
-                                    styles={selectStyles}
-                                    onChange={(value) => {
-                                        setDuration(value);
-                                    }}
-                                    options={[
-                                        { value: '7', label: '7 days' },
-                                        { value: '30', label: '30 days' },
-                                        { value: '90', label: '90 days' },
-                                        { value: 'permanent', label: 'Permanent' },
-                                    ]}
-                                    />
-                                )
-                            }
+                    <div className='flex flex-col gap-6 mb-6'>
+                        <div className='flex flex-col gap-2 w-full'>
+                            <label className="text-[14px] font-bold">Reason</label>
+                            <Combobox
+                                items={BAN_REASON_OPTIONS}
+                                value={selectedReason}
+                                onValueChange={(value) => {
+                                    if (!value) return;
+                                    const nextValue = value as Option;
+                                    setSelectedReason(nextValue);
+                                }}
+                                itemToStringValue={(item) => (item as Option).label}
+                            >
+                                <ComboboxInput className='w-full' placeholder="Select a ban reason" />
+                                <ComboboxContent>
+                                    <ComboboxEmpty>No items found.</ComboboxEmpty>
+                                    <ComboboxList>
+                                        {(option: Option) => (
+                                            <ComboboxItem key={option.value} value={option}>
+                                                {option.label}
+                                            </ComboboxItem>
+                                        )}
+                                    </ComboboxList>
+                                </ComboboxContent>
+                            </Combobox>
                         </div>
+
+                        {showTextArea && (
+                            <textarea
+                                rows={4}
+                                placeholder="Enter custom ban reason..."
+                                maxLength={200}
+                                value={customReason}
+                                onChange={(e) => setCustomReason(e.target.value)}
+                                className="w-full bg-chat-panel border border-muted-border rounded-lg p-2 text-[12px] outline-none focus:ring-0 focus:border-error resize-none"
+                            />
+                        )}
+
+                        {byAuthority && (
+                            <div className='flex flex-col gap-2 w-full'>
+                                <label className="text-[14px] font-bold">Duration</label>
+                                <Combobox
+                                    items={BAN_DURATION_OPTIONS}
+                                    value={selectedDuration}
+                                    onValueChange={(value) => {
+                                        if (!value) return;
+                                        const nextValue = value as Option;
+                                        setSelectedDuration(nextValue);
+                                        setDuration(nextValue.value);
+                                    }}
+                                    itemToStringValue={(item) => (item as Option).label}
+                                >
+                                    <ComboboxInput className='w-full' placeholder="Select duration" />
+                                    <ComboboxContent>
+                                        <ComboboxEmpty>No items found.</ComboboxEmpty>
+                                        <ComboboxList>
+                                            {(option: Option) => (
+                                                <ComboboxItem key={option.value} value={option}>
+                                                    {option.label}
+                                                </ComboboxItem>
+                                            )}
+                                        </ComboboxList>
+                                    </ComboboxContent>
+                                </Combobox>
+                            </div>
+                        )}
                     </div>
 
                     <div className='flex justify-end gap-2'>
-                        <button 
+                        <button
                             type='button'
                             disabled={isSubmitting}
                             onClick={() => {
                                 onClose();
-                                setReason([]);
+                                setSelectedReason(BAN_REASON_OPTIONS[0]);
+                                setSelectedDuration(BAN_DURATION_OPTIONS[0]);
+                                setDuration(BAN_DURATION_OPTIONS[0].value);
                                 setCustomReason("");
                             }}
                             className={`flex-1 px-4 py-2 rounded-lg border bg-chat-panel font-semibold border-muted-border ${isSubmitting ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
                         >
                             Cancel
                         </button>
-                        <button 
+                        <button
                             type='button'
                             disabled={isSubmitting}
                             onClick={async () => {
-                                const finalReason = showTextArea && customReason
-                                    ? [...reason.filter(r => r !== "other"), customReason].join(", ")
-                                    : reason.join(", ");
+                                const finalReason = showTextArea
+                                    ? customReason.trim()
+                                    : selectedReason.label;
                                 const didBan = await handleBanMember(finalReason);
                                 if (didBan) {
-                                    setReason([]);
+                                    setSelectedReason(BAN_REASON_OPTIONS[0]);
+                                    setSelectedDuration(BAN_DURATION_OPTIONS[0]);
+                                    setDuration(BAN_DURATION_OPTIONS[0].value);
                                     setCustomReason("");
                                     onClose();
                                 }
@@ -231,9 +197,9 @@ function BanMemberModal({ show, onClose, byAuthority }: BanMemberProps) {
                             <span>{isSubmitting ? "Banning..." : "Ban Member"}</span>
                         </button>
                     </div>
-                </div>
-            </Modal>
-        </div>
+                </DialogContent>
+            </form>
+        </Dialog>
     );
 }
 

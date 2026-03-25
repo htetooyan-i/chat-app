@@ -33,7 +33,9 @@ interface BanDataTableProps<TData, TValue> {
     data: TData[],
     noDataMessage?: string,
     loading?: boolean,
-    className?: string
+    className?: string,
+    footer?: React.ReactNode,
+    setSelectedBans: React.Dispatch<React.SetStateAction<any[]>>,
 }
 
 export function BanDataTable<TData, TValue>({
@@ -41,7 +43,9 @@ export function BanDataTable<TData, TValue>({
     data,
     noDataMessage = "No data available.",
     loading = false,
-    className
+    className,
+    footer,
+    setSelectedBans,
 }: BanDataTableProps<TData, TValue>) {
 
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
@@ -62,6 +66,11 @@ export function BanDataTable<TData, TValue>({
             rowSelection,
         },
     })
+
+    React.useEffect(() => {
+        const selectedRows = table.getSelectedRowModel().rows;
+        setSelectedBans(selectedRows.map(row => row.original));
+    }, [rowSelection]);
 
     return (
         <div className={`w-full ${className} flex flex-col gap-4`}>
@@ -152,6 +161,7 @@ export function BanDataTable<TData, TValue>({
                     </TableRow>
                 </TableFooter>
             </Table>
+            {footer ? <footer>{footer}</footer> : null}
         </div>
     )
 }

@@ -15,6 +15,8 @@ import { useServerLayout } from '@/hooks/useServerLayout';
 import { InviteTable } from './InviteTable';
 import { ServerInvite } from '@/types/ServerInvite';
 import { Checkbox } from "@/components/ui/checkbox"
+import { Spinner } from '@/components/ui/Spinner';
+import { Button } from '@/components/ui/button';
 
 type InviteServerTabProps = {
     selectedServer: Server
@@ -123,6 +125,26 @@ function InviteServerTab({ selectedServer }: InviteServerTabProps) {
 
     ];
 
+
+    const [ selectedInvites, setSelectedInvites ] = useState<ServerInvite[]>([]);
+    const [ isRevoking, setIsRevoking ] = useState(false);
+
+    const handleRevokeSelectedInvites = async () => {
+        setIsRevoking(true);
+
+        try {
+            await Promise.all(selectedInvites.map(invite => revokeInvite(invite.id)));
+            toast.success("Selected invites revoked successfully");
+            setSelectedInvites([]);
+        } catch (error) {
+            toast.error("Failed to revoke selected invites.", {
+                description: getErrorMessage(error, "Failed to revoke selected invites")
+            });
+        } finally {
+            setIsRevoking(false);
+        }
+    }
+
     return (
         <div className="flex flex-col h-full">
             <InviteServerModal
@@ -137,6 +159,25 @@ function InviteServerTab({ selectedServer }: InviteServerTabProps) {
                 data={invites || []}
                 loading={inviteLoading}
                 noDataMessage='No invites found for this server.'
+                setSelectedInvites={setSelectedInvites}
+                footer={
+                    <div className={`absolute bottom-5 right-20 flex justify-between items-center gap-2 px-4 py-2 bg-chat-panel rounded-md w-[75%] shadow-lg shadow-accent/10 transition-all duration-500 ease-in-out ${selectedInvites.length > 0 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}>
+                        <div>
+                            <p className="text-md font-semibold text-foreground">You've selected {selectedInvites.length} invite(s)</p>
+                        </div>
+                        <div className="flex gap-2">
+                            <Button
+                                disabled={isRevoking}
+                                variant={"outline"}
+                                className={`bg-error-background text-error hover:text-error border border-error px-2 py-1 rounded-lg font-semibold flex items-center justify-center gap-2 ${isRevoking ? "cursor-progress opacity-70 hover:bg-error-background/70" : "cursor-pointer hover:bg-error-background/70"}`}
+                                onClick={handleRevokeSelectedInvites}
+                            >
+                                {isRevoking && <Spinner />}
+                                <span>{isRevoking ? "Revoking..." : "Revoke Invites"}</span>
+                            </Button>
+                        </div>
+                    </div>
+                }
 
             />
         </div>

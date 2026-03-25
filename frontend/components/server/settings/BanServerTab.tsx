@@ -15,6 +15,8 @@ import { getErrorMessage } from '@/lib/api';
 import { useServerLayout } from '@/hooks/useServerLayout';
 import { BanDataTable } from './BanTable';
 import { Checkbox } from "@/components/ui/checkbox"
+import { Spinner } from '@/components/ui/Spinner';
+import { Button } from '@/components/ui/button';
 
 type BanServerTabProps = {
     selectedServer: Server
@@ -28,6 +30,8 @@ function BanServerTab({ selectedServer }: BanServerTabProps) {
 
     const [ showReviewModal, setShowReviewModal ] = useState(false);
     const [ selectedBan, setSelectedBan ] = useState<ServerBan | null>(null);
+    const [ selectedBans, setSelectedBans ] = useState<ServerBan[]>([]);
+    const [ isDeletingSelected, setIsDeletingSelected ] = useState(false);
 
     // Preview-safe fetch: fetch bans when selectedServer changes
     useEffect(() => {
@@ -71,6 +75,21 @@ function BanServerTab({ selectedServer }: BanServerTabProps) {
             });
         }
     }
+
+    const handleDeleteSelectedBans = async () => {
+        setIsDeletingSelected(true);
+        try {
+            await Promise.all(selectedBans.map((ban) => deleteBan(ban.id)));
+            toast.success("Selected bans deleted successfully.");
+            setSelectedBans([]);
+        } catch (error) {
+            toast.error("Failed to delete selected bans.", {
+                description: getErrorMessage(error, "Failed to delete selected bans")
+            });
+        } finally {
+            setIsDeletingSelected(false);
+        }
+    };
 
     const items = (ban: ServerBan): ButtonDropDownItem[] => {
         const actions: ButtonDropDownItem[] = [];
@@ -217,6 +236,25 @@ function BanServerTab({ selectedServer }: BanServerTabProps) {
                 data={bans || []}
                 loading={banLoading}
                 noDataMessage='No bans found for this server.'
+                setSelectedBans={setSelectedBans}
+                footer={
+                    <div className={`absolute bottom-5 right-20 flex justify-between items-center gap-2 px-4 py-2 bg-chat-panel rounded-md w-[75%] shadow-lg shadow-accent/10 transition-all duration-500 ease-in-out ${selectedBans.length > 0 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}>
+                        <div>
+                            <p className="text-md font-semibold text-foreground">You've selected {selectedBans.length} ban(s)</p>
+                        </div>
+                        <div className="flex gap-2">
+                            <Button
+                                disabled={isDeletingSelected}
+                                variant={"outline"}
+                                className={`bg-error-background text-error hover:text-error border border-error px-2 py-1 rounded-lg font-semibold flex items-center justify-center gap-2 ${isDeletingSelected ? "cursor-progress opacity-70 hover:bg-error-background/70" : "cursor-pointer hover:bg-error-background/70"}`}
+                                onClick={handleDeleteSelectedBans}
+                            >
+                                {isDeletingSelected && <Spinner />}
+                                <span>{isDeletingSelected ? "Deleting..." : "Delete Selected Bans"}</span>
+                            </Button>
+                        </div>
+                    </div>
+                }
             />
         </div>
     );

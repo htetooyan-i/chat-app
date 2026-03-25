@@ -14,6 +14,7 @@ import { getErrorMessage } from '@/lib/api';
 import { useServerLayout } from '@/hooks/useServerLayout';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from "@/components/ui/checkbox"
+import { Spinner } from "@/components/ui/Spinner";
 
 import { MemberRole, ServerMember } from '@/types/ServerMember';
 import { Server } from '@/types/Server';
@@ -54,6 +55,24 @@ function ServerMemberTab({ selectedServer }: ServerMemberTabProps) {
     const [ showChangeRoleModal, setShowChangeRoleModal ] = useState(false);
     const [ showBanMemberModal, setShowBanMemberModal ] = useState(false);
 
+    const [ selectedMembers, setSelectedMembers ] = useState<ServerMember[]>([]);
+    const [ isKicking, setIsKicking ] = useState(false);
+    
+    const handleKickSelectedMembers = async () => {
+        setIsKicking(true);
+
+        try {
+            await Promise.all(selectedMembers.map(member => kickMember(member.userId)));
+            toast.success("Selected members kicked successfully");
+            setSelectedMembers([]);
+        } catch (error) {
+            toast.error("Failed to kick selected members.", {
+                description: getErrorMessage(error, "Failed to kick selected members")
+            });
+        } finally {
+            setIsKicking(false);
+        }
+    }
 
     const moreOptionItems:(memberId: number) => ButtonDropDownItem[] = (memberId) => [
         {
@@ -194,6 +213,25 @@ function ServerMemberTab({ selectedServer }: ServerMemberTabProps) {
                 data={members} 
                 loading={loading} 
                 className="mt-10"
+                setSelectedMembers={setSelectedMembers}   
+                footer={
+                    <div className={`absolute bottom-5 right-20 flex justify-between items-center gap-2 px-4 py-2 bg-chat-panel rounded-md w-[75%] shadow-lg shadow-accent/10 transition-all duration-500 ease-in-out ${selectedMembers.length > 0 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}>
+                        <div>
+                            <p className="text-md font-semibold text-foreground">You've selected {selectedMembers.length} member(s).</p>
+                        </div>
+                        <div className="flex gap-2">
+                            <Button
+                                disabled={isKicking}
+                                variant={"outline"}
+                                className={`bg-error-background text-error hover:text-error border border-error px-2 py-1 rounded-lg font-semibold flex items-center justify-center gap-2 ${isKicking ? "cursor-progress opacity-70 hover:bg-error-background/70" : "cursor-pointer hover:bg-error-background/70"}`}
+                                onClick={handleKickSelectedMembers}
+                            >
+                                {isKicking && <Spinner />}
+                                <span>{isKicking ? "Kicking..." : "Kick Members"}</span>
+                            </Button>
+                        </div>
+                    </div>
+                }
                 />
             </div>
         </div>

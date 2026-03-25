@@ -1,5 +1,7 @@
 "use client"
-import * as React from "react"
+import React, { useEffect } from "react"
+import { toast } from "sonner"
+
 import {
     ColumnFiltersState,
     getFilteredRowModel,
@@ -21,6 +23,10 @@ import InviteServerModal from "../InviteServerModal"
 import Spinner from '@/components/ui/Loader';
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { ServerInvite } from "@/types/ServerInvite"
+import { getErrorMessage } from "@/lib/api"
+import { useServerAdmin } from "@/hooks/useServerAdmin"
+
 
 interface InviteTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
@@ -28,10 +34,9 @@ interface InviteTableProps<TData, TValue> {
     noDataMessage?: string,
     loading?: boolean,
     footer?: React.ReactNode,
-    className?: string
+    className?: string,
+    setSelectedInvites: React.Dispatch<React.SetStateAction<any[]>>,
 }
-
-
 
 export function InviteTable<TData, TValue>({
     columns,
@@ -39,7 +44,8 @@ export function InviteTable<TData, TValue>({
     noDataMessage = "No data available.",
     loading = false,
     footer,
-    className
+    className,
+    setSelectedInvites
 }: InviteTableProps<TData, TValue>) {
 
     const [showInviteModal, setShowInviteModal] = useState(false);
@@ -62,6 +68,12 @@ export function InviteTable<TData, TValue>({
             rowSelection,
         },
     })
+
+    useEffect(() => {
+        const selectedRows = table.getSelectedRowModel().rows;
+        setSelectedInvites(selectedRows.map(row => row.original));
+    }, [rowSelection]);
+    
 
   return (
     <div className={`w-full ${className} flex flex-col gap-4`}>
@@ -139,6 +151,7 @@ export function InviteTable<TData, TValue>({
             )}
             </TableBody>
         </Table>
+        <footer>{footer}</footer>
     </div>
   )
 }

@@ -230,7 +230,6 @@ function ProfileServerTab({ selectedServer }: ProfileServerTabProps) {
             </div>
             {/* Footer */}
             <div className={`absolute bottom-5 right-20 flex justify-between items-center gap-2 px-4 py-2 bg-chat-panel rounded-md w-[75%] shadow-lg shadow-accent/10 transition-all duration-500 ease-in-out ${hasUnsavedChanges ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}>
-                {/* FIXME: Add thi to profile tab */}
                 <div>
                     <p className="text-md font-semibold text-foreground">Careful - you have unsaved changes!</p>
                 </div>
