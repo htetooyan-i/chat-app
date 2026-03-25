@@ -99,7 +99,7 @@ function DeleteServerTab({ selectedServer, onClose }: DeleteServerTabProps) {
                             setConfirmationName("");
                         }}
                         disabled={isDeleting || confirmationName.toUpperCase() !== selectedServer.name.toUpperCase()}
-                        className={`bg-error text-foreground px-4 py-2 rounded-md mt-4 flex items-center justify-center gap-2 ${(isDeleting || confirmationName.toUpperCase() !== selectedServer.name.toUpperCase()) ? "cursor-not-allowed opacity-70" : "cursor-pointer hover:bg-error/70"}`}
+                        className={`bg-error text-foreground px-4 py-2 rounded-md mt-4 flex items-center justify-center gap-2 ${isDeleting ? "cursor-progress opacity-70" : confirmationName.toUpperCase() !== selectedServer.name.toUpperCase() ? "cursor-not-allowed opacity-70" : "cursor-pointer hover:bg-error/70"}`}
                     >
                         {isDeleting && <Spinner />}
                         <span>{isDeleting ? "Deleting..." : "Delete Server"}</span>

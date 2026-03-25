@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify } from "jose";
+import { parseDurationMs } from "./duration";
 
 const secret = process.env.JWT_SECRET
 
@@ -13,11 +14,13 @@ export async function createAccessToken(payload: {
   userId: number;
   email: string;
 }) {
-  const accessExpires = process.env.ACCESS_TOKEN_EXPIRES?.trim() || "15m";
+  const accessTtlMs = parseDurationMs(process.env.ACCESS_TOKEN_EXPIRES, 15, "m");
+  const expiration = Math.floor((Date.now() + accessTtlMs) / 1000);
+
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime(accessExpires)
+    .setExpirationTime(expiration)
     .sign(key);
 }
 
@@ -25,11 +28,13 @@ export async function createAccessToken(payload: {
 export async function createRefreshToken(payload: {
   userId: number;
 }) {
-  const refreshExpires = process.env.REFRESH_TOKEN_EXPIRES?.trim() || "7d";
+  const refreshTtlMs = parseDurationMs(process.env.REFRESH_TOKEN_EXPIRES, 30, "d");
+  const expiration = Math.floor((Date.now() + refreshTtlMs) / 1000);
+
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime(refreshExpires)
+    .setExpirationTime(expiration)
     .sign(key);
 }
 

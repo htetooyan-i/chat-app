@@ -8,7 +8,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     
     // check if the token is present
     if (!accessToken) {
-      return res.status(401).json({ message: "Missing token" });
+      return res.status(401).json({ code: "TOKEN_MISSING", message: "Missing token" });
     }
     const token = accessToken.startsWith("Bearer ") ? accessToken.slice(7) : accessToken;
 

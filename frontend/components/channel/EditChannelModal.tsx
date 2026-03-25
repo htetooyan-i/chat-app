@@ -92,7 +92,7 @@ function EditChannelModal({ show, onClose }: EditChannelModalProps) {
                                     disabled={isSubmitting}
                                     type='button'
                                     onClick={() => changeChannelName(newChannelName)}
-                                    className='flex-1 px-4 py-2 rounded-lg bg-accent text-white font-semibold cursor-pointer hover:bg-accent-hover transition-colors duration-200 flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-70'
+                                    className={`flex-1 px-4 py-2 rounded-lg bg-accent text-white font-semibold cursor-pointer transition-colors duration-200 flex items-center justify-center gap-2 ${isSubmitting ? "cursor-progress opacity-70" : "hover:bg-accent-hover"}`}
                                 >
                                     {isSubmitting ? <Spinner /> : null}
                                     {isSubmitting ? "Saving..." : "Save"}

@@ -163,7 +163,8 @@ function ChangePasswordModal({ showPasswordEditingModal, setShowPasswordEditingM
                                     type='button'
                                     disabled={isPasswordInvalid || isSaving}
                                     onClick={handleChangePassword}
-                                    className='flex-1 px-4 py-2 rounded-lg bg-accent text-white font-semibold cursor-pointer hover:bg-accent-hover transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-70 flex items-center justify-center gap-2'
+
+                                    className={`flex-1 px-4 py-2 rounded-lg bg-accent text-white font-semibold transition-colors duration-200 ${isPasswordInvalid ? "cursor-not-allowed opacity-70" : "cursor-pointer hover:bg-accent-hover"}`}
                                 >
                                     {isSaving && <Spinner />}
                                     <span>{isSaving ? "Saving..." : "Save"}</span>

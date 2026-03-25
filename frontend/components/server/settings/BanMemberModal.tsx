@@ -225,7 +225,7 @@ function BanMemberModal({ show, onClose, byAuthority }: BanMemberProps) {
                                     onClose();
                                 }
                             }}
-                            className={`flex-1 px-4 py-2 rounded-lg bg-error text-white font-semibold transition-opacity duration-200 flex items-center justify-center gap-2 ${isSubmitting ? "cursor-not-allowed opacity-70" : "cursor-pointer hover:opacity-80"}`}
+                            className={`flex-1 px-4 py-2 rounded-lg bg-error text-white font-semibold transition-opacity duration-200 flex items-center justify-center gap-2 ${isSubmitting ? "cursor-progress opacity-70" : "cursor-pointer hover:opacity-80"}`}
                         >
                             {isSubmitting && <Spinner />}
                             <span>{isSubmitting ? "Banning..." : "Ban Member"}</span>

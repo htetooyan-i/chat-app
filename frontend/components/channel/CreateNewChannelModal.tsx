@@ -80,14 +80,14 @@ function CreateNewChannelModal({ showCreateChannelModal, setShowCreateChannelMod
                         <div className="flex justify-end gap-2">
                             <button
                                 disabled={isSubmitting}
-                                className="flex-1 px-4 py-2 bg-muted-background border border-muted-border font-semibold text-foreground rounded hover:opacity-80 cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
+                                className={`flex-1 px-4 py-2 bg-muted-background border border-muted-border font-semibold text-foreground rounded ${isSubmitting ? "cursor-not-allowed opacity-70" : "hover:opacity-80 cursor-pointer"}`}
                                 onClick={() => {setShowCreateChannelModal(false), setChannelName("")}}
                             >
                                 Cancel
                             </button>
                             <button
                                 disabled={isSubmitting}
-                                className="flex-1 flex justify-center items-center gap-2 px-4 py-2 bg-accent font-semibold text-foreground rounded hover:opacity-80 cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
+                                className={`flex-1 flex justify-center items-center gap-2 px-4 py-2 bg-accent font-semibold text-foreground rounded ${isSubmitting ? "cursor-progress opacity-70" : "hover:opacity-80 cursor-pointer"}`}
                                 onClick={handleSubmit}
                             >
                                 {isSubmitting ? <Spinner /> : null}

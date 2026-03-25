@@ -88,7 +88,7 @@ export default function ForgetPasswordModal({ open, onClose }: ForgetPasswordMod
                     <button 
                         type="submit" 
                         disabled={isLoading}
-                        className="bg-accent text-primary rounded-md py-2 mt-5 font-[14px] font-semibold cursor-pointer hover:opacity-80 transition-all disabled:cursor-not-allowed disabled:opacity-70"
+                        className={`bg-accent text-primary rounded-md py-2 mt-5 font-[14px] font-semibold transition-all ${isLoading ? "cursor-progress opacity-70" : "cursor-pointer hover:opacity-80"}`}
                     >
                         {isLoading ? 'Sending...' : 'Send Reset Password Email'}
                     </button>
