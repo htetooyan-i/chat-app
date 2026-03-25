@@ -4,6 +4,7 @@ import crypto from 'crypto';
 
 import { prisma } from "../lib/prisma";
 import { ServerInvite } from '@prisma/client';
+import { AppError } from '../errors/appError';
 
 class ServerInviteService {
 
@@ -46,7 +47,7 @@ class ServerInviteService {
                 }
 
                 console.error("Error creating invite:", error);
-                throw new Error("Failed to create invite");
+                throw new AppError('INTERNAL_SERVER_ERROR', 'Failed to create invite', 500);
             }
         }
     }
@@ -70,13 +71,16 @@ class ServerInviteService {
                 },
             });
 
-            if ( !invite || (invite.maxUses !== null && invite.currentUses >= invite.maxUses) ) throw new Error("Invite is invalid or has expired");
+            if (!invite || (invite.maxUses !== null && invite.currentUses >= invite.maxUses)) {
+                throw new AppError('INVALID_INVITE', 'Invite is invalid or has expired', 400);
+            }
 
             return invite;
 
         } catch (error: any) {
             console.error("Error verifying invite:", error.message);
-            throw new Error(error.message || "Failed to verify invite", { cause: error });
+            if (error instanceof AppError) throw error;
+            throw new AppError('INTERNAL_SERVER_ERROR', error.message || 'Failed to verify invite', 500);
         }
     }
 
@@ -88,7 +92,7 @@ class ServerInviteService {
             });
         } catch (error: any) {
             console.error("Error incrementing invite usage:", error.message);
-            throw new Error("Failed to increment invite usage", { cause: error });
+            throw new AppError('INTERNAL_SERVER_ERROR', 'Failed to increment invite usage', 500);
         }
     }
 
@@ -102,7 +106,7 @@ class ServerInviteService {
             return invites;
         } catch (error: any) {
             console.error("Error fetching invites for server:", error.message);
-            throw new Error("Failed to fetch invites for server", { cause: error });
+            throw new AppError('INTERNAL_SERVER_ERROR', 'Failed to fetch invites for server', 500);
         }
     }
 
@@ -113,7 +117,7 @@ class ServerInviteService {
             });
         } catch (error: any) {
             console.error("Error deleting invite:", error.message);
-            throw new Error("Failed to delete invite", { cause: error });
+            throw new AppError('INTERNAL_SERVER_ERROR', 'Failed to delete invite', 500);
         }
     }
 
@@ -125,7 +129,7 @@ class ServerInviteService {
             });
         } catch (error: any) {
             console.error("Error deleting invites by user:", error.message);
-            throw new Error("Failed to delete invites by user", { cause: error });
+            throw new AppError('INTERNAL_SERVER_ERROR', 'Failed to delete invites by user', 500);
         }
     }
 
@@ -136,13 +140,14 @@ class ServerInviteService {
             });
 
             if (!invite) {
-                throw new Error("Invite not found");
+                throw new AppError('INVITE_NOT_FOUND', 'Invite not found', 404);
             }
 
             return invite;
         } catch (error: any) {
             console.error("Error fetching invite by code:", error.message);
-            throw new Error("Failed to fetch invite by code", { cause: error });
+            if (error instanceof AppError) throw error;
+            throw new AppError('INTERNAL_SERVER_ERROR', 'Failed to fetch invite by code', 500);
         }
     }
 }

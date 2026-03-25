@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 
 import AuthService from '../services/auth.service';
-import { AuthErrorMessage } from '../errors/authErrors';
+import { AuthErrorCode, AuthErrorMessage } from '../errors/authErrors';
+import { sendError, sendErrorFromUnknown, sendSuccess } from '../errors/apiResponse';
 import { EmailService } from '../services/email.service';
 import { TokenService } from '../services/token.service';
 import { OTPService } from '../services/otp.service';
@@ -37,22 +38,9 @@ export async function RegisterUser(req: Request, res: Response) {
         res.cookie("refreshToken", newUser.refreshToken, cookieOptions);
         res.cookie("accessToken", newUser.accessToken, accessTokenOptions);
 
-        res.status(200).json({
-            success: true,
-            data: null,
-            message: "User registered successfully",
-            error: null
-        });
+        return sendSuccess(res, 200, "User registered successfully", null);
     } catch (error) {
-        res.status(400).json({
-            success: false,
-            data: null,
-            message: "User registration failed",
-            error: {
-                code: (error as Error).message,
-                detail: AuthErrorMessage[(error as Error).message as keyof typeof AuthErrorMessage]
-            }
-        });
+        return sendErrorFromUnknown(res, error, AuthErrorCode.INTERNAL_SERVER_ERROR, "User registration failed", 400);
     }
 }
 
@@ -66,58 +54,24 @@ export async function LoginUser(req: Request, res: Response) {
 
         console.log('cookies set: ', res.getHeader('Set-Cookie')); // Debugging line to check cookies in response header
 
-        res.status(200).json({
-            success: true,
-            data: null,
-            message: "Login successful",
-            error: null
-        });
+        return sendSuccess(res, 200, "Login successful", null);
 
     } catch (error) {
-        res.status(400).json({
-            success: false,
-            data: null,
-            message: "Login failed",
-            error: {
-                code: (error as Error).message,
-                detail: AuthErrorMessage[(error as Error).message as keyof typeof AuthErrorMessage]
-            }
-        });
+        return sendErrorFromUnknown(res, error, AuthErrorCode.INVALID_CREDENTIALS, "Login failed", 400);
     }   
 }
 
 export async function GetCurrentUser(req: Request, res: Response) {
     const userId = req.user?.userId;
     if (!userId) {
-        return res.status(401).json({
-            success: false,
-            data: null,
-            message: "Unauthorized",
-            error: {
-                code: "UNAUTHORIZED",
-                detail: "Unauthorized"
-            }
-        });
+        return sendError(res, 401, AuthErrorCode.MISSING_PARAMETERS, "Unauthorized");
     }
 
     try {
         const user = await AuthService.me(userId);
-        res.status(200).json({
-            success: true,
-            data: user,
-            message: "User fetched successfully",
-            error: null
-        });
+        return sendSuccess(res, 200, "User fetched successfully", user);
     } catch (error) {
-        res.status(404).json({
-            success: false,
-            data: null,
-            message: "User not found",
-            error: {
-                code: "USER_NOT_FOUND",
-                detail: "User not found"
-            }
-        });
+        return sendErrorFromUnknown(res, error, AuthErrorCode.USER_NOT_FOUND, "User not found", 404);
     }
 }
 
@@ -125,15 +79,7 @@ export async function RefreshAccessToken(req: Request, res: Response) {
     const refreshToken = req.cookies.refreshToken;
 
     if (!refreshToken) {
-        return res.status(400).json({
-            success: false,
-            data: null,
-            message: "Refresh token is required",
-            error: {
-                code: AuthErrorMessage.MISSING_PARAMETERS,
-                detail: AuthErrorMessage.MISSING_PARAMETERS
-            }
-        });
+        return sendError(res, 400, AuthErrorCode.MISSING_PARAMETERS, AuthErrorMessage.MISSING_PARAMETERS);
     }
 
     try {
@@ -141,22 +87,9 @@ export async function RefreshAccessToken(req: Request, res: Response) {
         
         res.cookie("accessToken", accessToken, accessTokenOptions); // Set the new access token in cookie
 
-        res.status(200).json({
-            success: true,
-            data: accessToken,
-            message: "Access token refreshed successfully",
-            error: null
-        });
+        return sendSuccess(res, 200, "Access token refreshed successfully", accessToken);
     } catch (error) {
-        res.status(401).json({
-            success: false,
-            data: null,
-            message: "Invalid refresh token",
-            error: {
-                code: (error as Error).message,
-                detail: AuthErrorMessage[(error as Error).message as keyof typeof AuthErrorMessage]
-            }
-        });
+        return sendErrorFromUnknown(res, error, AuthErrorCode.INVALID_TOKEN, "Invalid refresh token", 401);
     }
 }
 
@@ -164,15 +97,7 @@ export async function LogoutUser(req: Request, res: Response) {
     const refreshToken = req.cookies.refreshToken;
 
     if (!refreshToken) {
-        return res.status(400).json({
-            success: false,
-            data: null,
-            message: "Refresh token is required",
-            error: {
-                code: AuthErrorMessage.MISSING_PARAMETERS,
-                detail: AuthErrorMessage.MISSING_PARAMETERS
-            }
-        });
+        return sendError(res, 400, AuthErrorCode.MISSING_PARAMETERS, AuthErrorMessage.MISSING_PARAMETERS);
     }
 
     try {
@@ -181,22 +106,9 @@ export async function LogoutUser(req: Request, res: Response) {
         res.clearCookie("refreshToken", cookieOptions);
         res.clearCookie("accessToken", accessTokenOptions);
 
-        res.status(200).json({
-            success: true,
-            data: null,
-            message: "Logout successful",
-            error: null
-        });
+        return sendSuccess(res, 200, "Logout successful", null);
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            data: null,
-            message: "Logout failed",
-            error: {
-                code: (error as Error).message,
-                detail: AuthErrorMessage[(error as Error).message as keyof typeof AuthErrorMessage]
-            }
-        });
+        return sendErrorFromUnknown(res, error, AuthErrorCode.INTERNAL_SERVER_ERROR, "Logout failed", 500);
     }
 
 }
@@ -205,15 +117,7 @@ export async function DeleteUser(req: Request, res: Response) {
 
     const userId = req.user?.userId;
     if (!userId) {
-        return res.status(401).json({
-            success: false,
-            data: null,
-            message: "Unauthorized",
-            error: {
-                code: AuthErrorMessage.MISSING_PARAMETERS,
-                detail: AuthErrorMessage.MISSING_PARAMETERS
-            }
-        });
+        return sendError(res, 401, AuthErrorCode.MISSING_PARAMETERS, "Unauthorized");
     }
 
     try {
@@ -222,22 +126,9 @@ export async function DeleteUser(req: Request, res: Response) {
         res.clearCookie("refreshToken", cookieOptions);
         res.clearCookie("accessToken", accessTokenOptions);
 
-        res.status(200).json({
-            success: true,
-            data: null,
-            message: "User deleted successfully",
-            error: null
-        });
+        return sendSuccess(res, 200, "User deleted successfully", null);
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            data: null,
-            message: "Failed to delete user",
-            error: {
-                code: (error as Error).message,
-                detail: AuthErrorMessage[(error as Error).message as keyof typeof AuthErrorMessage]
-            }
-        });
+        return sendErrorFromUnknown(res, error, AuthErrorCode.INTERNAL_SERVER_ERROR, "Failed to delete user", 500);
     }
 
 
@@ -248,37 +139,16 @@ export async function ChangePassword(req: Request, res: Response) {
     const userId = req.user?.userId;
 
     if (!userId) {
-        return res.status(401).json({
-            success: false,
-            data: null,
-            message: "Unauthorized",
-            error: {
-                code: AuthErrorMessage.MISSING_PARAMETERS,
-                detail: AuthErrorMessage.MISSING_PARAMETERS
-            }
-        });
+        return sendError(res, 401, AuthErrorCode.MISSING_PARAMETERS, "Unauthorized");
     }
 
     const { currentPassword, newPassword } = req.body;
 
     try {
         await AuthService.changePassword(userId, currentPassword, newPassword);
-        res.status(200).json({
-            success: true,
-            data: null,
-            message: "Password changed successfully",
-            error: null
-        });
+        return sendSuccess(res, 200, "Password changed successfully", null);
     } catch (error) {
-        res.status(400).json({
-            success: false,
-            data: null,
-            message: "Failed to change password",
-            error: {
-                code: (error as Error).message,
-                detail: AuthErrorMessage[(error as Error).message as keyof typeof AuthErrorMessage]
-            }
-        });
+        return sendErrorFromUnknown(res, error, AuthErrorCode.INTERNAL_SERVER_ERROR, "Failed to change password", 400);
     }  
 }
 
@@ -286,30 +156,14 @@ export async function VerifyEmail(req: Request, res: Response) {
     const { token } = req.query;
 
     if (typeof token !== "string") {
-        return res.status(400).json({
-            success: false,
-            data: null,
-            message: "Token is required",
-            error: {
-                code: AuthErrorMessage.MISSING_PARAMETERS,
-                detail: AuthErrorMessage.MISSING_PARAMETERS
-            }
-        });
+        return sendError(res, 400, AuthErrorCode.MISSING_PARAMETERS, "Token is required");
     }
 
     // Verify the token in header is valid and get the associated user ID
     const tokenRecord = await TokenService.verifyToken("EMAIL_VERIFICATION", token);
 
     if (!tokenRecord) {
-        return res.status(400).json({
-            success: false,
-            data: null,
-            message: "Invalid or expired token",
-            error: {
-                code: AuthErrorMessage.INVALID_TOKEN,
-                detail: AuthErrorMessage.INVALID_TOKEN
-            }
-        });
+        return sendError(res, 400, AuthErrorCode.INVALID_TOKEN, AuthErrorMessage.INVALID_TOKEN);
     }
 
     try {
@@ -354,50 +208,21 @@ export async function SendVerificationEmail(req: Request, res: Response) {
     const { userId, email } = req.user || {};
 
     if (!userId || !email) {
-        return res.status(401).json({
-            success: false,
-            data: null,
-            message: "Unauthorized",
-            error: {
-                code: AuthErrorMessage.MISSING_PARAMETERS,
-                detail: AuthErrorMessage.MISSING_PARAMETERS
-            }
-        });
+        return sendError(res, 401, AuthErrorCode.MISSING_PARAMETERS, "Unauthorized");
     }
 
     // Check if user is already verified if so, no need to resend verification email
     if (await AuthService.isUserVerified(userId)) {
-        return res.status(400).json({
-            success: false,
-            data: null,
-            message: "Email is already verified",
-            error: {
-                code: AuthErrorMessage.EMAIL_ALREADY_VERIFIED,
-                detail: AuthErrorMessage.EMAIL_ALREADY_VERIFIED
-            }
-        });
+        return sendError(res, 400, AuthErrorCode.EMAIL_ALREADY_VERIFIED, AuthErrorMessage.EMAIL_ALREADY_VERIFIED);
     }
 
     try {
         const rawToken = await TokenService.generate(userId, "EMAIL_VERIFICATION", 60); // Generate token with 1 hour expiration
         await EmailService.sendVerificationEmail(email!, rawToken).catch(console.error);
 
-        res.status(200).json({
-            success: true,
-            data: null,
-            message: "Verification email sent successfully",
-            error: null
-        });
+        return sendSuccess(res, 200, "Verification email sent successfully", null);
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            data: null,
-            message: "Failed to send verification email",
-            error: {
-                code: AuthErrorMessage.INTERNAL_SERVER_ERROR,
-                detail: AuthErrorMessage.INTERNAL_SERVER_ERROR
-            }
-        });
+        return sendErrorFromUnknown(res, error, AuthErrorCode.INTERNAL_SERVER_ERROR, "Failed to send verification email", 500);
     }
 
 }
@@ -406,51 +231,22 @@ export async function RequestPasswordReset(req: Request, res: Response) {
     const { email } = req.body;
 
     if (!email) {
-        return res.status(400).json({
-            success: false,
-            data: null,
-            message: "Email is required",
-            error: {
-                code: AuthErrorMessage.MISSING_PARAMETERS,
-                detail: AuthErrorMessage.MISSING_PARAMETERS
-            }
-        });
+        return sendError(res, 400, AuthErrorCode.MISSING_PARAMETERS, "Email is required");
     }
 
     try {
 
         const user = await AuthService.getUserByEmail(email);
         if (!user) {
-            return res.status(400).json({
-                success: false,
-                data: null,
-                message: "User with this email does not exist",
-                error: {
-                    code: AuthErrorMessage.USER_NOT_FOUND,
-                    detail: AuthErrorMessage.USER_NOT_FOUND
-                }
-            });
+            return sendError(res, 400, AuthErrorCode.USER_NOT_FOUND, "User with this email does not exist");
         }
 
         const rawToken = await TokenService.generate(user.id, "PASSWORD_RESET", 15);
         await EmailService.sendPasswordResetEmail(email, rawToken).catch(console.error);
         
-        res.status(200).json({
-            success: true,
-            data: null,
-            message: "Password reset email sent successfully",
-            error: null
-        });
+        return sendSuccess(res, 200, "Password reset email sent successfully", null);
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            data: null,
-            message: "Failed to send password reset email",
-            error: {
-                code: AuthErrorMessage.INTERNAL_SERVER_ERROR,
-                detail: AuthErrorMessage.INTERNAL_SERVER_ERROR
-            }
-        });
+        return sendErrorFromUnknown(res, error, AuthErrorCode.INTERNAL_SERVER_ERROR, "Failed to send password reset email", 500);
     }
 }
 
@@ -458,47 +254,18 @@ export async function RequestPasswordReset(req: Request, res: Response) {
 export async function VerifyResetToken(req: Request, res: Response) {
     const token = req.query.token;
     if (typeof token !== "string") {
-        return res.status(400).json({
-            success: false,
-            data: null,
-            message: "Token is required",
-            error: {
-                code: AuthErrorMessage.MISSING_PARAMETERS,
-                detail: AuthErrorMessage.MISSING_PARAMETERS
-            }
-        });
+        return sendError(res, 400, AuthErrorCode.MISSING_PARAMETERS, "Token is required");
     }
 
     try {
         const tokenRecord = await TokenService.verifyToken("PASSWORD_RESET", token, false); // just fetch, don't delete/use
         if (!tokenRecord) {
-            return res.status(400).json({
-                success: false,
-                data: null,
-                message: "Invalid or expired token",
-                error: {
-                    code: AuthErrorMessage.INVALID_TOKEN,
-                    detail: AuthErrorMessage.INVALID_TOKEN
-                }
-            });
+            return sendError(res, 400, AuthErrorCode.INVALID_TOKEN, AuthErrorMessage.INVALID_TOKEN);
         }
-        res.status(200).json({
-            success: true,
-            data: null,
-            message: "Token is valid",
-            error: null
-        });
+        return sendSuccess(res, 200, "Token is valid", null);
 
     } catch (error) {
-        res.status(400).json({
-            success: false,
-            data: null,
-            message: "Invalid or expired token",
-            error: {
-                code: AuthErrorMessage.INVALID_TOKEN,
-                detail: AuthErrorMessage.INVALID_TOKEN
-            }
-        });
+        return sendError(res, 400, AuthErrorCode.INVALID_TOKEN, AuthErrorMessage.INVALID_TOKEN);
     }
 }
 
@@ -508,41 +275,17 @@ export async function ResetPassword(req: Request, res: Response) {
     const { newPassword } = req.body;
 
     if (typeof token !== "string") {
-        return res.status(400).json({
-            success: false,
-            data: null,
-            message: "Token is required",
-            error: {
-                code: AuthErrorMessage.MISSING_PARAMETERS,
-                detail: AuthErrorMessage.MISSING_PARAMETERS
-            }
-        });
+        return sendError(res, 400, AuthErrorCode.MISSING_PARAMETERS, "Token is required");
     }
 
     if (!newPassword) {
-        return res.status(400).json({
-            success: false,
-            data: null,
-            message: "New password is required",
-            error: {
-                code: AuthErrorMessage.MISSING_PARAMETERS,
-                detail: AuthErrorMessage.MISSING_PARAMETERS
-            }
-        });
+        return sendError(res, 400, AuthErrorCode.MISSING_PARAMETERS, "New password is required");
     }
     
     try {
         const tokenRecord = await TokenService.verifyToken("PASSWORD_RESET", token, false);
         if (!tokenRecord) {
-            return res.status(400).json({
-                success: false,
-                data: null,
-                message: "Invalid or expired token",
-                error: {
-                    code: AuthErrorMessage.INVALID_TOKEN,
-                    detail: AuthErrorMessage.INVALID_TOKEN
-                }
-            });
+            return sendError(res, 400, AuthErrorCode.INVALID_TOKEN, AuthErrorMessage.INVALID_TOKEN);
         }
 
         await AuthService.changePassword(tokenRecord.userId, "", newPassword, true); // We can pass empty string for current password since we already verified the token
@@ -564,23 +307,10 @@ export async function ResetPassword(req: Request, res: Response) {
             sameSite: process.env.NODE_ENV === "production" ? "none" as const : "lax" as const,
         });
 
-        res.status(200).json({
-            success: true,
-            data: null,
-            message: "Password reset successfully",
-            error: null
-        });
+        return sendSuccess(res, 200, "Password reset successfully", null);
 
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            data: null,
-            message: "Failed to reset password",
-            error: {
-                code: AuthErrorMessage.INTERNAL_SERVER_ERROR,
-                detail: AuthErrorMessage.INTERNAL_SERVER_ERROR
-            }
-        });
+        return sendErrorFromUnknown(res, error, AuthErrorCode.INTERNAL_SERVER_ERROR, "Failed to reset password", 500);
     }   
 }
 
@@ -588,35 +318,14 @@ export async function RequestPhoneOTP(req: Request, res: Response) {
     const { phone } = req.body;
     
     if (!phone) {
-        return res.status(400).json({
-            success: false,
-            data: null,
-            message: "Phone number is required",
-            error: {
-                code: AuthErrorMessage.MISSING_PARAMETERS,
-                detail: AuthErrorMessage.MISSING_PARAMETERS
-            }
-        });
+        return sendError(res, 400, AuthErrorCode.MISSING_PARAMETERS, "Phone number is required");
     }
 
     try {
         await OTPService.sendOTP(phone);
-        res.status(200).json({
-            success: true,
-            data: null,
-            message: "OTP sent successfully",
-            error: null
-        });
+        return sendSuccess(res, 200, "OTP sent successfully", null);
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            data: null,
-            message: "Failed to send OTP",
-            error: {
-                code: AuthErrorMessage.INTERNAL_SERVER_ERROR,
-                detail: AuthErrorMessage.INTERNAL_SERVER_ERROR
-            }
-        });
+        return sendErrorFromUnknown(res, error, AuthErrorCode.INTERNAL_SERVER_ERROR, "Failed to send OTP", 500);
     }
 }
 
@@ -624,47 +333,18 @@ export async function VerifyPhoneOTP(req: Request, res: Response) {
     const { phone, code } = req.body;
 
     if (!phone || !code) {
-        return res.status(400).json({
-            success: false,
-            data: null,
-            message: "Phone and code are required",
-            error: {
-                code: AuthErrorMessage.MISSING_PARAMETERS,
-                detail: AuthErrorMessage.MISSING_PARAMETERS
-            }
-        });
+        return sendError(res, 400, AuthErrorCode.MISSING_PARAMETERS, "Phone and code are required");
     }
 
     try {
         const status = await OTPService.verifyOTP(phone, code);
         if (status === "approved") {
-            res.status(200).json({
-                success: true,
-                data: null,
-                message: "Phone number verified successfully",
-                error: null
-            });
+            return sendSuccess(res, 200, "Phone number verified successfully", null);
         } else {
-            res.status(400).json({
-                success: false,
-                data: null,
-                message: "Invalid OTP code",
-                error: {
-                    code: AuthErrorMessage.INVALID_OTP,
-                    detail: AuthErrorMessage.INVALID_OTP
-                }
-            });
+            return sendError(res, 400, AuthErrorCode.INVALID_OTP, AuthErrorMessage.INVALID_OTP);
         }
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            data: null,
-            message: "Failed to verify OTP",
-            error: {
-                code: AuthErrorMessage.INTERNAL_SERVER_ERROR,
-                detail: AuthErrorMessage.INTERNAL_SERVER_ERROR
-            }
-        });
+        return sendErrorFromUnknown(res, error, AuthErrorCode.INTERNAL_SERVER_ERROR, "Failed to verify OTP", 500);
     }
 }
 

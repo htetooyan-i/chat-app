@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import BanService from "../services/ban.service";
 import { io } from "../server";
 import { MemberRole } from "@prisma/client";
+import { sendError, sendErrorFromUnknown, sendSuccess } from '../errors/apiResponse';
 
 export async function handleBanRequest(req: Request, res: Response) {
     try {
@@ -11,15 +12,7 @@ export async function handleBanRequest(req: Request, res: Response) {
         const requester = req.member; // from auth middleware
 
         if (!requester) {
-            return res.status(401).json({
-                success: false,
-                data: null,
-                messsage: "Unauthorized",
-                error: {
-                    code: "UNAUTHORIZED",
-                    detail: "You must be logged in to perform this action"
-                }
-            });
+            return sendError(res, 401, 'UNAUTHORIZED', 'You must be logged in to perform this action');
         }
         const isPrivileged =
             requester.role === MemberRole.OWNER ||
@@ -29,32 +22,14 @@ export async function handleBanRequest(req: Request, res: Response) {
             const ban = await BanService.banUser(Number(serverId), Number(userId), requester.role, reason, duration);
             io.to(`server-${serverId}`).emit("memberBanned", userId);
             io.to(`server-${serverId}`).emit("receivedNewBan", ban);
-            return res.status(200).json({
-                success: true,
-                data: null,
-                message: "User banned successfully",
-                error: null
-            });
+            return sendSuccess(res, 200, "User banned successfully", null);
         } else {
             const ban = await BanService.requestBanUser(Number(serverId), Number(userId), requester.role, reason, duration);
             io.to(`server-${serverId}`).emit("receivedNewBan", ban);
-            return res.status(200).json({
-                success: true,
-                data: null,
-                message: "Ban request submitted for review",
-                error: null
-            });
+            return sendSuccess(res, 200, "Ban request submitted for review", null);
         }
     } catch (error: any) {
-        return res.status(400).json({
-            success: false,
-            data: null,
-            messsage: "Failed to process ban request: ",
-            error: {
-                code: "INTERNAL_SERVER_ERROR",
-                detail: error.message || "Failed to process ban request"
-            }
-        });
+        return sendErrorFromUnknown(res, error, 'INTERNAL_SERVER_ERROR', 'Failed to process ban request', 400);
     }
 }
 
@@ -63,22 +38,9 @@ export async function GetBansForServer(req: Request, res: Response) {
 
     try {
         const bans = await BanService.getBansForServer(Number(serverId));
-        res.status(200).json({
-            success: true,
-            data: bans,
-            message: "Bans retrieved successfully",
-            error: null
-        });
+        return sendSuccess(res, 200, "Bans retrieved successfully", bans);
     } catch (error: any) {
-        res.status(400).json({
-            success: false,
-            data: null,
-            message: "Failed to retrieve bans",
-            error: {
-                code: "INTERNAL_SERVER_ERROR",
-                detail: error.message || "Failed to retrieve bans"
-            }
-        });
+        return sendErrorFromUnknown(res, error, 'INTERNAL_SERVER_ERROR', 'Failed to retrieve bans', 400);
     }
 }
 
@@ -89,53 +51,21 @@ export async function ReviewBanAppeal(req: Request, res: Response) {
     const reviewerId = req.user?.userId;
 
     if (!reviewerId) {
-        return res.status(401).json({
-            success: false,
-            data: null,
-            message: "Unauthorized",
-            error: {
-                code: "UNAUTHORIZED",
-                detail: "You must be logged in to perform this action"
-            }
-        });
+        return sendError(res, 401, 'UNAUTHORIZED', 'You must be logged in to perform this action');
     }
 
     if (!banId) {
-        return res.status(400).json({
-            success: false,
-            data: null,
-            message: "Missing banId",
-            error: {
-                code: "MISSING_BAN_ID",
-                detail: "Ban ID is required"
-            }
-        });
+        return sendError(res, 400, 'MISSING_BAN_ID', 'Ban ID is required');
     }
 
     const parsedBanId = Number(banId);
 
     if (isNaN(parsedBanId)) {
-        return res.status(400).json({
-            success: false,
-            data: null,
-            message: "Invalid banId format",
-            error: {
-                code: "INVALID_BAN_ID",
-                detail: "Ban ID must be a valid number"
-            }
-        });
+        return sendError(res, 400, 'INVALID_BAN_ID', 'Ban ID must be a valid number');
     }
 
     if (decision !== "ACCEPTED" && decision !== "REJECTED") {
-        return res.status(400).json({
-            success: false,
-            data: null,
-            message: "Invalid decision value",
-            error: {
-                code: "INVALID_DECISION",
-                detail: "Decision must be either 'ACCEPTED' or 'REJECTED'"
-            }
-        });
+        return sendError(res, 400, 'INVALID_DECISION', "Decision must be either 'ACCEPTED' or 'REJECTED'");
     }
 
     try {
@@ -146,22 +76,9 @@ export async function ReviewBanAppeal(req: Request, res: Response) {
             io.to(`server-${serverId}`).emit("memberBanned", updatedBan.userId);
         }
         
-        return res.status(200).json({
-            success: true,
-            data: null,
-            message: "Ban appeal reviewed successfully",
-            error: null
-        });
+        return sendSuccess(res, 200, "Ban appeal reviewed successfully", null);
     } catch (error: any) {
-        return res.status(500).json({
-            success: false,
-            data: null,
-            message: "Failed to review ban appeal",
-            error: {
-                code: "INTERNAL_SERVER_ERROR",
-                detail: error.message || "Failed to revoke ban"
-            }
-        });
+        return sendErrorFromUnknown(res, error, 'INTERNAL_SERVER_ERROR', 'Failed to review ban appeal', 500);
     }
 }
 
@@ -170,50 +87,21 @@ export async function RevokeBan(req: Request, res: Response) {
     const requesterId = req.user?.userId;
 
     if (!requesterId) {
-        return res.status(401).json({
-            success: false,
-            data: null,
-            message: "Unauthorized",
-            error: {
-                code: "UNAUTHORIZED",
-                detail: "You must be logged in to perform this action"
-            }
-        });
+        return sendError(res, 401, 'UNAUTHORIZED', 'You must be logged in to perform this action');
     }
 
     const parsedBanId = Number(banId);
 
     if (isNaN(parsedBanId)) {
-        return res.status(400).json({
-            success: false,
-            data: null,
-            message: "Invalid banId format",
-            error: {
-                code: "INVALID_BAN_ID",
-                detail: "Ban ID must be a valid number"
-            }
-        });
+        return sendError(res, 400, 'INVALID_BAN_ID', 'Ban ID must be a valid number');
     }
 
     try {
         await BanService.revokeBan(parsedBanId);
         io.to(`server-${serverId}`).emit("banUpdated", {banId: parsedBanId, decision: "REVOKED" });
-        return res.status(200).json({
-            success: true,
-            data: null,
-            message: "Ban revoked successfully",
-            error: null
-        });
+        return sendSuccess(res, 200, "Ban revoked successfully", null);
     } catch (error: any) {
-        return res.status(500).json({
-            success: false,
-            data: null,
-            message: "Failed to revoke ban",
-            error: {
-                code: "INTERNAL_SERVER_ERROR",
-                detail: error.message || "Failed to revoke ban"
-            }
-        });
+        return sendErrorFromUnknown(res, error, 'INTERNAL_SERVER_ERROR', 'Failed to revoke ban', 500);
     }
 }
 
@@ -222,49 +110,20 @@ export async function DeleteBan(req: Request, res: Response) {
     const requesterId = req.user?.userId;
 
     if (!requesterId) {
-        return res.status(401).json({
-            success: false,
-            data: null,
-            message: "Unauthorized",
-            error: {
-                code: "UNAUTHORIZED",
-                detail: "You must be logged in to perform this action"
-            }
-        });
+        return sendError(res, 401, 'UNAUTHORIZED', 'You must be logged in to perform this action');
     }
 
     const parsedBanId = Number(banId);
 
     if (isNaN(parsedBanId)) {
-        return res.status(400).json({
-            success: false,
-            data: null,
-            message: "Invalid banId format",
-            error: {
-                code: "INVALID_BAN_ID",
-                detail: "Ban ID must be a valid number"
-            }
-        });
+        return sendError(res, 400, 'INVALID_BAN_ID', 'Ban ID must be a valid number');
     }
 
     try {
         await BanService.delete(parsedBanId);
         io.to(`server-${serverId}`).emit("banDeleted", {banId: parsedBanId});
-        return res.status(200).json({
-            success: true,
-            data: null,
-            message: "Ban deleted successfully",
-            error: null
-        });
+        return sendSuccess(res, 200, "Ban deleted successfully", null);
     } catch (error: any) {
-        return res.status(500).json({
-            success: false,
-            data: null,
-            message: "Failed to delete ban",
-            error: {
-                code: "INTERNAL_SERVER_ERROR",
-                detail: error.message || "Failed to delete ban"
-            }
-        });
+        return sendErrorFromUnknown(res, error, 'INTERNAL_SERVER_ERROR', 'Failed to delete ban', 500);
     }
 }

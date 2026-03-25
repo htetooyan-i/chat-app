@@ -1,12 +1,13 @@
 import { Hash } from '../lib/hash';
 import { prisma } from '../lib/prisma';
+import { AppError } from '../errors/appError';
 
 export class UsersService {
     // Fetches the current user's profile information based on their user ID.
     static async me(userId: number) {
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) {
-            throw new Error('User not found');
+            throw new AppError('USER_NOT_FOUND', 'User not found', 404);
         }
         return user;
     }
@@ -15,7 +16,7 @@ export class UsersService {
     static async verifyPassword(userId: number, password: string) {
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) {
-            throw new Error('User not found');
+            throw new AppError('USER_NOT_FOUND', 'User not found', 404);
         }
         const isPasswordValid = await Hash.verify(user.passwordHash, password);
         return isPasswordValid;
@@ -26,12 +27,12 @@ export class UsersService {
 
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) {
-            throw new Error('User not found');
+            throw new AppError('USER_NOT_FOUND', 'User not found', 404);
         }
 
         const isPasswordValid = await this.verifyPassword(userId, password);
         if (!isPasswordValid) {
-            throw new Error('Invalid password');
+            throw new AppError('INVALID_CREDENTIALS', 'Invalid password', 401);
         }
 
         const updatedUser = await prisma.user.update({
@@ -51,7 +52,7 @@ export class UsersService {
             return user;
         } catch (error) {
             console.error('Error finding user by id:', error);
-            throw new Error('User not found');
+            throw new AppError('USER_NOT_FOUND', 'User not found', 404);
         }
     }
 
@@ -62,7 +63,7 @@ export class UsersService {
             return user;
         } catch (error) {
             console.error('Error finding user by email:', error);
-            throw new Error('User not found');
+            throw new AppError('USER_NOT_FOUND', 'User not found', 404);
         }
     }
 
@@ -70,7 +71,7 @@ export class UsersService {
     static async updateAvatar(userId: number, avatarUrl: string) {
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) {
-            throw new Error('User not found');
+            throw new AppError('USER_NOT_FOUND', 'User not found', 404);
         }
         try {
             await prisma.user.update({
@@ -81,7 +82,7 @@ export class UsersService {
             });
         } catch (error) {
             console.error('Error updating user avatar:', error);
-            throw new Error('Failed to update avatar');
+            throw new AppError('INTERNAL_SERVER_ERROR', 'Failed to update avatar', 500);
         }
     }
 
@@ -89,7 +90,7 @@ export class UsersService {
     static async deleteAvatar(userId: number) {
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) {
-            throw new Error('User not found');
+            throw new AppError('USER_NOT_FOUND', 'User not found', 404);
         }
         try {
             await prisma.user.update({
@@ -100,7 +101,7 @@ export class UsersService {
             });
         } catch (error) {
             console.error('Error deleting user avatar:', error);
-            throw new Error('Failed to delete avatar');
+            throw new AppError('INTERNAL_SERVER_ERROR', 'Failed to delete avatar', 500);
         }
     }
 
@@ -108,18 +109,18 @@ export class UsersService {
     static async updateEmail(userId: number, password: string, newEmail: string) {
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) {
-            throw new Error('User not found');
+            throw new AppError('USER_NOT_FOUND', 'User not found', 404);
         }
         
         const isPasswordValid = await this.verifyPassword(userId, password);
         if (!isPasswordValid) {
-            throw new Error('Invalid password');
+            throw new AppError('INVALID_CREDENTIALS', 'Invalid password', 401);
         }
 
         try {
             const existingUser = await this.findUserByEmail(newEmail);
             if (existingUser && existingUser.id !== userId) {
-                throw new Error('Email is already in use');
+                throw new AppError('EMAIL_ALREADY_IN_USE', 'Email is already in use', 409);
             }
             await prisma.user.update({
                 where: { id: userId },
@@ -129,7 +130,8 @@ export class UsersService {
             });
         } catch (error) {
             console.error('Error updating user email:', error);
-            throw new Error('Failed to update email');
+            if (error instanceof AppError) throw error;
+            throw new AppError('INTERNAL_SERVER_ERROR', 'Failed to update email', 500);
         }
     }
 }

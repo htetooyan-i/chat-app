@@ -1,5 +1,6 @@
 import { User } from "./User";
 import {Attachment} from "./Attachment";
+import { ApiResponse } from "./ApiResponse";
 
 export type Reaction = {
     id: string;
@@ -28,3 +29,6 @@ export type Message = {
         userIds: number[];
     }[];
 }
+
+export type GetMessagesResponse = ApiResponse<Message[]>;
+export type EditMessageResponse = ApiResponse<Message>;

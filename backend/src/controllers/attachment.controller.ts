@@ -3,21 +3,19 @@ import cloudinary from '../lib/cloudinary';
 
 import AttachmentService from '../services/attachment.service';
 import { AttachmentErrorCode, AttachmentErrorMessage } from '../errors/attachmentErrors';
+import { sendError, sendErrorFromUnknown, sendSuccess } from '../errors/apiResponse';
 
 export async function DeleteAttachment(req: Request, res: Response) {
     try {
         const { attachmentId, publicId, resourceType } = req.body;
 
         if (!publicId || !resourceType) {
-            return res.status(400).json({
-                success: false,
-                data: null,
-                message: 'Failed to delete attachment',
-                error: {
-                    code: AttachmentErrorCode.MISSING_PARAMETERS,
-                    detail: AttachmentErrorMessage[AttachmentErrorCode.MISSING_PARAMETERS]
-                }
-            });
+            return sendError(
+                res,
+                400,
+                AttachmentErrorCode.MISSING_PARAMETERS,
+                AttachmentErrorMessage[AttachmentErrorCode.MISSING_PARAMETERS],
+            );
         }
 
         await cloudinary.uploader.destroy(publicId, {
@@ -28,24 +26,17 @@ export async function DeleteAttachment(req: Request, res: Response) {
             await AttachmentService.deleteAttachment(attachmentId);
         }
 
-        return res.status(200).json({
-            success: true,
-            data: null,
-            message: 'Attachment deleted successfully',
-            error: null
-        });
+        return sendSuccess(res, 200, 'Attachment deleted successfully', null);
 
     } catch (error: any) {
         console.error('Delete attachment error:', error);
-        return res.status(500).json({
-            success: false,
-            data: null,
-            message: 'Failed to delete attachment',
-            error: {
-                code: AttachmentErrorCode.INTERNAL_SERVER_ERROR,
-                detail: AttachmentErrorMessage[AttachmentErrorCode.INTERNAL_SERVER_ERROR]
-            }
-        });
+        return sendErrorFromUnknown(
+            res,
+            error,
+            AttachmentErrorCode.INTERNAL_SERVER_ERROR,
+            AttachmentErrorMessage[AttachmentErrorCode.INTERNAL_SERVER_ERROR],
+            500,
+        );
     }
 }
 
@@ -56,15 +47,15 @@ export async function SignUpload(req: Request, res: Response) {
         // @ts-ignore
         process.env.CLOUDINARY_API_SECRET
     );
-    res.status(200).json({
-        success: true,
-        data: {
+    return sendSuccess(
+        res,
+        200,
+        'Upload signature generated successfully',
+        {
             timestamp,
             signature,
         },
-        message: 'Upload signature generated successfully',
-        error: null
-    });
+    );
 }
 
 export async function GetAttachmentsForChannel(req: Request, res: Response) {
@@ -75,44 +66,34 @@ export async function GetAttachmentsForChannel(req: Request, res: Response) {
     const limitNumber = Number(limit) || 20;
 
     if (!channelId) {
-        return res.status(400).json({
-            success: false,
-            data: null,
-            message: 'Failed to get attachments',
-            error: {
-                code: AttachmentErrorCode.MISSING_PARAMETERS,
-                detail: AttachmentErrorMessage[AttachmentErrorCode.MISSING_PARAMETERS]
-            }
-        });
+        return sendError(
+            res,
+            400,
+            AttachmentErrorCode.MISSING_PARAMETERS,
+            AttachmentErrorMessage[AttachmentErrorCode.MISSING_PARAMETERS],
+        );
     }
 
     try {
         const {attachments, totalImages, totalRaws, page: currentPage} = await AttachmentService.getAttachmentForChannel(Number(channelId), pageNumber, limitNumber);
         
-        return res.status(200).json({
-            success: true,
-            data: {
-                items: attachments,
-                pagination: {
-                    page: currentPage,
-                    limit: limitNumber,
-                    totalImages,
-                    totalRaws,
-                }
-            },
-            message: 'Attachments retrieved successfully',
-            error: null
+        return sendSuccess(res, 200, 'Attachments retrieved successfully', {
+            items: attachments,
+            pagination: {
+                page: currentPage,
+                limit: limitNumber,
+                totalImages,
+                totalRaws,
+            }
         });
     } catch (error: any) {
         console.error('Get attachments error:', error);
-        return res.status(500).json({
-            success: false,
-            data: null,
-            message: 'Failed to get attachments',
-            error: {
-                code: AttachmentErrorCode.INTERNAL_SERVER_ERROR,
-                detail: AttachmentErrorMessage[AttachmentErrorCode.INTERNAL_SERVER_ERROR]
-            }
-        });
+        return sendErrorFromUnknown(
+            res,
+            error,
+            AttachmentErrorCode.INTERNAL_SERVER_ERROR,
+            AttachmentErrorMessage[AttachmentErrorCode.INTERNAL_SERVER_ERROR],
+            500,
+        );
     }
 }

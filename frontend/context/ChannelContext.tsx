@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 
 import { api } from "@/lib/api";
 import { useServer } from "@/hooks/useServer";
-import { Channel } from "@/types/Channel";
+import { Channel, CreateChannelResponse, GetChannelsResponse } from "@/types/Channel";
 import { useSocket } from "@/hooks/useSocket";
 
 type ChannelContextType = {
@@ -52,7 +52,7 @@ export const ChannelProvider: React.FC<ChannelProviderProps> = ({ children }) =>
         setLoading(true);
 
         try {
-          const res = await api.get(`/servers/${serverId}/channels`);
+          const res: GetChannelsResponse = await api.get(`/servers/${serverId}/channels`).then(r => r.data);
           setChannelsByServer(prev => ({ ...prev, [serverId]: res.data }));
         } catch (err) {
           console.error("Error fetching channels:", err);
@@ -122,10 +122,10 @@ export const ChannelProvider: React.FC<ChannelProviderProps> = ({ children }) =>
     const createChannel = async (channelName: string): Promise<Channel | null> => {
         if (!serverId) return null;
 
-        const res = await api.post(
+        const res: CreateChannelResponse = await api.post(
             `/servers/${serverId}/channels`,
             { name: channelName }
-        );
+        ).then(r => r.data);
         channelsByServer[serverId] = [...channelsByServer[serverId], res.data];
         return res.data;
     };

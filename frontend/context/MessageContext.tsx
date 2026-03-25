@@ -3,7 +3,7 @@ import React, { createContext, useEffect, useState, useRef, useMemo, useCallback
 import { useParams } from "next/navigation";
 
 import {api, getErrorMessage} from "@/lib/api";
-import {Message, Reaction} from "@/types/Message";
+import {EditMessageResponse, GetMessagesResponse, Message, Reaction} from "@/types/Message";
 import { useSocket } from "@/hooks/useSocket";
 import { groupMessagesByDate } from '@/lib/helper';
 import { useAuth } from "@/hooks/useAuth";
@@ -117,7 +117,7 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setHasMore(true);
         setLoading(true);
         try {
-            const response = await api.get(`/channels/${channelId}/messages?limit=50`);
+            const response: GetMessagesResponse = await api.get(`/channels/${channelId}/messages?limit=50`).then(r => r.data);
             const sorted = [...response.data].reverse();
             oldestMessageId.current = sorted[0]?.id ?? null;
             setHasMore(response.data.length === 50);
@@ -241,7 +241,7 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         if (!socket) return;
 
-        const res = await api.patch(`/messages/${messageId}`, { content: newContent, attachments: updatedFiles });
+        const res: EditMessageResponse = await api.patch(`/messages/${messageId}`, { content: newContent, attachments: updatedFiles }).then(r => r.data);
         const updatedMessage = res.data;
         // update UI
         setMessages(prev => prev.map(msg =>
@@ -278,7 +278,7 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setIsFetchingMore(true);
 
         try {
-            const response = await api.get(`/channels/${channelId}/messages?limit=50&before=${oldestMessageId.current}`);
+            const response: GetMessagesResponse = await api.get(`/channels/${channelId}/messages?limit=50&before=${oldestMessageId.current}`).then(r => r.data);
 
             if (response.data.length === 0) {
                 setHasMore(false);

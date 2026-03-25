@@ -36,11 +36,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(true);
     try {
       const res: GetUserResponse = await api.get('/auth/me').then(r => r.data);
+      console.log("Fetched user data:", res.data);
       setUser(res.data);
       console.log("Fetched user data:", res.data);
     } catch (error) {
-      throw getErrorMessage(error, "Failed to fetch user data");
       setUser(null);
+      throw getErrorMessage(error, "Failed to fetch user data");
     } finally {
       setLoading(false);
     }

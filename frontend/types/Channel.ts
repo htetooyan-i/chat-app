@@ -1,5 +1,6 @@
 import { Message } from "./Message";
 import { Server } from "./Server";
+import { ApiResponse } from "./ApiResponse";
 
 export type Channel = {
     id: number;
@@ -11,3 +12,6 @@ export type Channel = {
     server?: Server;
     messages?: Message[];
 }
+
+export type GetChannelsResponse = ApiResponse<Channel[]>;
+export type CreateChannelResponse = ApiResponse<Channel>;

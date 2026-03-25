@@ -10,7 +10,7 @@ import { useParams } from "next/navigation";
 
 import { api } from "@/lib/api";
 import { useSocket } from "@/hooks/useSocket";
-import { MemberRole, ServerMember } from "@/types/ServerMember";
+import { GetServerMembersResponse, MemberRole, ServerMember } from "@/types/ServerMember";
 import { useAuth } from "@/hooks/useAuth";
 
 type ServerMemberContextType = {
@@ -80,11 +80,11 @@ export const ServerMemberProvider: React.FC<{
         }));
 
         try {
-            const res = await api.get(`/servers/${targetServerId}/members`);
+            const res: GetServerMembersResponse = await api.get(`/servers/${targetServerId}/members`).then(r => r.data);
 
             setMembersByServer(prev => ({
                 ...prev,
-                [targetServerId]: res.data.data
+                [targetServerId]: res.data
             }));
         } catch (error) {
             console.error("Error fetching members:", error);

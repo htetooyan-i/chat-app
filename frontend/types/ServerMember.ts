@@ -19,3 +19,4 @@ export type ServerMember = {
 };
 
 export type PostCreateNewServerMemberResponse = ApiResponse<ServerMember>;
+export type GetServerMembersResponse = ApiResponse<ServerMember[]>;

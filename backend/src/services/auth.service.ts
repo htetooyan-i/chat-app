@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma';
-import { AuthErrorCode } from '../errors/authErrors';
+import { AuthErrorCode, AuthErrorMessage } from '../errors/authErrors';
+import { AppError } from '../errors/appError';
 import { Hash } from '../lib/hash';
 import { createAccessToken, createRefreshToken, verifyToken } from '../lib/jwt';
 import { checkPasswordStrength } from '../lib/helper';
@@ -12,16 +13,16 @@ class AuthService {
         const existingEmail = await prisma.user.findUnique({ where: { email } });
 
         if (existingEmail) {
-            throw new Error(AuthErrorCode.EXIST_EMAIL);
+            throw new AppError(AuthErrorCode.EXIST_EMAIL, AuthErrorMessage.EXIST_EMAIL, 409);
         }
 
         const existingUsername = await prisma.user.findUnique({ where: { username } });
         if (existingUsername) {
-            throw new Error(AuthErrorCode.EXIST_USERNAME);
+            throw new AppError(AuthErrorCode.EXIST_USERNAME, AuthErrorMessage.EXIST_USERNAME, 409);
         }  
 
         if (!checkPasswordStrength(password)) {
-            throw new Error(AuthErrorCode.WEAK_PASSWORD);
+            throw new AppError(AuthErrorCode.WEAK_PASSWORD, AuthErrorMessage.WEAK_PASSWORD, 400);
         }
 
         const hashedPassword = await Hash.hash(password);
@@ -48,7 +49,7 @@ class AuthService {
         const isPasswordValid = user ? await Hash.verify(user.passwordHash, password) : false;
 
         if (!user || !isPasswordValid) {
-            throw new Error(AuthErrorCode.INVALID_CREDENTIALS);
+            throw new AppError(AuthErrorCode.INVALID_CREDENTIALS, AuthErrorMessage.INVALID_CREDENTIALS, 401);
         }
 
         // Generate tokens
@@ -64,7 +65,7 @@ class AuthService {
             return { accessToken, refreshToken };
         } catch (err: any) {
             console.error("Error generating tokens:", err.message);
-            throw err;
+            throw new AppError(AuthErrorCode.INTERNAL_SERVER_ERROR, AuthErrorMessage.INTERNAL_SERVER_ERROR, 500);
         }
         
     };
@@ -73,7 +74,7 @@ class AuthService {
     static async me(userId: number) {
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) {
-            throw new Error(AuthErrorCode.USER_NOT_FOUND);
+            throw new AppError(AuthErrorCode.USER_NOT_FOUND, AuthErrorMessage.USER_NOT_FOUND, 404);
         }
         return user;
     }
@@ -81,7 +82,7 @@ class AuthService {
     static async getUserByEmail(email: string) {
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user) {
-            throw new Error(AuthErrorCode.EMAIL_NOT_FOUND);
+            throw new AppError(AuthErrorCode.EMAIL_NOT_FOUND, AuthErrorMessage.EMAIL_NOT_FOUND, 404);
         }
         return user;
     }
@@ -89,7 +90,7 @@ class AuthService {
     static async getUserById(id: number) {
         const user = await prisma.user.findUnique({ where: { id } });
         if (!user) {
-            throw new Error(AuthErrorCode.USER_NOT_FOUND);
+            throw new AppError(AuthErrorCode.USER_NOT_FOUND, AuthErrorMessage.USER_NOT_FOUND, 404);
         }
         return user;
     }
@@ -120,7 +121,7 @@ class AuthService {
                 where: { id: userId },
             });
         } catch (err) {
-            throw new Error(AuthErrorCode.INTERNAL_SERVER_ERROR);
+            throw new AppError(AuthErrorCode.INTERNAL_SERVER_ERROR, AuthErrorMessage.INTERNAL_SERVER_ERROR, 500);
         }
     }
 
@@ -128,13 +129,13 @@ class AuthService {
     static async changePassword(userId: number, currentPassword: string, newPassword: string, isVerified = false) {
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) {
-            throw new Error(AuthErrorCode.USER_NOT_FOUND);
+            throw new AppError(AuthErrorCode.USER_NOT_FOUND, AuthErrorMessage.USER_NOT_FOUND, 404);
         }
 
         if (!isVerified) {
             const isCurrentPasswordValid = await Hash.verify(user.passwordHash, currentPassword);
             if (!isCurrentPasswordValid) {
-                throw new Error(AuthErrorCode.WRONG_PASSWORD);
+                throw new AppError(AuthErrorCode.WRONG_PASSWORD, AuthErrorMessage.WRONG_PASSWORD, 400);
             }
         }
 
@@ -145,7 +146,7 @@ class AuthService {
                 data: { passwordHash: newHashedPassword },
             });
         } catch (err) {
-            throw new Error(AuthErrorCode.INTERNAL_SERVER_ERROR);
+            throw new AppError(AuthErrorCode.INTERNAL_SERVER_ERROR, AuthErrorMessage.INTERNAL_SERVER_ERROR, 500);
         }
     }
 
@@ -157,7 +158,7 @@ class AuthService {
                 data: { verified: verified },
             });
         } catch (err) {
-            throw new Error(AuthErrorCode.INTERNAL_SERVER_ERROR);
+            throw new AppError(AuthErrorCode.INTERNAL_SERVER_ERROR, AuthErrorMessage.INTERNAL_SERVER_ERROR, 500);
         }
     }
 
@@ -165,7 +166,7 @@ class AuthService {
     static async isUserVerified(userId: number): Promise<boolean> {
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) {
-            throw new Error(AuthErrorCode.USER_NOT_FOUND);
+            throw new AppError(AuthErrorCode.USER_NOT_FOUND, AuthErrorMessage.USER_NOT_FOUND, 404);
         }
         return user.verified;
     }
@@ -175,7 +176,7 @@ class AuthService {
             await Hash.verify(user.passwordHash, password);
         } catch (err: any) {
             console.error("Error verifying password:", err.message);
-            throw new Error(AuthErrorCode.INTERNAL_SERVER_ERROR);
+            throw new AppError(AuthErrorCode.INTERNAL_SERVER_ERROR, AuthErrorMessage.INTERNAL_SERVER_ERROR, 500);
         }
     }
 

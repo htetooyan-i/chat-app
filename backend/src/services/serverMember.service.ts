@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma';
 import { MemberRole } from "@prisma/client";
+import { AppError } from '../errors/appError';
 
 class ServerMemberService {
 
@@ -25,7 +26,7 @@ class ServerMemberService {
             }));
         } catch (error: any) {
             console.error("Error retrieving user servers:", error.message);
-            throw error;
+            throw new AppError('INTERNAL_SERVER_ERROR', error.message || 'Failed to retrieve user servers', 500);
         }
     }
 
@@ -36,7 +37,7 @@ class ServerMemberService {
             });
 
             if (!server) {
-                throw new Error("Server not found");
+                throw new AppError('SERVER_NOT_FOUND', 'Server not found', 404);
             }
 
             const existingMember = await prisma.serverMember.findUnique({
@@ -49,7 +50,7 @@ class ServerMemberService {
             });
 
             if (existingMember) {
-                throw new Error("User is already a member");
+                throw new AppError('MEMBER_ALREADY_EXISTS', 'User is already a member', 409);
             }
             return await prisma.serverMember.create({
                 data: {
@@ -61,7 +62,8 @@ class ServerMemberService {
             });
         } catch (error: any) {
             console.error('Error adding member to server:', error.message);
-            throw error;
+            if (error instanceof AppError) throw error;
+            throw new AppError('INTERNAL_SERVER_ERROR', error.message || 'Failed to add member', 500);
         }
 
     }
@@ -73,7 +75,7 @@ class ServerMemberService {
             });
 
             if (!server) {
-                throw new Error("Server not found");
+                throw new AppError('SERVER_NOT_FOUND', 'Server not found', 404);
             }
 
             // Get the member being removed
@@ -87,16 +89,16 @@ class ServerMemberService {
             });
 
             if (!member || member.serverId !== serverId) {
-                throw new Error("Invalid member");
+                throw new AppError('MEMBER_NOT_FOUND', 'Invalid member', 404);
             }
 
             // Prevent removing owner
             if (member.userId === server.ownerId) {
-                throw new Error("Cannot remove server owner");
+                throw new AppError('FORBIDDEN', 'Cannot remove server owner', 403);
             }
             
             if (member.userId === requesterId) {
-                throw new Error("Members cannot remove themselves. Use the leave server option instead.");
+                throw new AppError('FORBIDDEN', 'Members cannot remove themselves. Use the leave server option instead.', 403);
             }
             
             await prisma.serverMember.delete({
@@ -110,7 +112,8 @@ class ServerMemberService {
 
         } catch (error: any) {
             console.error("Error removing member from server:", error.message);
-            throw error;
+            if (error instanceof AppError) throw error;
+            throw new AppError('INTERNAL_SERVER_ERROR', error.message || 'Failed to remove member', 500);
         }
     }
 
@@ -123,7 +126,7 @@ class ServerMemberService {
             return members;
         } catch (error: any) {
             console.error('Error retrieving server members:', error.message);
-            throw error;
+            throw new AppError('INTERNAL_SERVER_ERROR', error.message || 'Failed to retrieve server members', 500);
         }
     }
 
@@ -134,11 +137,11 @@ class ServerMemberService {
             });
 
             if (!server) {
-                throw new Error("Server not found");
+                throw new AppError('SERVER_NOT_FOUND', 'Server not found', 404);
             }
 
             if (server.ownerId === userId) {
-                throw new Error("Owner cannot leave the server");
+                throw new AppError('FORBIDDEN', 'Owner cannot leave the server', 403);
             }
 
             await prisma.serverMember.delete({
@@ -151,7 +154,8 @@ class ServerMemberService {
             });
         } catch (error: any) {
             console.error('Error leaving server:', error.message);
-            throw error;
+            if (error instanceof AppError) throw error;
+            throw new AppError('INTERNAL_SERVER_ERROR', error.message || 'Failed to leave server', 500);
         }
     }
 
@@ -162,7 +166,7 @@ class ServerMemberService {
             });
 
             if (!server) {
-                throw new Error("Server not found");
+                throw new AppError('SERVER_NOT_FOUND', 'Server not found', 404);
             }
 
             // Get the member being updated
@@ -176,11 +180,11 @@ class ServerMemberService {
             });
 
             if (!member || member.serverId !== serverId) {
-                throw new Error("Invalid member");
+                throw new AppError('MEMBER_NOT_FOUND', 'Invalid member', 404);
             }
 
             if (member.userId === server.ownerId) {
-                throw new Error("Cannot change role of server owner");
+                throw new AppError('FORBIDDEN', 'Cannot change role of server owner', 403);
             }
 
             await prisma.serverMember.update({
@@ -196,7 +200,8 @@ class ServerMemberService {
             });
         } catch (error: any) {
             console.error('Error changing member role:', error.message);
-            throw error;
+            if (error instanceof AppError) throw error;
+            throw new AppError('INTERNAL_SERVER_ERROR', error.message || 'Failed to change member role', 500);
         }
     }
 
@@ -213,7 +218,7 @@ class ServerMemberService {
             return member;
         } catch (error: any) {
             console.error('Error retrieving server member:', error.message);
-            throw error;
+            throw new AppError('INTERNAL_SERVER_ERROR', error.message || 'Failed to retrieve server member', 500);
         }
     }
 
@@ -230,7 +235,7 @@ class ServerMemberService {
             return member;
         } catch (error: any) {
             console.error('Error retrieving server member by user ID:', error.message);
-            throw error;
+            throw new AppError('INTERNAL_SERVER_ERROR', error.message || 'Failed to retrieve server member by user ID', 500);
         }
     }
 }

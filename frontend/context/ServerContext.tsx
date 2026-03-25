@@ -4,10 +4,9 @@ import { useParams } from "next/navigation";
 
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
-import { Server } from "@/types/Server";
+import { CreateServerResponse, GetMyServersResponse, Server } from "@/types/Server";
 import { useSocket } from "@/hooks/useSocket";
 import { CreateServerInviteResponse } from "@/types/ServerInvite";
-import { PostCreateNewServerMemberResponse } from "@/types/ServerMember";
 
 type ServerContextType = {
   servers: Server[];
@@ -37,10 +36,9 @@ export const ServerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const fetchServers = useCallback(async (): Promise<Server[]> => {
     setLoading(true);
     try {
-      const res = await api.get("/servers/my-servers");
-      const data = res.data.data;
-      setServers(data);
-      return data;
+      const res: GetMyServersResponse = await api.get("/servers/my-servers").then(r => r.data);
+      setServers(res.data);
+      return res.data;
     } catch (error) {
       console.error("Error fetching servers:", error);
       return [];
@@ -76,9 +74,9 @@ export const ServerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const refreshServers = async () => await fetchServers();
 
   const createServer = async (serverName: string, avatarUrl: string): Promise<string> => {
-    const res = await api.post('/servers', { name: serverName, avatarUrl });
-    const inviteRes: CreateServerInviteResponse = await api.post(`/servers/${res.data.server.id}/invites`).then(res => res.data);
-    setServers(prev => [...prev, res.data.server]);
+    const res: CreateServerResponse = await api.post('/servers', { name: serverName, avatarUrl }).then(r => r.data);
+    const inviteRes: CreateServerInviteResponse = await api.post(`/servers/${res.data.id}/invites`).then(r => r.data);
+    setServers(prev => [...prev, res.data]);
     return inviteRes.data.code;
   }
 

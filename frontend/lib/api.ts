@@ -62,23 +62,10 @@ api.interceptors.response.use(
     }
 
     if (!error.response) {
-      if (isDev) {
-        console.error("[api response error] No response received", {
-          code: error.code,
-          message: error.message,
-          url: config?.url,
-        });
-      }
       return Promise.reject(error);
     }
 
     if (!config) {
-      if (isDev) {
-        console.error("[api response error] Missing request config", {
-          status: error.response.status,
-          data: error.response.data,
-        });
-      }
       return Promise.reject(error);
     }
 
@@ -86,14 +73,6 @@ api.interceptors.response.use(
       const code = error.response.data?.code ?? error.response.data?.error?.code;
       const isNoRefreshPath = shouldSkipRefresh(requestUrl);
 
-      if (isDev) {
-        console.error("[api response error]", {
-          status: error.response.status,
-          code,
-          url: `${config.baseURL ?? ""}${config.url ?? ""}`,
-          data: error.response.data,
-        });
-      }
 
       const shouldRefresh = ["TOKEN_MISSING", "TOKEN_EXPIRED", "TOKEN_INVALID", "AUTH_FAILED", "UNAUTHORIZED"].includes(code);
       const isUnauthorized = error.response.status === 401;
@@ -181,7 +160,7 @@ export const getErrorMessage = (
   if (err instanceof AxiosError) {
     // Axios wraps backend JSON in err.response.data
     const response = err.response?.data as ApiResponse<void> | undefined;
-    return response?.error?.detail ?? defaultErrorMessage;
+    return response?.error?.message ?? defaultErrorMessage;
   }
 
   return defaultErrorMessage;

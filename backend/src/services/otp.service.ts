@@ -1,4 +1,5 @@
 import { twilioClient } from "../lib/twilio";
+import { AppError } from '../errors/appError';
 
 export class OTPService {
 
@@ -16,7 +17,7 @@ export class OTPService {
                 });
         } catch (err) {
             console.error("Failed to send OTP:", err);
-            throw new Error("Failed to send OTP");
+            throw new AppError('INTERNAL_SERVER_ERROR', 'Failed to send OTP', 500);
         }
     }
 
@@ -33,7 +34,7 @@ export class OTPService {
             return verificationCheck.status;
         } catch (err) {
             console.error("Failed to verify OTP:", err);
-            throw new Error("Failed to verify OTP");
+            throw new AppError('INTERNAL_SERVER_ERROR', 'Failed to verify OTP', 500);
         }
     }
 

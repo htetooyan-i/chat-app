@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma';
+import { AppError } from '../errors/appError';
 
 class ReactionService {
     static async create(messageId: number, emoji: string, userId: number)  {
@@ -40,11 +41,11 @@ class ReactionService {
         });
 
         if (!reaction) {
-            throw new Error("Reaction not found");
+            throw new AppError('REACTION_NOT_FOUND', 'Reaction not found', 404);
         }
 
         if (reaction.userId !== userId) {
-            throw new Error("Unauthorized");
+            throw new AppError('FORBIDDEN', 'Unauthorized', 403);
         }
 
         return prisma.reaction.delete({

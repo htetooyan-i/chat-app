@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import EmailTemplates from "../lib/EmailTemplates";
+import { AppError } from '../errors/appError';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -16,7 +17,7 @@ export class EmailService {
             return response;
         } catch (err) {
             console.error("Error sending email:", err);
-            throw err;
+            throw new AppError('INTERNAL_SERVER_ERROR', 'Failed to send email', 500);
         }
     }
 

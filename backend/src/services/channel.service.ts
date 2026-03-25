@@ -1,4 +1,5 @@
 import { ChannelErrorCode } from '../errors/channelErrors';
+import { AppError } from '../errors/appError';
 import { prisma } from '../lib/prisma';
 import { ChannelType } from "@prisma/client";
 
@@ -7,7 +8,7 @@ class ChannelService {
     static async createChannel(serverId: number, name: string) {
 
         if (name === undefined || name.trim() === '') {
-            throw new Error(ChannelErrorCode.MISSING_PARAMETERS);
+            throw new AppError(ChannelErrorCode.MISSING_PARAMETERS, 'Required parameters are missing.', 400);
         }
 
         const channel = await prisma.channel.create({
@@ -28,7 +29,7 @@ class ChannelService {
             });
             return channels;
         } catch (error: any) {
-            throw new Error(error.message);
+            throw new AppError(ChannelErrorCode.INTERNAL_SERVER_ERROR, error.message || 'Failed to fetch channels', 500);
         }
     }
 
@@ -39,14 +40,14 @@ class ChannelService {
             });
             return channel;
         } catch (error: any) {
-            throw new Error(error.message);
+            throw new AppError(ChannelErrorCode.INTERNAL_SERVER_ERROR, error.message || 'Failed to fetch channel', 500);
         }
     }
 
     static async updateChannelName(channelId: number, newName: string) {
 
         if (newName === undefined || newName.trim() === '') {
-            throw new Error(ChannelErrorCode.MISSING_PARAMETERS);
+            throw new AppError(ChannelErrorCode.MISSING_PARAMETERS, 'Required parameters are missing.', 400);
         }
 
         try {
@@ -56,7 +57,7 @@ class ChannelService {
             });
             return updatedChannel;
         } catch (error: any) {
-            throw new Error(error.message);
+            throw new AppError(ChannelErrorCode.INTERNAL_SERVER_ERROR, error.message || 'Failed to update channel', 500);
         }
     }
 
@@ -70,7 +71,7 @@ class ChannelService {
             });
 
             if (!channel) {
-                throw new Error(ChannelErrorCode.MISSING_PARAMETERS);
+                throw new AppError(ChannelErrorCode.CHANNEL_NOT_FOUND, 'Channel not found.', 404);
             }
 
             // delete the channel
@@ -79,7 +80,8 @@ class ChannelService {
             });
             
         } catch (error: any) {
-            throw new Error(error.message);
+            if (error instanceof AppError) throw error;
+            throw new AppError(ChannelErrorCode.INTERNAL_SERVER_ERROR, error.message || 'Failed to delete channel', 500);
         }
 
     }

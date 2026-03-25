@@ -1,3 +1,5 @@
+import { ApiResponse } from "./ApiResponse";
+
 export type Server = {
   id: number;
   name: string;
@@ -5,3 +7,6 @@ export type Server = {
   memberCount: number;
   createdAt: string;
 };
+
+export type GetMyServersResponse = ApiResponse<Server[]>;
+export type CreateServerResponse = ApiResponse<Server>;

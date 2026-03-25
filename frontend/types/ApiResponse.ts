@@ -4,6 +4,6 @@ export type ApiResponse<T> = {
     message: string;
     error: {
         code: string;
-        detail: string;
+        message: string;
     } | null;
 };

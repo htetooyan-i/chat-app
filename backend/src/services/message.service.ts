@@ -2,6 +2,7 @@ import { prisma } from "../lib/prisma";
 import { AttachmentType } from "@prisma/client"
 
 import cloudinary from '../lib/cloudinary';
+import { AppError } from '../errors/appError';
 
 class MessageService {
 
@@ -62,7 +63,7 @@ class MessageService {
 
         } catch (error: any) {
             console.error("Error fetching messages:", error.message);
-            throw new Error(error.message);
+            throw new AppError('INTERNAL_SERVER_ERROR', error.message || 'Failed to fetch messages', 500);
         }
     }
 
@@ -90,14 +91,15 @@ class MessageService {
                 }
             });
 
-            if(!message) throw new Error('Message not found');
-            if(!message.channel.server.members.length) throw new Error('Not a member of this server');
+            if(!message) throw new AppError('MESSAGE_NOT_FOUND', 'Message not found', 404);
+            if(!message.channel.server.members.length) throw new AppError('FORBIDDEN', 'Not a member of this server', 403);
 
             return message;
 
         } catch (error: any) {
             console.error("Error fetching message by ID:", error.message);
-            throw new Error(error.message);
+            if (error instanceof AppError) throw error;
+            throw new AppError('INTERNAL_SERVER_ERROR', error.message || 'Failed to fetch message', 500);
         }
     }
 
@@ -125,8 +127,8 @@ class MessageService {
                 }
             });
 
-            if (!channel) throw new Error('Channel not found');
-            if (!channel.server.members.length) throw new Error('Not a member of this server');
+            if (!channel) throw new AppError('CHANNEL_NOT_FOUND', 'Channel not found', 404);
+            if (!channel.server.members.length) throw new AppError('FORBIDDEN', 'Not a member of this server', 403);
 
 
             return await prisma.$transaction(async (tx) => {
@@ -167,7 +169,8 @@ class MessageService {
 
         } catch (error: any) {
             console.error("Error creating message:", error.message);
-            throw new Error(error.message);
+            if (error instanceof AppError) throw error;
+            throw new AppError('INTERNAL_SERVER_ERROR', error.message || 'Failed to create message', 500);
         }
     }
 
@@ -185,11 +188,11 @@ class MessageService {
             const hasAttachments = attachments && attachments.length > 0;
 
             if (!currentMessage) {
-                throw new Error('Message not found');
+                throw new AppError('MESSAGE_NOT_FOUND', 'Message not found', 404);
             }
 
             if (!hasContent && !hasAttachments) {
-                throw new Error('Message must have content or attachments');
+                throw new AppError('MISSING_PARAMETERS', 'Message must have content or attachments', 400);
             }
 
             const removedFiles = currentMessage.attachments.filter(a => !attachments?.some((att: any) => att.publicId === a.publicId));
@@ -234,7 +237,8 @@ class MessageService {
 
         } catch (error: any) {
             console.error("Error updating message:", error.message);
-            throw new Error(error.message);
+            if (error instanceof AppError) throw error;
+            throw new AppError('INTERNAL_SERVER_ERROR', error.message || 'Failed to update message', 500);
         }
     }
 
@@ -245,12 +249,12 @@ class MessageService {
         try {
 
             const message = await this.getMessageById(messageId, userId);
-            if (!message) throw new Error('Message not found');
+            if (!message) throw new AppError('MESSAGE_NOT_FOUND', 'Message not found', 404);
 
             // Check if the user is the author of the message or has a role of OWNER, ADMIN, or MODERATOR in the server
             const requesterRole = message.channel.server.members[0].role;
             if (requesterRole !== 'OWNER' && requesterRole !== 'ADMIN' && requesterRole !== 'MODERATOR' && message.authorId !== userId) {
-                throw new Error('Not authorized to delete this message');
+                throw new AppError('FORBIDDEN', 'Not authorized to delete this message', 403);
             }
 
             await prisma.message.updateMany({
@@ -272,7 +276,8 @@ class MessageService {
 
         } catch (error: any) {
             console.error("Error deleting message:", error.message);
-            throw new Error(error.message);
+            if (error instanceof AppError) throw error;
+            throw new AppError('INTERNAL_SERVER_ERROR', error.message || 'Failed to delete message', 500);
         }
     }
 

@@ -1,6 +1,7 @@
 import { prisma } from '../lib/prisma';
 import { MemberRole } from '@prisma/client';
 import { ServerMember } from '@prisma/client';
+import { AppError } from '../errors/appError';
 
 class BanService {
 
@@ -21,7 +22,7 @@ class BanService {
 
             return ban;
         } catch (error: any) {
-            throw error;
+            throw new AppError('INTERNAL_SERVER_ERROR', error.message || 'Failed to fetch bans', 500);
         }
     }
 
@@ -38,7 +39,7 @@ class BanService {
             });
             return bans;
         } catch (error: any) {
-            throw error;
+            throw new AppError('INTERNAL_SERVER_ERROR', error.message || 'Failed to fetch bans', 500);
         }
     }
 
@@ -54,11 +55,11 @@ class BanService {
                 where: { id: serverId },
             });
 
-            if (!server) throw new Error("Server not found");
-            if (server.ownerId === userId) throw new Error("Cannot ban the server owner");
+            if (!server) throw new AppError('SERVER_NOT_FOUND', 'Server not found', 404);
+            if (server.ownerId === userId) throw new AppError('FORBIDDEN', 'Cannot ban the server owner', 403);
 
             const activeBan = await this.findExistingBan(serverId, userId);
-            if (!!activeBan) throw new Error("User is already banned");
+            if (!!activeBan) throw new AppError('BAN_ALREADY_EXISTS', 'User is already banned', 409);
 
             const expiresAt = duration
                 ? new Date(Date.now() + duration * 24 * 60 * 60 * 1000)
@@ -101,7 +102,8 @@ class BanService {
 
             return newBan;
         } catch (error: any) {
-            throw error;
+            if (error instanceof AppError) throw error;
+            throw new AppError('INTERNAL_SERVER_ERROR', error.message || 'Failed to ban user', 500);
         }
     }
 
@@ -117,8 +119,8 @@ class BanService {
                 where: { id: serverId },
             });
 
-            if (!server) throw new Error("Server not found");
-            if (server.ownerId === userId) throw new Error("Cannot ban the server owner");
+            if (!server) throw new AppError('SERVER_NOT_FOUND', 'Server not found', 404);
+            if (server.ownerId === userId) throw new AppError('FORBIDDEN', 'Cannot ban the server owner', 403);
 
             // Block request if user is already actively banned
             const activeBan = await prisma.ban.findFirst({
@@ -134,7 +136,7 @@ class BanService {
                 },
             });
 
-            if (activeBan) throw new Error("User is already banned");
+            if (activeBan) throw new AppError('BAN_ALREADY_EXISTS', 'User is already banned', 409);
 
             const expiresAt = duration
                 ? new Date(Date.now() + duration * 24 * 60 * 60 * 1000)
@@ -161,7 +163,8 @@ class BanService {
                 }
             });
         } catch (error: any) {
-            throw error;
+            if (error instanceof AppError) throw error;
+            throw new AppError('INTERNAL_SERVER_ERROR', error.message || 'Failed to request ban', 500);
         }
     }
 
@@ -176,9 +179,9 @@ class BanService {
                 where: { id: banId },
             });
 
-            if (!ban) throw new Error("Ban request not found");
-            if (ban.revokedAt) throw new Error("Cannot review a revoked ban");
-            if (ban.appealStatus !== "PENDING") throw new Error("Ban has already been reviewed");
+            if (!ban) throw new AppError('BAN_NOT_FOUND', 'Ban request not found', 404);
+            if (ban.revokedAt) throw new AppError('INVALID_BAN_STATE', 'Cannot review a revoked ban', 400);
+            if (ban.appealStatus !== "PENDING") throw new AppError('INVALID_BAN_STATE', 'Ban has already been reviewed', 400);
 
             if (newStatus === "ACCEPTED") {
 
@@ -189,7 +192,7 @@ class BanService {
                         where: { id: banId },
                         data: { appealStatus: "SUPERSEDED" },
                     });
-                    throw new Error("User is already banned, request has been superseded");
+                    throw new AppError('BAN_ALREADY_EXISTS', 'User is already banned, request has been superseded', 409);
                 }
 
                 const [updatedBan] = await prisma.$transaction([
@@ -229,7 +232,8 @@ class BanService {
 
             }
         } catch (error: any) {
-            throw error;
+            if (error instanceof AppError) throw error;
+            throw new AppError('INTERNAL_SERVER_ERROR', error.message || 'Failed to review ban request', 500);
         }
     }
 
@@ -246,7 +250,7 @@ class BanService {
                 }
             });
         } catch (error: any) {
-            throw error;
+            throw new AppError('INTERNAL_SERVER_ERROR', error.message || 'Failed to revoke ban', 500);
         }
     }
 
@@ -256,7 +260,7 @@ class BanService {
                 where: { id: banId },
             });
         } catch (error: any) {
-            throw error;
+            throw new AppError('INTERNAL_SERVER_ERROR', error.message || 'Failed to delete ban', 500);
         }
     }
 }

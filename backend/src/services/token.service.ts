@@ -4,6 +4,7 @@ import { Hash } from "../lib/hash";
 import { prisma } from "../lib/prisma";
 import { VerifyTokenType } from "@prisma/client";
 import { UserToken } from '@prisma/client';
+import { AppError } from '../errors/appError';
 
 export class TokenService {
 
@@ -21,7 +22,7 @@ export class TokenService {
             });
         } catch (error: any) {
             console.error("Error creating token:", error.message);
-            throw new Error("Failed to create token", { cause: error });
+            throw new AppError('INTERNAL_SERVER_ERROR', 'Failed to create token', 500);
         }
     }
 
@@ -56,7 +57,7 @@ export class TokenService {
             return tokenRecord;
         } catch (error: any) {
             console.error("Error verifying token:", error.message);
-            throw new Error("Failed to verify token", { cause: error });
+            throw new AppError('INTERNAL_SERVER_ERROR', 'Failed to verify token', 500);
         }
 
     }
@@ -71,7 +72,7 @@ export class TokenService {
             return updated;
         } catch (error: any) {
             console.error("Error updating token:", error.message);
-            throw new Error("Failed to update token", { cause: error });
+            throw new AppError('INTERNAL_SERVER_ERROR', 'Failed to update token', 500);
         }
     }
 
@@ -83,7 +84,7 @@ export class TokenService {
             });
         } catch (error: any) {
             console.error("Error deleting tokens:", error.message);
-            throw new Error("Failed to delete tokens", { cause: error } );
+            throw new AppError('INTERNAL_SERVER_ERROR', 'Failed to delete tokens', 500);
         }   
     }
 
