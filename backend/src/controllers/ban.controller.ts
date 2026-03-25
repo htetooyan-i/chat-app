@@ -16,11 +16,15 @@ export async function handleBanRequest(req: Request, res: Response) {
         }
         const isPrivileged =
             requester.role === MemberRole.OWNER ||
+            requester.role === MemberRole.ADMIN ||
             requester.role === MemberRole.MODERATOR;
             
         if (isPrivileged) {
             const ban = await BanService.banUser(Number(serverId), Number(userId), requester.role, reason, duration);
-            io.to(`server-${serverId}`).emit("memberBanned", userId);
+            io.to(`server-${serverId}`).emit("memberBanned", {
+                userId: Number(userId),
+                serverId: Number(serverId),
+            });
             io.to(`server-${serverId}`).emit("receivedNewBan", ban);
             return sendSuccess(res, 200, "User banned successfully", null);
         } else {
@@ -73,7 +77,10 @@ export async function ReviewBanAppeal(req: Request, res: Response) {
 
         io.to(`server-${serverId}`).emit("banUpdated", {banId: parsedBanId, decision, bannedUserId: updatedBan.userId});
         if (decision === "ACCEPTED") {
-            io.to(`server-${serverId}`).emit("memberBanned", updatedBan.userId);
+            io.to(`server-${serverId}`).emit("memberBanned", {
+                userId: updatedBan.userId,
+                serverId: Number(serverId),
+            });
         }
         
         return sendSuccess(res, 200, "Ban appeal reviewed successfully", null);
