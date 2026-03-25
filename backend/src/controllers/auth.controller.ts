@@ -5,19 +5,23 @@ import { AuthErrorMessage } from '../errors/authErrors';
 import { EmailService } from '../services/email.service';
 import { TokenService } from '../services/token.service';
 import { OTPService } from '../services/otp.service';
+import { parseDurationMs } from '../lib/duration';
+
+const refreshTokenMaxAgeMs = parseDurationMs(process.env.REFRESH_TOKEN_EXPIRES, 30, "d");
+const accessTokenMaxAgeMs = parseDurationMs(process.env.ACCESS_TOKEN_EXPIRES, 15, "m");
 
 const cookieOptions = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" as const : "lax" as const,
-    domain: process.env.NODE_ENV === "production" ? ".konyat.chat" : undefined,
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" as const : "lax" as const,
+  domain: process.env.NODE_ENV === "production" ? ".konyat.chat" : undefined,
+    maxAge: refreshTokenMaxAgeMs,
 };
 
 const accessTokenOptions = {
-    ...cookieOptions,
-    httpOnly: false, // needs to be accessible by client-side JS
-    maxAge: 15 * 24 * 60 * 60 * 1000, // 15 minutes
+  ...cookieOptions,
+  httpOnly: false,
+    maxAge: accessTokenMaxAgeMs,
 };
 
 export async function RegisterUser(req: Request, res: Response) {

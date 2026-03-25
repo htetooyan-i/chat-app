@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from "next/image";
 import { toast } from "sonner";
 
@@ -14,6 +14,18 @@ function AuthPage() {
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [showForgetPassword, setShowForgetPassword] = useState(false);
     const router = useRouter();
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const expired = sessionStorage.getItem("sessionExpired") === "1";
+        if (!expired) return;
+
+        sessionStorage.removeItem("sessionExpired");
+        toast.error("Session expired", {
+            description: "Your refresh token has expired. Please log in again.",
+        });
+    }, []);
 
     const handleFormSubmit = async (data: { username?: string; email: string; password: string; confirmPassword?: string }) => {
         setIsSubmitting(true);

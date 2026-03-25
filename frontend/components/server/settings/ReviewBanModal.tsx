@@ -104,7 +104,7 @@ function ReviewBanModal({ show, onClose, makeDecision }: ReviewBanModalProps) {
                                         setDecisionInProgress(null);
                                     }
                                 }}
-                                className={`flex-1 px-4 py-2 rounded-lg text-success bg-success/20 font-semibold flex items-center justify-center gap-2 ${isSubmitting ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
+                                className={`flex-1 px-4 py-2 rounded-lg text-success bg-success/20 font-semibold flex items-center justify-center gap-2 ${isSubmitting ? "cursor-progress opacity-70" : "cursor-pointer hover:opacity-80"}`}
                             >
                                 {decisionInProgress === "REJECTED" && <Spinner />}
                                 <span>{decisionInProgress === "REJECTED" ? "Rejecting..." : "Reject Request"}</span>
@@ -124,7 +124,7 @@ function ReviewBanModal({ show, onClose, makeDecision }: ReviewBanModalProps) {
                                         setDecisionInProgress(null);
                                     }
                                 }}
-                                className={`flex-1 px-4 py-2 rounded-lg bg-error text-white font-semibold transition-opacity duration-200 flex items-center justify-center gap-2 ${isSubmitting ? "cursor-not-allowed opacity-70" : "cursor-pointer hover:opacity-80"}`}
+                                className={`flex-1 px-4 py-2 rounded-lg bg-error text-white font-semibold transition-opacity duration-200 flex items-center justify-center gap-2 ${isSubmitting ? "cursor-progress opacity-70" : "cursor-pointer hover:opacity-80"}`}
                             >
                                 {decisionInProgress === "ACCEPTED" && <Spinner />}
                                 <span>{decisionInProgress === "ACCEPTED" ? "Accepting..." : "Accept Request"}</span>

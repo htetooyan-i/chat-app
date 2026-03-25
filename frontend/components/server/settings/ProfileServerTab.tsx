@@ -242,7 +242,7 @@ function ProfileServerTab({ selectedServer }: ProfileServerTabProps) {
                     }}>Reset</button>
                     <button
                         disabled={isSaving}
-                        className={`bg-accent text-foreground px-2 py-1 rounded-lg font-semibold flex items-center justify-center gap-2 ${isSaving ? "cursor-not-allowed opacity-70" : "cursor-pointer hover:bg-accent/70"}`}
+                        className={`bg-accent text-foreground px-2 py-1 rounded-lg font-semibold flex items-center justify-center gap-2 ${isSaving ? "cursor-progress opacity-70" : "cursor-pointer hover:bg-accent/70"}`}
                         onClick={handleSaveProfileChanges}
                     >
                         {isSaving && <Spinner />}

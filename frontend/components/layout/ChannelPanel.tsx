@@ -1,18 +1,14 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Layout } from 'antd';
-import { toast } from "sonner";
 
 import CreateNewChannelModal from "@/components/channel/CreateNewChannelModal";
 import ContextDropdownComponent, { ContextDropdownItem } from '../ui/ContextDropdown';
-import DeleteChannelModal from '../channel/settings/DeleteChannelModal';
+import DeleteChannelAlert from '../channel/settings/DeleteChannelAlert';
 import EditChannelModal from '../channel/EditChannelModal';
 import { useChannel } from '@/hooks/useChannel';
 import type { Channel } from '@/types/Channel';
-import { getErrorMessage } from '@/lib/api';
-
-const { Sider } = Layout;
 
 type ChannelPanelProps = {
     siderStyle: React.CSSProperties;
@@ -22,12 +18,12 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
 
     const router = useRouter();
     const { serverId, channelId } = useParams();
-    const { channels, deleteChannel } = useChannel();
+    const { channels } = useChannel();
     const selectedChannel = channels.find(c => String(c.id) === String(channelId));
 
     const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
-    const [showDeleteChannelModal, setShowDeleteChannelModal] = useState(false);
     const [ showEditChannelModal, setShowEditChannelModal ] = useState(false);
+    const [ showDeleteChannelModal, setShowDeleteChannelModal ] = useState(false);
 
     const dropdownItems = (channel: Channel): ContextDropdownItem[] => [
         {
@@ -42,7 +38,7 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
             label: "Delete Channel",
             onClick: () => {
                 router.push(`/channels/${serverId}/${channel.id}`);
-                setShowDeleteChannelModal(true); // FUTURE: want to use alert instead of modal for delete confirmation
+                setShowDeleteChannelModal(true);
             },
             type: "danger"
         }
@@ -52,39 +48,11 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
         router.push(`/channels/${serverId}/${selectedChannelId}`);
     };
 
-    const handleDeleteChannel = async () => {
-        try {
-            await deleteChannel();
-
-            // After deletion, redirect to the first available channel or back to server main page
-            if (channels.length > 0) {
-                router.push(`/channels/${serverId}/${channels[0].id}`);
-            } else {
-                router.push(`/channels/${serverId}`);
-            }
-
-            toast.success("Channel deleted successfully!");
-            setShowDeleteChannelModal(false);
-        } catch (err) {
-            toast.error("Failed to delete channel.", {
-                description: getErrorMessage(err, "An unexpected error occurred.")
-            });
-        }
-    };
-
     return (
         <div className='flex-1 md:w-[300px]'>
             <CreateNewChannelModal showCreateChannelModal={showCreateChannelModal} setShowCreateChannelModal={setShowCreateChannelModal} />
-            <DeleteChannelModal 
-            show={showDeleteChannelModal} 
-            channelName={selectedChannel?.name || ""}
-            onClose={() => {
-                setShowDeleteChannelModal(false);
-            }}
-            onConfirm={() => {
-                if (selectedChannel) handleDeleteChannel()
-            }} />
             <EditChannelModal show={showEditChannelModal} onClose={() => setShowEditChannelModal(false)} />
+            <DeleteChannelAlert show={showDeleteChannelModal} onClose={() => setShowDeleteChannelModal(false)} />
             <div
             style={{
                 ...siderStyle,

@@ -112,7 +112,7 @@ function ChangeMemberRoleModal({ show, onClose, changeMemberRole }: ChangeMember
                                             setIsSaving(false);
                                         }
                                     }}
-                                    className={`flex-1 px-4 py-2 rounded-lg bg-accent text-white font-semibold transition-colors duration-200 flex items-center justify-center gap-2 ${isSaving ? "cursor-not-allowed opacity-70" : "cursor-pointer hover:bg-accent-hover"}`}
+                                    className={`flex-1 px-4 py-2 rounded-lg bg-accent text-white font-semibold transition-colors duration-200 flex items-center justify-center gap-2 ${isSaving ? "cursor-progress opacity-70" : "cursor-pointer hover:bg-accent-hover"}`}
                                 >
                                     {isSaving && <Spinner />}
                                     <span>{isSaving ? "Saving..." : "Save"}</span>
