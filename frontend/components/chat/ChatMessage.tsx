@@ -200,6 +200,7 @@ function ChatMessage({ messages, messagesMap }: ChatMessageProps) {
                                 </div>
                                 <div className={`flex justify-between items-center gap-2 absolute right-25 ${hasReply ? "-top-11" : "-top-4"} px-2 py-1 bg-muted-background/80 rounded-md border border-muted-border transition-opacity ${openDropdownId === message.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
                                     <span className="cursor-pointer" onClick={() => toggleReaction(message.id, "👍")}>👍</span>
+                                    <span className="cursor-pointer" onClick={() => toggleReaction(message.id, "❤️")}>❤️</span>
                                     <span className="cursor-pointer" onClick={() => toggleReaction(message.id, "🙂")}>🙂</span>
                                     <span className="cursor-pointer" onClick={() => toggleReaction(message.id, "😢")}>😢</span>
                                     <Divider orientation="vertical" style={{ borderColor: "var(--foreground)" }} />

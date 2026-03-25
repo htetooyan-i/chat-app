@@ -11,6 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { useServerMember } from '@/hooks/useServerMember';
+import { SERVER_MANAGABLE_ROLES } from '@/types/ServerMember';
 
 type InviteServerModalProps = {
     show: boolean;
@@ -25,6 +27,7 @@ function InviteServerModal({ show, onClose, fromSettings }: InviteServerModalPro
     const [ copied, setCopied ] = useState(false);
     const [ inviteCode, setInviteCode ] = useState<ServerInvite | null>(null);
     const [ createNewCode, setCreateNewCode ] = useState(false);
+    const { me } = useServerMember();
 
     const [ expireAfter, setExpireAfter ] = useState("7");
     const [ maxUses, setMaxUses ] = useState("No Limit");
@@ -95,7 +98,15 @@ function InviteServerModal({ show, onClose, fromSettings }: InviteServerModalPro
                             ) : (
                                 <main className="flex flex-col gap-10 items-start justify-center">
                                     {/* Need to check the expire date */}
-                                    <p className='text-[12px] text-muted-text'>Your Link expire in 7 days. <span className='text-accent hover:underline cursor-pointer' onClick={() => setCreateNewCode(true)}>Edit invite link</span></p>
+                                    <p className='text-[12px] text-muted-text'>
+                                        Your Link expire in 7 days. 
+                                        {
+                                            me?.role && SERVER_MANAGABLE_ROLES.includes(me.role) && (
+                                                <span className='text-accent hover:underline cursor-pointer' onClick={() => setCreateNewCode(true)}>Edit invite link</span>
+                                            )
+                                        }
+
+                                    </p>
                                     <div className={`flex gap-1 w-full items-center border rounded-lg p-1 ps-2 ${copied ? "bg-green-300/10 border-success" : "bg-chat-panel border-muted-border"}`}>
                                         <p>{process.env.NEXT_PUBLIC_API_URL}/invites/{inviteCode?.code}</p>
                                         <button className={`ml-auto px-2 py-1 text-white rounded hover:opacity-80 cursor-pointer ${copied ? "bg-success" : "bg-accent"}`} onClick={handleCopyInviteLink}>{copied ? "Copied!" : "Copy"}</button>

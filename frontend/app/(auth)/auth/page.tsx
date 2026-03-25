@@ -67,8 +67,8 @@ function AuthPage() {
             <div>
                 {/* Title and navigation */}
                 <header className='px-3'>
-                    <h1 className='text-[40px]'>Welcome to the Chat App!</h1>
-                    <p className='text-muted-text'>Please log in or register to access the chat app.</p>
+                    <h1 className='text-[40px]'>Welcome to Konyat!</h1>
+                    <p className='text-muted-text'>Please log in or register to access Konyat.</p>
                 </header>
                 <nav className='px-3'>
                     <ul className='flex gap-10'>

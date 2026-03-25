@@ -162,9 +162,6 @@ export function ServerDataTable<TData, TValue>({
                                 {table.getFilteredSelectedRowModel().rows.length} of{" "}
                                 {table.getFilteredRowModel().rows.length} members selected.
                             </div>
-                            <p className="text-left text-sm font-semibold text-muted-text">
-                                Showing {data.length} members
-                            </p>
                         </div>
                     </TableCell>
                 </TableRow>

@@ -121,6 +121,22 @@ function ChatMessageInput() {
         }
     };
 
+
+    const handleSendClick = async () => {
+        if (text.trim() || files.length > 0) {
+            if (editMessage) {
+                await editExistingMessage(editMessage.id, text, files);
+                setEditMessage(null);
+                setFiles([]);
+            } else {
+                sendMessage(text, replyMessage, files);
+                setReplyMessage(null);
+                setFiles([]);
+            }
+            setText(''); // clear input
+        }
+    }
+
     return (
         <div className="flex flex-col shrink-0 bg-chat-panel">
             {
@@ -241,10 +257,11 @@ function ChatMessageInput() {
 
                     <div className='flex gap-2 items-center'>
                         <X className={`cursor-pointer ${editMessage ? "block" : "hidden"} outline outline-offset-2 rounded-sm me-5 cursor-pointer outline-error/50 text-error`} size={16} onClick={() => {setEditMessage(null); setText(""); setFiles([])}}/>
-                        <StickerPopover>
+                        {/* FUTURE: Want to add sticker support back */}
+                        {/* <StickerPopover>
                             <Sticker className="cursor-pointer" />
-                        </StickerPopover>
-                        {/*<Send className="cursor-pointer" onClick={() => {sendMessage(text, replyMessage, files); setText("");}}/>*/}
+                        </StickerPopover> */}
+                        <Send className="cursor-pointer" onClick={handleSendClick}/>
                     </div>
 
                 </div>

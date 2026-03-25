@@ -1,3 +1,4 @@
+import { ChannelErrorCode } from '../errors/channelErrors';
 import { prisma } from '../lib/prisma';
 import { ChannelType } from "@prisma/client";
 
@@ -6,7 +7,7 @@ class ChannelService {
     static async createChannel(serverId: number, name: string) {
 
         if (name === undefined || name.trim() === '') {
-            throw new Error('Channel name is required');
+            throw new Error(ChannelErrorCode.MISSING_PARAMETERS);
         }
 
         const channel = await prisma.channel.create({
@@ -27,7 +28,6 @@ class ChannelService {
             });
             return channels;
         } catch (error: any) {
-            console.error('Error fetching channels:', error.message);
             throw new Error(error.message);
         }
     }
@@ -39,7 +39,6 @@ class ChannelService {
             });
             return channel;
         } catch (error: any) {
-            console.error('Error fetching channel by ID:', error.message);
             throw new Error(error.message);
         }
     }
@@ -47,7 +46,7 @@ class ChannelService {
     static async updateChannelName(channelId: number, newName: string) {
 
         if (newName === undefined || newName.trim() === '') {
-            throw new Error('Channel name is required');
+            throw new Error(ChannelErrorCode.MISSING_PARAMETERS);
         }
 
         try {
@@ -57,7 +56,6 @@ class ChannelService {
             });
             return updatedChannel;
         } catch (error: any) {
-            console.error('Error updating channel name:', error.message);
             throw new Error(error.message);
         }
     }
@@ -72,7 +70,7 @@ class ChannelService {
             });
 
             if (!channel) {
-                throw new Error('Channel not found');
+                throw new Error(ChannelErrorCode.MISSING_PARAMETERS);
             }
 
             // delete the channel
@@ -81,7 +79,6 @@ class ChannelService {
             });
             
         } catch (error: any) {
-            console.error('Error deleting channel:', error.message);
             throw new Error(error.message);
         }
 

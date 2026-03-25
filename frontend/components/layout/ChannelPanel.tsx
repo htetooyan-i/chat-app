@@ -1,13 +1,17 @@
 "use client";
 import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Layout } from 'antd';
 
 import CreateNewChannelModal from "@/components/channel/CreateNewChannelModal";
 import ContextDropdownComponent, { ContextDropdownItem } from '../ui/ContextDropdown';
 import DeleteChannelAlert from '../channel/settings/DeleteChannelAlert';
 import EditChannelModal from '../channel/EditChannelModal';
+import KonyatTypingText from '@/components/ui/KonyatTypingText';
 import { useChannel } from '@/hooks/useChannel';
+import { useServerMember } from '@/hooks/useServerMember';
+import { SERVER_MANAGABLE_ROLES } from '@/types/ServerMember';
+
+
 import type { Channel } from '@/types/Channel';
 
 type ChannelPanelProps = {
@@ -20,6 +24,7 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
     const { serverId, channelId } = useParams();
     const { channels } = useChannel();
     const selectedChannel = channels.find(c => String(c.id) === String(channelId));
+    const { me } = useServerMember();
 
     const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
     const [ showEditChannelModal, setShowEditChannelModal ] = useState(false);
@@ -70,22 +75,36 @@ function ChannelPanel({ siderStyle }: ChannelPanelProps) {
                 <div className={`flex-1 flex flex-col w-full h-full`}>
                     {/* Header */}
                     <header className='sticky top-0 z-10 h-[64px] w-full flex justify-center items-end pb-1 px-5 bg-background'>
-                        <button
-                        onClick={() => setShowCreateChannelModal(true)}
-                        className="cursor-pointer bg-accent w-full text-white py-2 font-semibold rounded flex items-center justify-center gap-2 hover:bg-accent-hover transition-colors"
-                        >
-                        Create New Channel
-                        </button>
+                        {
+                            me?.role && SERVER_MANAGABLE_ROLES.includes(me.role) ? (
+                                <button
+                                onClick={() => setShowCreateChannelModal(true)}
+                                className="cursor-pointer bg-accent w-full text-white py-2 font-semibold rounded flex items-center justify-center gap-2 hover:bg-accent-hover transition-colors"
+                                >
+                                <span>Create New Channel</span>
+                                </button>
+                            ) : (
+                                <h2 className='bg-gradient-to-r from-accent via-indigo-500 to-secondary-accent w-full text-white py-2 font-semibold rounded flex items-center justify-center gap-2 hover:brightness-110 transition-all duration-300'>                     
+                                    <KonyatTypingText />
+                                </h2>
+                            )
+                        }
                     </header>
                     {/* Channel List */}
                     <div className="flex flex-col w-full gap-3 items-center justify-start flex-1 overflow-y-auto p-5 thin-scrollbar" >
                         {
                             channels.map(channel => (
-                                <ContextDropdownComponent items={dropdownItems(channel)} key={channel.id}>
-                                    <div onClick={() => handleChangeChannel(channel.id)} className={`text-[15px] h-[45px] w-full p-2 border-s-4 rounded-r-sm cursor-pointer flex items-center ${channel.id === selectedChannel?.id ? 'border-accent  bg-chat-panel' : 'border-muted-border'}`}>
+                                me?.role && SERVER_MANAGABLE_ROLES.includes(me.role) ? (
+                                    <ContextDropdownComponent items={dropdownItems(channel)} key={channel.id}>
+                                        <div onClick={() => handleChangeChannel(channel.id)} className={`text-[15px] h-[45px] w-full p-2 border-s-4 rounded-r-sm cursor-pointer flex items-center ${channel.id === selectedChannel?.id ? 'border-accent  bg-chat-panel' : 'border-muted-border'}`}>
+                                            <p className='truncate'><span>#</span> {channel.name}</p>
+                                        </div>
+                                    </ContextDropdownComponent>
+                                ) : (
+                                    <div key={channel.id} onClick={() => handleChangeChannel(channel.id)} className={`text-[15px] h-[45px] w-full p-2 border-s-4 rounded-r-sm cursor-pointer flex items-center ${channel.id === selectedChannel?.id ? 'border-accent  bg-chat-panel' : 'border-muted-border'}`}>
                                         <p className='truncate'><span>#</span> {channel.name}</p>
                                     </div>
-                                </ContextDropdownComponent>
+                                )
                             ))
                         }
                     </div>
