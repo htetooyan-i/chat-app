@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Modal, ModalProps } from 'antd';
 
-import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
+import { LogOut } from 'lucide-react';
+import Skeletons from '../layout/Skeletons';
 
 const styles: ModalProps['styles'] = {
     mask: {
@@ -29,9 +30,24 @@ const styles: ModalProps['styles'] = {
 
 function AccountRemoval() {
 
-    const { deleteAccount } = useAuth();
+    const { deleteAccount, logout } = useAuth();
     const [confirmLoading, setConfirmLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [ isLoggingOut, setIsLoggingOut ] = useState(false);
+
+
+    const handleLogout = async () => {
+        if (isLoggingOut) return;
+        setIsLoggingOut(true);
+        try {
+            await logout();
+        } catch (error) {
+            console.error("Logout failed:", error);
+        } finally {
+            setIsLoggingOut(false);
+        }
+    };
+
 
     const handleOk = async () => {
         setConfirmLoading(true);
@@ -44,6 +60,14 @@ function AccountRemoval() {
             setShowModal(false);
         }
     };
+
+    if (isLoggingOut) {
+        return (
+            <div className="fixed inset-0 z-[9999]">
+                <Skeletons.AuthSkeleton />
+            </div>
+        )
+    }
 
     return (
         <div className='flex flex-col justify-start items-start gap-4 mx-auto my-2 py-5'>
@@ -88,11 +112,14 @@ function AccountRemoval() {
             </header>
             {/* FIX: color styes with tailwaind is not working */}
             <main className="flex gap-4">
-                <button onClick={() => alert("Account deletion is currently unavailable. Please try again later.")} className=' hover:opacity-80 px-4 py-2 rounded-md cursor-pointer font-semibold transition-opacity' style={{ background: "var(--normal-sidebar)", color: "var(--error)", border: "1px solid var(--error)"}}>Disable Account</button>
+                <button onClick={handleLogout} className='flex items-center gap-2 hover:opacity-80 px-4 py-2 rounded-md cursor-pointer font-semibold transition-opacity bg-sidebar text-error border border-error'>
+                    <LogOut width={24} height={24}/>
+                    <span>Logout</span>
+                </button>
                 <button onClick={() => setShowModal(true)} className='hover:opacity-80 text-foreground px-4 py-2 rounded-md cursor-pointer font-semibold transition-opacity' style={{ background: "var(--error)"}}>Delete Account</button>
             </main>
         </div>
-    );
+    )
 }
 
 export default AccountRemoval;

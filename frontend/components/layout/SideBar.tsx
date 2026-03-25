@@ -1,12 +1,11 @@
 "use client";
 import React, { useState } from 'react';
-import { LogOut, Plus, Settings } from 'lucide-react';
+import { Bell, LogOut, Plus, Settings } from 'lucide-react';
 import { Avatar, Badge, Layout } from 'antd';
 import { useRouter, useParams, usePathname } from 'next/navigation';
 import { toast } from "sonner";
 
 import ContextDropdownComponent, { ContextDropdownItem } from '@/components/ui/ContextDropdown';
-import FormModal from '../ui/FormModal';
 import ServerSettingsModal from '../server/settings/ServerSettingsModal';
 import NewServerModal from '../server/NewServerModal';
 import { useAuth } from '@/hooks/useAuth';
@@ -14,6 +13,7 @@ import { useServer } from '@/hooks/useServer';
 import { useChannel } from '@/hooks/useChannel';
 import { useServerMember } from '@/hooks/useServerMember';
 import { getErrorMessage } from '@/lib/api'
+import { handleMaintenanceRoute } from '@/lib/helper';
 
 const { Sider } = Layout;
 
@@ -82,14 +82,6 @@ function SideBar({ siderStyle }: SideBarProps) {
             router.push(`/channels/${serverId}/${cached[0].id}`);
         } else {
             router.push(`/channels/${serverId}`);
-        }
-    };
-
-    const handleLogout = async () => {
-        try {
-            await logout();
-        } catch (error) {
-            console.error("Logout failed:", error);
         }
     };
 
@@ -185,46 +177,43 @@ function SideBar({ siderStyle }: SideBarProps) {
                         ))}
                     </div>
                     <footer className="flex flex-col items-center py-5 bg-normal-sidebar border-t border-muted-border">
-                    {/* Add Server Button */}
-                    <div onClick={() => setShowServerCreationModal(true)} className="server-item flex items-center justify-center relative my-2 cursor-pointer hover:opacity-80 transition-opacity duration-200">
-                        <Badge>
-                            <Avatar
-                            size={40}
-                            shape="circle"
-                            style={{
-                                backgroundColor: "var(--accent)",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center", 
-                            }}
-                            >
-                                <Plus width={24} height={24}/>
-                            </Avatar>
-                        </Badge>
-                    </div>
-                    
-                    {/* <FormModal title="Create Server" >
-                        <button type="button">Create Server</button>
-                    </FormModal> */}
+                        {/* Add Server Button */}
+                        <div onClick={() => setShowServerCreationModal(true)} className="server-item flex items-center justify-center relative my-2 cursor-pointer hover:opacity-80 transition-opacity duration-200">
+                            <Badge>
+                                <Avatar
+                                size={40}
+                                shape="circle"
+                                style={{
+                                    backgroundColor: "var(--accent)",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center", 
+                                }}
+                                >
+                                    <Plus width={24} height={24}/>
+                                </Avatar>
+                            </Badge>
+                        </div>
 
-                    {/* Logout Button */}
-                    <div onClick={handleLogout} className="server-item flex items-center justify-center relative my-2 cursor-pointer">
-                        <Badge>
-                            <Avatar
-                            size={40}
-                            shape="square"
-                            style={{
-                                backgroundColor: "var(--error)",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center", 
-                            }}
-                            >
-                                <LogOut width={24} height={24}/>
-                            </Avatar>
-                        </Badge>
-                    </div>
-                </footer>
+                        {/* Logout Button */}
+                        <div onClick={handleMaintenanceRoute} className="server-item flex items-center justify-center relative my-2 cursor-pointer">
+                            <Badge>
+                                <Avatar
+                                size={40}
+                                shape="square"
+                                style={{
+                                    backgroundColor: "var(--secondary-accent)",
+                                    color: "black",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center", 
+                                }}
+                                >
+                                    <Bell width={24} height={24}/>
+                                </Avatar>
+                            </Badge>
+                        </div>
+                    </footer>
                 </div>
             </Sider>
         </div>

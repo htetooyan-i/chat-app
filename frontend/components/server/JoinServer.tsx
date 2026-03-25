@@ -86,7 +86,7 @@ function JoinServer({ onClose, changeView }: JoinServerProps) {
                     Cancel
                 </button>
                 <button
-                    className={`flex-1 flex items-center gap-2 px-4 py-2 bg-accent font-semibold text-foreground rounded cursor-pointer ${isLoading ? "cursor-progress opacity-70" : "hover:opacity-80"}`}
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-accent font-semibold text-foreground rounded cursor-pointer ${isLoading ? "cursor-progress opacity-70" : "hover:opacity-80"}`}
                     onClick={handleJoinServer}
                     disabled={isLoading}
                 >

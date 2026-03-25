@@ -12,6 +12,7 @@ type ServerContextType = {
   servers: Server[];
   loading: boolean;
   refreshServers: () => Promise<Server[]>;
+  removeServerFromList: (serverId: number) => void;
   createServer: (serverName: string, avatarUrl: string) => Promise<string>;
   joinServer: (inviteCode: string) => Promise<void>;
   updateServer: (data: Partial<Server>) => Promise<void>;
@@ -73,6 +74,10 @@ export const ServerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const refreshServers = async () => await fetchServers();
 
+  const removeServerFromList = (removedServerId: number) => {
+    setServers(prev => prev.filter(server => server.id !== removedServerId));
+  };
+
   const createServer = async (serverName: string, avatarUrl: string): Promise<string> => {
     const res: CreateServerResponse = await api.post('/servers', { name: serverName, avatarUrl }).then(r => r.data);
     const inviteRes: CreateServerInviteResponse = await api.post(`/servers/${res.data.id}/invites`).then(r => r.data);
@@ -126,7 +131,7 @@ export const ServerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }
 
   return (
-    <ServerContext.Provider value={{ servers, loading, refreshServers, createServer, joinServer, updateServer, deleteServer, leaveServer, deleteAvatar }}>
+    <ServerContext.Provider value={{ servers, loading, refreshServers, removeServerFromList, createServer, joinServer, updateServer, deleteServer, leaveServer, deleteAvatar }}>
       {children}
     </ServerContext.Provider>
   );

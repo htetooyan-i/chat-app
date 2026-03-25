@@ -6,12 +6,13 @@ import React, {
     useState,
     useMemo
 } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 import { api } from "@/lib/api";
 import { useSocket } from "@/hooks/useSocket";
 import { GetServerMembersResponse, MemberRole, ServerMember } from "@/types/ServerMember";
 import { useAuth } from "@/hooks/useAuth";
+import { useServer } from "@/hooks/useServer";
 
 type ServerMemberContextType = {
     me: ServerMember | null;
@@ -45,8 +46,10 @@ export const ServerMemberProvider: React.FC<{
 
     const serverId = serverIdParam ? Number(serverIdParam) : null;
 
+    const router = useRouter();
     const { socket } = useSocket();
     const { user } = useAuth();
+    const { refreshServers, removeServerFromList } = useServer();
 
     // Cache members by server
     const [membersByServer, setMembersByServer] = useState<Record<number, ServerMember[]>>({});
@@ -177,11 +180,46 @@ export const ServerMemberProvider: React.FC<{
             }));
         };
 
-        const handleRemoveUser = (userId: number) => {
+        const handleLeftMember = (userId: number) => {
             updateMembersSafe(prev =>
                 prev.filter(m => m.userId !== userId)
             );
         };
+
+        const handleBannedMember = async (
+            payload: number | string | { userId: number | string; serverId?: number | string }
+        ) => {
+            const bannedUserId = Number(typeof payload === "object" ? payload.userId : payload);
+            const bannedServerId = Number(
+                typeof payload === "object" && payload.serverId !== undefined
+                    ? payload.serverId
+                    : activeServerId
+            );
+
+            console.warn(`User ${bannedUserId} was banned from the server.`);
+            if (bannedUserId === user?.id) {
+                if (!Number.isNaN(bannedServerId)) {
+                    removeServerFromList(bannedServerId);
+                    if (socket) {
+                        socket.emit("leaveServer", bannedServerId);
+                    }
+                    
+                    // If the current server is the one we're banned from, redirect away
+                    if (activeServerId === bannedServerId) {
+                        console.warn("Current server is banned, redirecting...");
+                        router.push("/channels/");
+                    }
+                }
+
+                console.warn("I was banned from the server. Refreshing server list...");
+                await refreshServers();
+            }
+
+            updateMembersSafe(prev =>
+                prev.filter(m => m.userId !== bannedUserId)
+            );
+        };
+
 
         const handleChangedRole = (data: { userId: number; newRole: MemberRole }) => {
             updateMembersSafe(prev =>
@@ -221,8 +259,8 @@ export const ServerMemberProvider: React.FC<{
         };
 
         socket.on("receivedUpdatedMember", handleMemberUpdated);
-        socket.on("memberBanned", handleRemoveUser);
-        socket.on("memberLeft", handleRemoveUser);
+        socket.on("memberBanned", handleBannedMember);
+        socket.on("memberLeft", handleLeftMember);
         socket.on("changedMemberRole", handleChangedRole);
         socket.on("receivedNewMember", handleNewMember);
 
@@ -232,12 +270,12 @@ export const ServerMemberProvider: React.FC<{
 
         return () => {
             socket.off("receivedUpdatedMember", handleMemberUpdated);
-            socket.off("memberBanned", handleRemoveUser);
-            socket.off("memberLeft", handleRemoveUser);
+            socket.off("memberBanned", handleBannedMember);
+            socket.off("memberLeft", handleLeftMember);
             socket.off("changedMemberRole", handleChangedRole);
             socket.off("receivedNewMember", handleNewMember);
         };
-    }, [activeServerId, socket, fetchMembers, membersByServer]);
+    }, [activeServerId, socket, fetchMembers, membersByServer, refreshServers, removeServerFromList, user?.id, router]);
 
     return (
         <ServerMemberContext.Provider
