@@ -38,7 +38,7 @@ const refreshAccessToken = async () => {
   if (!refreshPromise) {
     refreshPromise = axios
       .post(
-        `${api.defaults.baseURL}/auth/refresh-access-token`,
+        `${api.defaults.baseURL}auth/refresh-access-token`,
         {},
         { withCredentials: true }
       )
