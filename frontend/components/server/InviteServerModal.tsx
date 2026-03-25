@@ -134,7 +134,7 @@ function InviteServerModal({ show, onClose, fromSettings }: InviteServerModalPro
                                         </button>
                                         <button
                                             disabled={isGenerating}
-                                            className={`text-sm flex-1 px-4 py-2 bg-accent border border-accent font-semibold text-foreground rounded ${isGenerating ? "cursor-not-allowed opacity-70" : "hover:opacity-80 cursor-pointer"}`}
+                                            className={`text-sm flex-1 flex items-center gap-2 px-4 py-2 bg-accent border border-accent font-semibold text-foreground rounded ${isGenerating ? "cursor-not-allowed opacity-70" : "hover:opacity-80 cursor-pointer"}`}
                                             onClick={async () => {
                                                 await handleGenerateNewLink();
                                                 if (fromSettings) {

@@ -85,7 +85,7 @@ function DeleteChannelAlert({ show, onClose }: DeleteChannelAlertProps) {
                     variant="destructive"
                     onClick={handleDeleteChannel}
                     disabled={isDeleting}
-                    className={`bg-error-background disabled:pointer-events-auto ${isDeleting ? "cursor-progress bg-error-background/70" : "cursor-pointer hover:bg-error-background-hover"}`}
+                    className={`bg-error-background disabled:pointer-events-auto flex items-center gap-2 justify-center ${isDeleting ? "cursor-progress bg-error-background/70" : "cursor-pointer hover:bg-error-background-hover"}`}
                 >
                     {isDeleting && <Spinner />}
                     {isDeleting ? "Deleting..." : "Delete"}
