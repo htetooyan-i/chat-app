@@ -26,15 +26,18 @@ class AuthService {
         }
 
         const hashedPassword = await Hash.hash(password);
-
         const newUser = await prisma.user.create({
             data: {
                 email: email,
                 username: username,
                 passwordHash: hashedPassword,
+                presence: {
+                    create: {
+                        status: 'offline',
+                    },
+                },
             },
         });
-
         const accessToken = await createAccessToken({ userId: newUser.id, email: newUser.email });
         const refreshToken = await createRefreshToken({ userId: newUser.id });
 

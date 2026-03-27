@@ -1,6 +1,9 @@
 "use client";
-import { createContext, useRef, useEffect, useState } from "react";
-import { io, Socket } from "socket.io-client";
+import { createContext, useEffect, useState } from "react";
+import { Socket } from "socket.io-client";
+
+import { useAuth } from "@/hooks/useAuth";
+import { connectSocket, disconnectSocket, getSocket } from "@/app/socket";
 
 type SocketContextType = {
   socket: Socket | null;
@@ -9,35 +12,40 @@ type SocketContextType = {
 export const SocketContext = createContext<SocketContextType | null>(null);
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, loading } = useAuth();
   const [socket, setSocket] = useState<Socket | null>(null);
-  const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
+    if (loading) return;
 
-    const newSocket = io(process.env.NEXT_PUBLIC_SOCKET_URL, {
-      withCredentials: true,
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
+    const instance = getSocket();
 
-    });
+    const handleConnect = () => {
+      setSocket(instance);
+    };
 
-    socketRef.current = newSocket;
-
-    newSocket.on("connect", () => {
-      
-      setSocket(newSocket);
-    });
-
-    newSocket.on("disconnect", (reason) => {
+    const handleDisconnect = () => {
       setSocket(null);
-    });
+    };
+
+    instance.on("connect", handleConnect);
+    instance.on("disconnect", handleDisconnect);
+
+    if (isAuthenticated) {
+      connectSocket();
+      if (instance.connected) {
+        setSocket(instance);
+      }
+    } else {
+      disconnectSocket();
+      setSocket(null);
+    }
 
     return () => {
-      newSocket.disconnect();
-      socketRef.current = null;
+      instance.off("connect", handleConnect);
+      instance.off("disconnect", handleDisconnect);
     };
-  }, []);
+  }, [isAuthenticated, loading]);
 
   return (
     <SocketContext.Provider value={{ socket }}>

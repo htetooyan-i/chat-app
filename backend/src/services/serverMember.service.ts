@@ -121,7 +121,13 @@ class ServerMemberService {
         try {
             const members = await prisma.serverMember.findMany({
                 where: { serverId },
-                include: { user: true },
+                include: {
+                    user: {
+                        include: {
+                            presence: true,
+                        },
+                    },
+                },
             });
             return members;
         } catch (error: any) {

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { UserRoundPlus } from "lucide-react";
 import { Avatar, Badge } from 'antd';
 import { toast } from "sonner";
@@ -13,7 +13,6 @@ import { getErrorMessage } from "@/lib/api";
 
 
 function ServerMemberInfo() {
-
     const { members, kickMember, setSelectedUserId } = useServerMember();
 
     const [ showInviteServerModal, setShowInviteServerModal ] = useState(false);
@@ -51,8 +50,6 @@ function ServerMemberInfo() {
     // },
     ];
 
-
-    // Kick user from server and close the context menu
     const handleKickMember = async (userId: number) => {
         try {
             await kickMember(userId);
@@ -64,6 +61,43 @@ function ServerMemberInfo() {
         }
     };
 
+    const sortedMembers = useMemo(() => {
+        return [...members].sort((a, b) => {
+            const aOnline = a.user.presence?.status === "online";
+            const bOnline = b.user.presence?.status === "online";
+
+            if (aOnline === bOnline) {
+                return a.user.username.localeCompare(b.user.username);
+            }
+
+            return aOnline ? -1 : 1;
+        });
+    }, [members]);
+
+    const renderMember = (member: typeof members[number], isOnline: boolean) => (
+        <div key={member.id} className="px-2">
+            <ContextDropdown items={getDropdownItems(member.userId)}>
+                <div className={`w-full flex justify-between items-center gap-2 rounded cursor-pointer px-2 py-1 serverMember`}>
+                    <div className="flex items-center gap-2">
+                        <Badge dot color={isOnline ? "green" : "gray"} className="bottom-small-badge cursor-pointer">
+                            <Avatar
+                                shape="circle"
+                                size={32}
+                                src={member.user.avatarUrl || "/logo.png"}
+                            />
+                        </Badge>
+
+                        <div className="flex flex-col">
+                            <span className="truncate font-medium" style={{fontSize: "12px", maxWidth: "160px"}}>{member.user.username}</span>
+                            <span className="text-[10px] text-muted-text capitalize">{member.user.presence?.status ?? "offline"}</span>
+                        </div>
+                    </div>
+                    <span className="font-semibold" style={{fontSize: "12px"}}>{member.role}</span>
+                </div>
+            </ContextDropdown>
+        </div>
+    );
+
     return (
         <div>
             <InviteServerModal show={showInviteServerModal} onClose={() => setShowInviteServerModal(false)} />
@@ -74,29 +108,10 @@ function ServerMemberInfo() {
                     <UserRoundPlus width={18} height={18} />
                 </div>
             </header>
-            { 
-                members.map(member => (
-                
-                    <div key={member.id} className="px-2">
-                        <ContextDropdown items={getDropdownItems(member.userId)}>
-                            <div className={`w-full flex justify-between items-center gap-2 rounded cursor-pointer px-2 py-1 serverMember`}>
-                                <div className="flex items-center gap-2">
-                                    <Badge dot color="green" className="bottom-badge cursor-pointer" style={{}}>
-                                    <Avatar
-                                        shape="circle"
-                                        size={32}
-                                        src={member.user.avatarUrl || "/logo.png"}
-                                    />
-                                    </Badge>
-
-                                    <span className="truncate font-medium" style={{fontSize: "12px", maxWidth: "160px"}}>{member.user.username}</span>
-                                </div>
-                                <span className="font-semibold" style={{fontSize: "12px"}}>{member.role}</span>
-                            </div>
-                        </ContextDropdown> 
-                    </div>
-                ))
-            }
+            {sortedMembers.map(member => {
+                const isOnline = member.user.presence?.status === "online";
+                return renderMember(member, isOnline);
+            })}
         </div>
     );
 }

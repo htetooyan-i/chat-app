@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Ellipsis } from 'lucide-react';
-import { Avatar } from 'antd';
+import { Avatar, Badge } from 'antd';
 import { toast } from "sonner";
 import { ColumnDef } from '@tanstack/react-table';
 
@@ -133,14 +133,20 @@ function ServerMemberTab({ selectedServer }: ServerMemberTabProps) {
             id: "user",
             cell: ({ row }) => {
                 const user = row.original.user;
+                const isOnline = user.presence?.status === "online";
                 return (
                     <div className="flex items-center gap-2">
-                        <Avatar
-                            size={40}
-                            src={user.avatarUrl || "/logo.png"}
-                            className="border-background"
-                        />
-                        <span>{user.username}</span>
+                        <Badge dot color={isOnline ? "green" : "gray"}>
+                            <Avatar
+                                size={40}
+                                src={user.avatarUrl || "/logo.png"}
+                                className="border-background"
+                            />
+                        </Badge>
+                        <div className="flex flex-col">
+                            <span>{user.username}</span>
+                            <span className="text-xs text-muted-text capitalize">{user.presence?.status ?? "offline"}</span>
+                        </div>
                     </div>
                 );
             }

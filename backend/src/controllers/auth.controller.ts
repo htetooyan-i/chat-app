@@ -40,7 +40,8 @@ export async function RegisterUser(req: Request, res: Response) {
 
         return sendSuccess(res, 200, "User registered successfully", null);
     } catch (error) {
-        return sendErrorFromUnknown(res, error, AuthErrorCode.INTERNAL_SERVER_ERROR, "User registration failed", 400);
+        console.error("RegisterUser error:", error);
+        return sendErrorFromUnknown(res, error, AuthErrorCode.INTERNAL_SERVER_ERROR, "User registration failed", 500);
     }
 }
 

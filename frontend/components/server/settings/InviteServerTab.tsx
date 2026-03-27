@@ -141,7 +141,7 @@ function InviteServerTab({ selectedServer }: InviteServerTabProps) {
                 description: getErrorMessage(error, "Failed to revoke selected invites")
             });
         } finally {
-            setIsRevoking(false);
+            setIsRevoking(false); 
         }
     }
 

@@ -258,11 +258,35 @@ export const ServerMemberProvider: React.FC<{
             );
         };
 
+        const handlePresenceUpdated = (data: {
+            userId: number;
+            status: string;
+            updatedAt: string;
+        }) => {
+            updateMembersSafe(prev =>
+                prev.map(m =>
+                    m.userId === data.userId
+                        ? {
+                            ...m,
+                            user: {
+                                ...m.user,
+                                presence: {
+                                    status: data.status,
+                                    updatedAt: data.updatedAt,
+                                },
+                            },
+                        }
+                        : m
+                )
+            );
+        };
+
         socket.on("receivedUpdatedMember", handleMemberUpdated);
         socket.on("memberBanned", handleBannedMember);
         socket.on("memberLeft", handleLeftMember);
         socket.on("changedMemberRole", handleChangedRole);
         socket.on("receivedNewMember", handleNewMember);
+        socket.on("presenceUpdated", handlePresenceUpdated);
 
         if (!membersByServer[activeServerId]) {
             fetchMembers(activeServerId);
@@ -274,8 +298,21 @@ export const ServerMemberProvider: React.FC<{
             socket.off("memberLeft", handleLeftMember);
             socket.off("changedMemberRole", handleChangedRole);
             socket.off("receivedNewMember", handleNewMember);
+            socket.off("presenceUpdated", handlePresenceUpdated);
         };
     }, [activeServerId, socket, fetchMembers, membersByServer, refreshServers, removeServerFromList, user?.id, router]);
+
+    useEffect(() => {
+        if (!activeServerId) return;
+
+        const intervalId = setInterval(() => {
+            fetchMembers(activeServerId);
+        }, 30000);
+
+        return () => {
+            clearInterval(intervalId);
+        };
+    }, [activeServerId, fetchMembers]);
 
     return (
         <ServerMemberContext.Provider

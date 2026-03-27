@@ -5,14 +5,14 @@ import { SocketProvider } from "@/context/SocketContext";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <SocketProvider>
-      <AuthProvider>
+    <AuthProvider>
+      <SocketProvider>
         <ServerProvider>  
             <ChannelProvider>
               {children}
             </ChannelProvider>
         </ServerProvider>
-      </AuthProvider>
-    </SocketProvider>
+      </SocketProvider>
+    </AuthProvider>
   );
 }

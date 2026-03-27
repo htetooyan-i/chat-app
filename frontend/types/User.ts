@@ -1,5 +1,10 @@
 import {ApiResponse} from "@/types/ApiResponse";
 
+export type Presence = {
+  status: string;
+  updatedAt: Date | string;
+};
+
 export type User = {
   id: number;
   username: string;
@@ -7,6 +12,7 @@ export type User = {
   verified: boolean;
   bio?: string;
   avatarUrl?: string;
+  presence?: Presence | null;
   createdAt: Date | string;
 };
 

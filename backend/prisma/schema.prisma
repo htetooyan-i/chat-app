@@ -64,6 +64,16 @@ model User {
   bans           Ban[]
   messages       Message[]
   reactions      Reaction[]
+  presence       Presence?
+}
+
+model Presence {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  status    String // online, offline, idle, dnd
+  updatedAt DateTime @default(now()) @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model UserToken {
@@ -126,8 +136,8 @@ model Channel {
   type      ChannelType
   createdAt DateTime    @default(now())
 
-  server   Server    @relation(fields: [serverId], references: [id], onDelete: Cascade)
-  messages Message[]
+  server      Server       @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  messages    Message[]
   attachments Attachment[]
 
   @@unique([serverId, name])
