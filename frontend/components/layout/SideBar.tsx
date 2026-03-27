@@ -13,7 +13,6 @@ import { useServer } from '@/hooks/useServer';
 import { useChannel } from '@/hooks/useChannel';
 import { useServerMember } from '@/hooks/useServerMember';
 import { getErrorMessage } from '@/lib/api'
-import { handleMaintenanceRoute } from '@/lib/helper';
 
 const { Sider } = Layout;
 
@@ -196,13 +195,19 @@ function SideBar({ siderStyle }: SideBarProps) {
                         </div>
 
                         {/* Logout Button */}
-                        <div onClick={handleMaintenanceRoute} className="server-item flex items-center justify-center relative my-2 cursor-pointer">
+                        <div
+                            onClick={() => router.push('/notifications')}
+                            className="server-item flex items-center justify-center relative my-2 cursor-pointer"
+                        >
                             <Badge>
                                 <Avatar
                                 size={40}
                                 shape="square"
                                 style={{
                                     backgroundColor: "var(--secondary-accent)",
+                                    ...((pathname.includes('/notifications'))
+                                        ? { outlineColor: "var(--accent)", outlineWidth: "2px", outlineStyle: "solid" }
+                                        : {}),
                                     color: "black",
                                     display: "flex",
                                     alignItems: "center",
