@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useServer } from '@/hooks/useServer';
 import { useChannel } from '@/hooks/useChannel';
 import { useServerMember } from '@/hooks/useServerMember';
+import { useNofi } from '@/hooks/useNoti';
 import { getErrorMessage } from '@/lib/api'
 
 const { Sider } = Layout;
@@ -31,6 +32,7 @@ function SideBar({ siderStyle }: SideBarProps) {
     const { channelsByServer, clearServerCache } = useChannel();
     const { me } = useServerMember();
     const { user, logout } = useAuth();
+    const { unreadCount } = useNofi();
 
     const serverId = Array.isArray(params.serverId) ? Number(params.serverId[0]) : Number(params.serverId);
     const selectedServer = servers.find(
@@ -199,7 +201,7 @@ function SideBar({ siderStyle }: SideBarProps) {
                             onClick={() => router.push('/notifications')}
                             className="server-item flex items-center justify-center relative my-2 cursor-pointer"
                         >
-                            <Badge>
+                            <Badge count={unreadCount} size="default" overflowCount={99} style={{ boxShadow: "none" }}>
                                 <Avatar
                                 size={40}
                                 shape="square"

@@ -1,7 +1,10 @@
 import express, { Request, Response } from 'express';
 import { io } from "../server";
+import { NotificationType } from '@prisma/client';
 
 import ServerMemberService from '../services/serverMember.service';
+import ServerService from '../services/server.service';
+import NotificationService from '../services/notification.service';
 import { sendError, sendErrorFromUnknown, sendSuccess } from '../errors/apiResponse';
 
 export async function addMemberToServer(req: Request, res: Response) {
@@ -13,6 +16,29 @@ export async function addMemberToServer(req: Request, res: Response) {
     try {
         const data = await ServerMemberService.addMember(Number(serverId), userId);
         io.to(`server-${serverId}`).emit("receivedNewMember", data);
+
+        const notiTitle = `New member joined ${data.server.name}`;
+        const notiDescription = `${data.user.username} joined the server.`;
+
+        try {
+            const notiResult = await NotificationService.createForServerMembers(
+                Number(serverId),
+                NotificationType.MEMBER_ADDED,
+                notiTitle,
+                notiDescription
+            );
+
+            io.to(`server-${serverId}`).emit("notificationCreated", {
+                serverId: Number(serverId),
+                type: NotificationType.MEMBER_ADDED,
+                title: notiTitle,
+                description: notiDescription,
+                createdAt: notiResult.createdAt,
+            });
+        } catch (notificationError: any) {
+            console.error("Notification creation failed on member add:", notificationError?.message || notificationError);
+        }
+
         return sendSuccess(res, 200, 'Member added to server successfully', data);
     } catch (error: any) {
         console.error('Error adding member to server:', error.message);
@@ -52,6 +78,33 @@ export async function removeMemberFromServer(req: Request, res: Response) {
     try {
         await ServerMemberService.removeMember(Number(serverId), Number(userId), requesterId);
         io.to(`server-${serverId}`).emit('memberLeft', userId);
+
+        const server = await ServerService.getServerById(Number(serverId));
+        const serverName = server?.name || `#${serverId}`;
+
+        const notiTitle = `Member kicked from ${serverName}`;
+        const notiDescription = `User #${userId} was kicked from the server.`;
+
+        try {
+            const notiResult = await NotificationService.createForServerMembers(
+                Number(serverId),
+                NotificationType.MEMBER_KICKED,
+                notiTitle,
+                notiDescription,
+                [Number(userId)]
+            );
+
+            io.to(`server-${serverId}`).emit("notificationCreated", {
+                serverId: Number(serverId),
+                type: NotificationType.MEMBER_KICKED,
+                title: notiTitle,
+                description: notiDescription,
+                createdAt: notiResult.createdAt,
+            });
+        } catch (notificationError: any) {
+            console.error("Notification creation failed on member remove:", notificationError?.message || notificationError);
+        }
+
         return sendSuccess(res, 200, 'Member removed from server successfully', null);
     } catch (error: any) {
         console.error('Error removing member from server:', error.message);
@@ -69,6 +122,32 @@ export async function leaveServer(req: Request, res: Response) {
     try {
         await ServerMemberService.leaveServer(Number(serverId), userId);
         io.to(`server-${serverId}`).emit('memberLeft', userId);
+
+        const server = await ServerService.getServerById(Number(serverId));
+        const serverName = server?.name || `#${serverId}`;
+
+        const notiTitle = `Member left ${serverName}`;
+        const notiDescription = `User #${userId} left the server.`;
+
+        try {
+            const notiResult = await NotificationService.createForServerMembers(
+                Number(serverId),
+                NotificationType.MEMBER_LEFT,
+                notiTitle,
+                notiDescription
+            );
+
+            io.to(`server-${serverId}`).emit("notificationCreated", {
+                serverId: Number(serverId),
+                type: NotificationType.MEMBER_LEFT,
+                title: notiTitle,
+                description: notiDescription,
+                createdAt: notiResult.createdAt,
+            });
+        } catch (notificationError: any) {
+            console.error("Notification creation failed on leave server:", notificationError?.message || notificationError);
+        }
+
         return sendSuccess(res, 200, 'Left server successfully', null);
     } catch (error: any) {
         console.error('Error leaving server:', error.message);

@@ -38,6 +38,13 @@ enum AttachmentType {
   GIF
 }
 
+enum NotificationType {
+  MEMBER_ADDED
+  MEMBER_LEFT
+  MEMBER_BANNED
+  MEMBER_KICKED
+}
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -65,6 +72,7 @@ model User {
   messages       Message[]
   reactions      Reaction[]
   presence       Presence?
+  notifications  Notification[]
 }
 
 model Presence {
@@ -94,11 +102,29 @@ model Server {
   ownerId   Int
   createdAt DateTime @default(now())
 
-  owner    User           @relation("ServerOwner", fields: [ownerId], references: [id])
-  members  ServerMember[]
-  channels Channel[]
-  invites  ServerInvite[]
-  bans     Ban[]
+  owner         User           @relation("ServerOwner", fields: [ownerId], references: [id])
+  members       ServerMember[]
+  channels      Channel[]
+  invites       ServerInvite[]
+  bans          Ban[]
+  notifications Notification[]
+}
+
+model Notification {
+  id          Int              @id @default(autoincrement())
+  userId      Int
+  serverId    Int
+  type        NotificationType
+  title       String
+  description String
+  isRead      Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  server Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([serverId, createdAt])
 }
 
 model Ban {

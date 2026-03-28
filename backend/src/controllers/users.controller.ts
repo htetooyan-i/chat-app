@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 
 import AuthService from '../services/auth.service';
 import ServerMemberService from '../services/serverMember.service';
+import NotificationService from '../services/notification.service';
 import { UsersService } from '../services/users.service';
 import { TokenService } from '../services/token.service';
 import { EmailService } from '../services/email.service';
@@ -19,6 +20,64 @@ export async function GetCurrentUser(req: Request, res: Response) {
         return sendSuccess(res, 200, 'User fetched successfully', user);
     } catch (error) {
         console.error('Error fetching current user:', error);
+        return sendErrorFromUnknown(res, error, 'INTERNAL_SERVER_ERROR', 'Internal server error', 500);
+    }
+}
+
+export async function GetMyNotifications(req: Request, res: Response) {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+        return sendError(res, 401, 'UNAUTHORIZED', 'Unauthorized');
+    }
+
+    try {
+        const notifications = await NotificationService.getForUser(userId);
+        return sendSuccess(res, 200, 'Notifications fetched successfully', notifications);
+    } catch (error) {
+        console.error('Error fetching notifications:', error);
+        return sendErrorFromUnknown(res, error, 'INTERNAL_SERVER_ERROR', 'Internal server error', 500);
+    }
+}
+
+export async function MarkMyNotificationAsRead(req: Request, res: Response) {
+    const userId = req.user?.userId;
+    const notificationId = Number(req.params.notificationId);
+
+    if (!userId) {
+        return sendError(res, 401, 'UNAUTHORIZED', 'Unauthorized');
+    }
+
+    if (isNaN(notificationId)) {
+        return sendError(res, 400, 'INVALID_NOTIFICATION_ID', 'Notification ID must be a valid number');
+    }
+
+    try {
+        const updatedNotification = await NotificationService.markAsRead(notificationId, userId);
+
+        if (!updatedNotification) {
+            return sendError(res, 404, 'NOTIFICATION_NOT_FOUND', 'Notification not found');
+        }
+
+        return sendSuccess(res, 200, 'Notification marked as read', updatedNotification);
+    } catch (error) {
+        console.error('Error updating notification read status:', error);
+        return sendErrorFromUnknown(res, error, 'INTERNAL_SERVER_ERROR', 'Internal server error', 500);
+    }
+}
+
+export async function MarkAllMyNotificationsAsRead(req: Request, res: Response) {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+        return sendError(res, 401, 'UNAUTHORIZED', 'Unauthorized');
+    }
+
+    try {
+        const updatedCount = await NotificationService.markAllAsReadForUser(userId);
+        return sendSuccess(res, 200, 'All notifications marked as read', { updatedCount });
+    } catch (error) {
+        console.error('Error marking all notifications as read:', error);
         return sendErrorFromUnknown(res, error, 'INTERNAL_SERVER_ERROR', 'Internal server error', 500);
     }
 }

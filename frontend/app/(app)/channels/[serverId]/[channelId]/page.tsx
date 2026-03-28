@@ -17,6 +17,15 @@ export default function MessagePage() {
     const { serverId, channelId } = useParams();
     const router = useRouter();
 
+    const navigateBackOrChannels = () => {
+        if (typeof window !== "undefined" && window.history.length > 1) {
+            router.back();
+            return;
+        }
+
+        router.replace("/channels");
+    };
+
     const parsedServerId = Number(Array.isArray(serverId) ? serverId[0] : serverId);
     const parsedChannelId = Number(Array.isArray(channelId) ? channelId[0] : channelId);
 
@@ -24,7 +33,7 @@ export default function MessagePage() {
         if (channelsLoading) return;
 
         if (!parsedServerId) {
-            router.replace(`/channels`);
+            navigateBackOrChannels();
             return;
         }
 

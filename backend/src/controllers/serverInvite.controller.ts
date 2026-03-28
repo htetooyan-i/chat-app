@@ -1,7 +1,9 @@
 import { Request, Response } from "express";
+import { NotificationType } from "@prisma/client";
 
 import ServerInviteService from "../services/serverInvite.service";
 import ServerMemberService from "../services/serverMember.service";
+import NotificationService from "../services/notification.service";
 import {io} from "../server";
 import { sendError, sendErrorFromUnknown, sendSuccess } from '../errors/apiResponse';
 
@@ -83,6 +85,28 @@ export async function JoinServerViaCode(req: Request, res: Response) {
 
         io.to(`server-${newMember.serverId}`).emit("receivedNewMember", newMember);
         io.to(`server-${newMember.serverId}`).emit("inviteUpdated", { inviteId: updatedInvite.id, newCount: updatedInvite.currentUses});
+
+        const notiTitle = `New member joined ${newMember.server.name}`;
+        const notiDescription = `${newMember.user.username} joined the server.`;
+
+        try {
+            const notiResult = await NotificationService.createForServerMembers(
+                newMember.serverId,
+                NotificationType.MEMBER_ADDED,
+                notiTitle,
+                notiDescription
+            );
+
+            io.to(`server-${newMember.serverId}`).emit("notificationCreated", {
+                serverId: newMember.serverId,
+                type: NotificationType.MEMBER_ADDED,
+                title: notiTitle,
+                description: notiDescription,
+                createdAt: notiResult.createdAt,
+            });
+        } catch (notificationError: any) {
+            console.error("Notification creation failed on invite join:", notificationError?.message || notificationError);
+        }
 
         return sendSuccess(res, 200, 'Joined server successfully', null);
     } catch (error: any) {

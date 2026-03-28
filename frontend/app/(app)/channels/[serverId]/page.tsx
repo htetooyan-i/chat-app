@@ -15,6 +15,23 @@ export default function ChannelIndexPage() {
     const router = useRouter();
     const { serverId } = useParams();
 
+    const navigateBackOrChannels = () => {
+        if (typeof window !== "undefined" && window.history.length > 1) {
+            router.back();
+            return;
+        }
+
+        router.replace("/channels");
+    };
+
+    useEffect(() => {
+        const parsedServerId = Number(Array.isArray(serverId) ? serverId[0] : serverId);
+
+        if (!parsedServerId) {
+            navigateBackOrChannels();
+        }
+    }, [serverId, router]);
+
     useEffect(() => {
         if (channelLoading) return;
         if (channels.length === 0) return;

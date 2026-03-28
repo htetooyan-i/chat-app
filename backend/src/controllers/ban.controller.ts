@@ -1,8 +1,11 @@
 import { Request, Response } from "express";
 
 import BanService from "../services/ban.service";
+import ServerService from "../services/server.service";
 import { io } from "../server";
 import { MemberRole } from "@prisma/client";
+import { NotificationType } from "@prisma/client";
+import NotificationService from "../services/notification.service";
 import { sendError, sendErrorFromUnknown, sendSuccess } from '../errors/apiResponse';
 
 export async function handleBanRequest(req: Request, res: Response) {
@@ -21,11 +24,37 @@ export async function handleBanRequest(req: Request, res: Response) {
             
         if (isPrivileged) {
             const ban = await BanService.banUser(Number(serverId), Number(userId), requester.role, reason, duration);
+            const server = await ServerService.getServerById(Number(serverId));
+            const serverName = server?.name || `#${serverId}`;
             io.to(`server-${serverId}`).emit("memberBanned", {
                 userId: Number(userId),
                 serverId: Number(serverId),
             });
             io.to(`server-${serverId}`).emit("receivedNewBan", ban);
+
+            const notiTitle = `Member banned in ${serverName}`;
+            const notiDescription = `${ban.user.username} was banned from the server.`;
+
+            try {
+                const notiResult = await NotificationService.createForServerMembers(
+                    Number(serverId),
+                    NotificationType.MEMBER_BANNED,
+                    notiTitle,
+                    notiDescription,
+                    [Number(userId)]
+                );
+
+                io.to(`server-${serverId}`).emit("notificationCreated", {
+                    serverId: Number(serverId),
+                    type: NotificationType.MEMBER_BANNED,
+                    title: notiTitle,
+                    description: notiDescription,
+                    createdAt: notiResult.createdAt,
+                });
+            } catch (notificationError: any) {
+                console.error("Notification creation failed on ban:", notificationError?.message || notificationError);
+            }
+
             return sendSuccess(res, 200, "User banned successfully", null);
         } else {
             const ban = await BanService.requestBanUser(Number(serverId), Number(userId), requester.role, reason, duration);
@@ -74,6 +103,8 @@ export async function ReviewBanAppeal(req: Request, res: Response) {
 
     try {
         const updatedBan = await BanService.reviewBanRequest(parsedBanId, reviewerId, decision, duration);
+        const server = await ServerService.getServerById(Number(serverId));
+        const serverName = server?.name || `#${serverId}`;
 
         io.to(`server-${serverId}`).emit("banUpdated", {banId: parsedBanId, decision, bannedUserId: updatedBan.userId});
         if (decision === "ACCEPTED") {
@@ -81,6 +112,29 @@ export async function ReviewBanAppeal(req: Request, res: Response) {
                 userId: updatedBan.userId,
                 serverId: Number(serverId),
             });
+
+            const notiTitle = `Member banned in ${serverName}`;
+            const notiDescription = `User #${updatedBan.userId} was banned from the server.`;
+
+            try {
+                const notiResult = await NotificationService.createForServerMembers(
+                    Number(serverId),
+                    NotificationType.MEMBER_BANNED,
+                    notiTitle,
+                    notiDescription,
+                    [updatedBan.userId]
+                );
+
+                io.to(`server-${serverId}`).emit("notificationCreated", {
+                    serverId: Number(serverId),
+                    type: NotificationType.MEMBER_BANNED,
+                    title: notiTitle,
+                    description: notiDescription,
+                    createdAt: notiResult.createdAt,
+                });
+            } catch (notificationError: any) {
+                console.error("Notification creation failed on accepted ban appeal:", notificationError?.message || notificationError);
+            }
         }
         
         return sendSuccess(res, 200, "Ban appeal reviewed successfully", null);

@@ -136,7 +136,7 @@ function ServerMemberTab({ selectedServer }: ServerMemberTabProps) {
                 const isOnline = user.presence?.status === "online";
                 return (
                     <div className="flex items-center gap-2">
-                        <Badge dot color={isOnline ? "green" : "gray"}>
+                        <Badge dot color={isOnline ? "green" : "gray"} className='bottom-small-badge'>
                             <Avatar
                                 size={40}
                                 src={user.avatarUrl || "/logo.png"}
